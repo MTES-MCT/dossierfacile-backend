@@ -184,10 +184,10 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     public void createFullPdf(UUID token) {
         ApartmentSharing apartmentSharing = findValidApartmentSharing(token, true);
 
-        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), token.toString());
+        checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(apartmentSharing.getId(), token.toString());
 
-        FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
-        switch (status) {
+        FileStatus pdfStatus = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
+        switch (pdfStatus) {
             case COMPLETED -> log.warn("Trying to create Full PDF on completed Status -" + token);
             case IN_PROGRESS -> log.warn("Trying to create Full PDF on in progress Status -" + token);
             default -> {
@@ -299,10 +299,10 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             throw new ApartmentSharingNotFoundException("No apartment sharing found for tenant");
         }
 
-        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), null);
+        checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(apartmentSharing.getId(), null);
 
-        FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
-        switch (status) {
+        FileStatus pdfStatus = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
+        switch (pdfStatus) {
             case COMPLETED -> log.warn("Trying to create Full PDF on completed Status");
             case IN_PROGRESS -> log.warn("Trying to create Full PDF on in progress Status");
             default -> {
@@ -400,8 +400,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         zos.closeEntry();
     }
 
-    private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {
-        int numberOfTenants = tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(apartmentSharingId);
+    private void checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(long apartmentSharingId, String token) {
+        int numberOfTenants = tenantRepository.countTenantsBlockingFullPdfGeneration(apartmentSharingId);
         if (numberOfTenants > 0) {
             if (token != null) {
                 throw new ApartmentSharingUnexpectedException(token);

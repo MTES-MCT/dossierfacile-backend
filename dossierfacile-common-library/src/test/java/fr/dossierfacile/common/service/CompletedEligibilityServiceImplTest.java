@@ -4,7 +4,6 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
@@ -25,8 +24,6 @@ class CompletedEligibilityServiceImplTest {
     @Mock
     private TenantUserApiRepository tenantUserApiRepository;
     @Mock
-    private TenantLogRepository tenantLogRepository;
-    @Mock
     private FeatureFlagService featureFlagService;
 
     @InjectMocks
@@ -46,7 +43,6 @@ class CompletedEligibilityServiceImplTest {
 
     private void mockFullEligibility(Tenant tenant, boolean flagEnabled) {
         when(tenantUserApiRepository.existsByTenant(tenant)).thenReturn(false);
-        when(tenantLogRepository.hasBeenValidatedOrDenied(tenant.getId())).thenReturn(false);
         when(featureFlagService.isFeatureEnabledForUser(tenant.getId(), CompletedEligibilityService.COMPLETED_OPTIN_FEATURE_FLAG))
                 .thenReturn(flagEnabled);
     }
@@ -71,14 +67,26 @@ class CompletedEligibilityServiceImplTest {
         }
 
         @Test
+        void should_be_eligible_when_dossier_has_already_been_reviewed() {
+            // On a VALIDATED or DECLINED dossier the choice applies to the next re-submission
+            for (TenantFileStatus status : new TenantFileStatus[]{
+                    TenantFileStatus.VALIDATED, TenantFileStatus.DECLINED}) {
+                Tenant tenant = buildTenant(status, ApplicationType.ALONE);
+                mockFullEligibility(tenant, true);
+
+                assertThat(completedEligibilityService.isEligibleForOptIn(tenant)).isTrue();
+            }
+        }
+
+        @Test
         void should_not_be_eligible_when_dossier_is_not_submitted() {
             for (TenantFileStatus status : new TenantFileStatus[]{
-                    TenantFileStatus.INCOMPLETE, TenantFileStatus.VALIDATED, TenantFileStatus.DECLINED, TenantFileStatus.ARCHIVED}) {
+                    TenantFileStatus.INCOMPLETE, TenantFileStatus.ARCHIVED}) {
                 Tenant tenant = buildTenant(status, ApplicationType.ALONE);
 
                 assertThat(completedEligibilityService.isEligibleForOptIn(tenant)).isFalse();
             }
-            verifyNoInteractions(tenantUserApiRepository, tenantLogRepository, featureFlagService);
+            verifyNoInteractions(tenantUserApiRepository, featureFlagService);
         }
 
         @Test
@@ -88,7 +96,7 @@ class CompletedEligibilityServiceImplTest {
 
                 assertThat(completedEligibilityService.isEligibleForOptIn(tenant)).isFalse();
             }
-            verifyNoInteractions(tenantUserApiRepository, tenantLogRepository, featureFlagService);
+            verifyNoInteractions(tenantUserApiRepository, featureFlagService);
         }
 
         @Test
@@ -98,16 +106,6 @@ class CompletedEligibilityServiceImplTest {
 
             assertThat(completedEligibilityService.isEligibleForOptIn(tenant)).isFalse();
             // The flag must not be checked (nor assign a bucket) for non-candidates
-            verifyNoInteractions(tenantLogRepository, featureFlagService);
-        }
-
-        @Test
-        void should_not_be_eligible_when_dossier_has_ever_been_validated_or_denied() {
-            Tenant tenant = buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
-            when(tenantUserApiRepository.existsByTenant(tenant)).thenReturn(false);
-            when(tenantLogRepository.hasBeenValidatedOrDenied(tenant.getId())).thenReturn(true);
-
-            assertThat(completedEligibilityService.isEligibleForOptIn(tenant)).isFalse();
             verifyNoInteractions(featureFlagService);
         }
 
@@ -129,7 +127,7 @@ class CompletedEligibilityServiceImplTest {
             tenant.setValidationRequested(true);
 
             assertThat(completedEligibilityService.canBeCompleted(tenant)).isFalse();
-            verifyNoInteractions(tenantUserApiRepository, tenantLogRepository, featureFlagService);
+            verifyNoInteractions(tenantUserApiRepository, featureFlagService);
         }
 
         @Test

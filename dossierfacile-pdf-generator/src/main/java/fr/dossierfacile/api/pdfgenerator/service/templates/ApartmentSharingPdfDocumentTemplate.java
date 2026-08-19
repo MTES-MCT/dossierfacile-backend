@@ -15,6 +15,7 @@ import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -174,6 +175,10 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final float LEADING_FOR_CLARIFICATION_TEXT = B_HEIGHT_TEMPLATE / 421 * 8.23f;
     private static final float LEFT_MARGIN_FOR_CLARIFICATION_TEXT = FONT_SIZE_FOR_PAGINATION;
 
+    // Bottom of the band holding the RF and DossierFacile logos at the top of the
+    // attachments template (just above the text headers drawn by code)
+    private static final float Y_BOTTOM_OF_HEADER_LOGOS_AREA = B_HEIGHT_TEMPLATE / 421 * 365f;
+
     private static final float FONT_SIZE_FOR_STATIC_TEXT_IN_FIRST_TEMPLATE = B_HEIGHT_TEMPLATE / 421 * 8.37f;
 
     private static final float FONT_SIZE_FOR_FIRST_NAMES_OF_TENANTS_IN_HEADER_OF_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 10f;
@@ -267,7 +272,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
     }
 
-    private ByteArrayOutputStream addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(List<Tenant> tenantList, String headerSentence, String bodyText) {
+    private ByteArrayOutputStream addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(List<Tenant> tenantList, String headerSentence, String bodyText, boolean hideHeaderLogos) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try (PDDocument doc = ATTACHMENTS_AND_CLARIFICATIONS.load()) {
 
@@ -280,6 +285,17 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             //endregion
 
             PDPage pageTemplate = doc.getPage(0);
+
+            if (hideHeaderLogos) {
+                // A COMPLETED (non verified) dossier must not carry the République
+                // Française and DossierFacile logos: cover the top band of the template
+                // before drawing the text headers
+                try (PDPageContentStream cover = new PDPageContentStream(doc, pageTemplate, PDPageContentStream.AppendMode.APPEND, true)) {
+                    cover.setNonStrokingColor(Color.WHITE);
+                    cover.addRect(0, Y_BOTTOM_OF_HEADER_LOGOS_AREA, A_WIDTH_TEMPLATE, B_HEIGHT_TEMPLATE - Y_BOTTOM_OF_HEADER_LOGOS_AREA);
+                    cover.fill();
+                }
+            }
 
             //region Text Header 1
             PDPageContentStream contentStream1 = new PDPageContentStream(doc, pageTemplate, PDPageContentStream.AppendMode.APPEND, true);
@@ -552,9 +568,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
     }
 
-    private void addDocument(PDFMergerUtility ut, InputStream pdfDocument, List<Integer> indexPagesForDocuments, boolean newCategoryDocument, List<Tenant> tenantList, String headerSentence) {
+    private void addDocument(PDFMergerUtility ut, InputStream pdfDocument, List<Integer> indexPagesForDocuments, boolean newCategoryDocument, List<Tenant> tenantList, String headerSentence, boolean hideHeaderLogos) {
 
-        ByteArrayOutputStream templateWithTextsHeader = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, headerSentence, null);
+        ByteArrayOutputStream templateWithTextsHeader = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, headerSentence, null, hideHeaderLogos);
 
         try (PDDocument innerDocument = Loader.loadPDF(pdfDocument.readAllBytes())) {
 
@@ -573,7 +589,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     }
 
-    private void addDocumentOfClarification(PDFMergerUtility ut, List<Tenant> tenantList, Tenant mainTenant, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem) {
+    private void addDocumentOfClarification(PDFMergerUtility ut, List<Tenant> tenantList, Tenant mainTenant, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem, boolean hideHeaderLogos) {
         if (StringUtils.isNotBlank(mainTenant.getClarification())) {
             //region Adding bookmark
             PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
@@ -587,7 +603,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             pdOutlineItem.addLast(pdO);
             //endregion
 
-            ByteArrayOutputStream outputStream = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, LE_MOT_DU_LOCATAIRE, mainTenant.getClarification());
+            ByteArrayOutputStream outputStream = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, LE_MOT_DU_LOCATAIRE, mainTenant.getClarification(), hideHeaderLogos);
             ut.addSource(new RandomAccessReadBuffer(outputStream.toByteArray()));
             indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + 1);
         } else {
@@ -798,7 +814,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream2.close();
     }
 
-    private void addFilesOfDocumentsToDossierPDF(PDFMergerUtility ut, List<Tenant> tenantList, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem) {
+    private void addFilesOfDocumentsToDossierPDF(PDFMergerUtility ut, List<Tenant> tenantList, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem, boolean hideHeaderLogos) {
         for (Tenant tenant1 : tenantList) {
             boolean firstDocumentTenant = true;
             //region Adding bookmark
@@ -841,7 +857,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
                 //We get here the second sentence located in the header of attachment pages for the current tenant
                 String sentence = getSentenceForTenantFromDocumentCategory(tenant1, currentCategory, count);
-                addDocument(ut, documentInputStream, indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence);
+                addDocument(ut, documentInputStream, indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence, hideHeaderLogos);
                 firstDocumentSubject = false;
                 previousCategory = currentCategory;
             }
@@ -908,7 +924,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
                     //We get here the second sentence located in the header of attachment pages for the current guarantor
                     String sentence = getSentenceForGuarantorFromDocumentCategory(counterOfGuarantor, guarantor1.getTypeGuarantor(), currentCategory, tenant1.getFirstName(), counter);
-                    addDocument(ut, documentInputStream, indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence);
+                    addDocument(ut, documentInputStream, indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence, hideHeaderLogos);
                     firstDocumentSubject = false;
                     previousCategory = currentCategory;
 
@@ -1221,8 +1237,89 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         return yLocation;
     }
 
-    private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, Long id) {
-        int numberOfTenants = tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(apartmentSharingId);
+    // Fills the index pages (added by createFirstsPages) with the summary boxes and
+    // the clickable per-tenant document indexes. Not called for a COMPLETED dossier,
+    // which has no index pages.
+    private void fillIndexPages(PDDocument doc, ApartmentSharing apartmentSharing, List<Tenant> tenantList, List<Integer> indexPagesForDocuments) throws IOException {
+        PDType0Font fontSpectralExtraBold = Fonts.SPECTRAL_EXTRA_BOLD.load(doc);
+        PDType0Font fontMarianneRegular = Fonts.MARIANNE_REGULAR.load(doc);
+        PDType0Font fontMarianneBold = Fonts.MARIANNE_BOLD.load(doc);
+
+        int numberOfTenants = tenantList.size();
+
+        /* Initialized in 2, because this is the position in the array (indexPagesForDocuments)
+        where it is located the number of the page located before the beginning of attachment pages.
+        - (position 1) ------> indexPagesForDocuments[0] = Number of index pages. For 1 or 2 tenants then 1 page, for 3 or 4 tenants then 2 pages, ...
+        - (position 2) ------> indexPagesForDocuments[1] = Page number where the clarification page is.
+        -              ------> indexPagesForDocuments[1] + 1 = page number of the first attachment page.
+        - (last position) ---> indexPagesForDocuments[indexPagesForDocuments.size() - 1] = doc.getNumberOfPages() */
+        AtomicInteger iteratorInIndexPagesForDocuments = new AtomicInteger(2);
+
+        int indexTenant = 0;
+        int totalPages = doc.getNumberOfPages();
+        for (int indexPage = 0; indexPage < totalPages && indexTenant < numberOfTenants; indexPage++) {
+
+            addFirstNamesOfTenantsInTheHeaderOfCurrentIndexPage(indexPage, doc, tenantList, fontSpectralExtraBold);
+
+            Tenant leftTenantInPage = tenantList.get(indexTenant);
+            Tenant rightTenantInPage = (indexTenant + 1) < numberOfTenants ? tenantList.get(indexTenant + 1) : null;
+
+            float yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream;
+
+            //The content area in the first page (indexPage == 0)
+            // is different in comparision with the one available in the other pages of indexes
+            if (indexPage == 0) {
+                //region Static Text (Le dossier en un clin d’oeil)
+                addStaticTextInFirstTemplateOfIndexes(indexPage, doc, fontSpectralExtraBold);
+                //endregion
+                //region Text Box (Type de dossier)
+                addContentInFirstRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, apartmentSharing.getApplicationType());
+                //endregion
+                //region Text Box (Revenus mensuels nets cumulés)
+                addContentInSecondRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, fontMarianneBold, apartmentSharing.totalSalary() + " €");
+                //endregion
+                //region Text Box (Leur garant)
+                addContentInThirdRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, fontMarianneBold, tenantList);
+                //endregion
+
+                //region ContentStreams locations on the y-axis in first page of indexes
+                yLocationFirstContentStream = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
+                yLocationSecondContentStream = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
+                yLocationTenantEmailContentStream = Y_LOCATION_OF_EMAIL_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
+                yLocationThirdContentStream = Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
+                //endregion
+            } else {
+                //region ContentStreams locations on the y-axis in the other pages of indexes
+                yLocationFirstContentStream = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
+                yLocationSecondContentStream = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
+                yLocationTenantEmailContentStream = Y_LOCATION_OF_EMAIL_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
+                yLocationThirdContentStream = Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
+                //endregion
+            }
+
+            //region Details of left Tenant in current page
+            float lastYLocationLeftSide = addIndexesOfDocumentsOfTenantInCurrentPage(leftTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
+            List<Guarantor> guarantorsLeftTenant = leftTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
+            for (Guarantor guarantor : guarantorsLeftTenant) {
+                lastYLocationLeftSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, lastYLocationLeftSide, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
+            }
+            //endregion
+            //region Details of right Tenant in current page
+            if (rightTenantInPage != null) {
+                float lastYLocationRightSide = addIndexesOfDocumentsOfTenantInCurrentPage(rightTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
+                List<Guarantor> guarantorsRightTenant = rightTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
+                for (Guarantor guarantor : guarantorsRightTenant) {
+                    lastYLocationRightSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, lastYLocationRightSide, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
+                }
+            }
+            //endregion
+
+            indexTenant += 2;
+        }
+    }
+
+    private void checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(long apartmentSharingId, Long id) {
+        int numberOfTenants = tenantRepository.countTenantsBlockingFullPdfGeneration(apartmentSharingId);
         if (numberOfTenants > 0) {
             throw new ApartmentSharingUnexpectedException(id);
         }
@@ -1231,7 +1328,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     @Override
     public InputStream render(ApartmentSharing apartmentSharing) throws IOException {
 
-        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), apartmentSharing.getId());
+        checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(apartmentSharing.getId(), apartmentSharing.getId());
 
         PDFMergerUtility ut = new PDFMergerUtility();
         List<Tenant> tenantList = apartmentSharing.getTenants().stream().sorted(Comparator.comparing(Tenant::getTenantType)).collect(Collectors.toList());
@@ -1252,17 +1349,27 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         pdDocumentOutline.addLast(pdOutlineItem);
         //endregion
 
-        createFirstsPages(ut, numberOfTenants, indexPagesForDocuments, pdOutlineItem);
+        // A COMPLETED (non verified) dossier renders without the index pages and
+        // without the RF/DossierFacile logos in the header of the pages (clarification
+        // page included). A VALIDATED dossier keeps the historical rendering.
+        boolean completedDossier = apartmentSharing.getStatus() == TenantFileStatus.COMPLETED;
+
+        if (completedDossier) {
+            // No index pages: the content starts at page 0
+            indexPagesForDocuments.add(0);
+        } else {
+            createFirstsPages(ut, numberOfTenants, indexPagesForDocuments, pdOutlineItem);
+        }
 
         Tenant mainTenant = tenantList.stream()
                 .filter(t -> t.getTenantType() == TenantType.CREATE)
                 .findFirst()
                 .orElseThrow(() -> new TenantNotFoundException(TenantType.CREATE));
 
-        addDocumentOfClarification(ut, tenantList, mainTenant, indexPagesForDocuments, pdOutlineItem);
+        addDocumentOfClarification(ut, tenantList, mainTenant, indexPagesForDocuments, pdOutlineItem, completedDossier);
 
         //region Add files of documents to Dossier PDF
-        addFilesOfDocumentsToDossierPDF(ut, tenantList, indexPagesForDocuments, pdOutlineItem);
+        addFilesOfDocumentsToDossierPDF(ut, tenantList, indexPagesForDocuments, pdOutlineItem, completedDossier);
         //endregion
 
         ByteArrayOutputStream merge = new ByteArrayOutputStream();
@@ -1284,81 +1391,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
             addPaginate(doc);
 
-            //region Adding content to First pages
-            PDType0Font fontSpectralExtraBold = Fonts.SPECTRAL_EXTRA_BOLD.load(doc);
-            PDType0Font fontMarianneRegular = Fonts.MARIANNE_REGULAR.load(doc);
-            PDType0Font fontMarianneBold = Fonts.MARIANNE_BOLD.load(doc);
-
-            /* Initialized in 2, because this is the position in the array (indexPagesForDocuments)
-            where it is located the number of the page located before the beginning of attachment pages.
-            - (position 1) ------> indexPagesForDocuments[0] = Number of index pages. For 1 or 2 tenants then 1 page, for 3 or 4 tenants then 2 pages, ...
-            - (position 2) ------> indexPagesForDocuments[1] = Page number where the clarification page is.
-            -              ------> indexPagesForDocuments[1] + 1 = page number of the first attachment page.
-            - (last position) ---> indexPagesForDocuments[indexPagesForDocuments.size() - 1] = doc.getNumberOfPages() */
-            AtomicInteger iteratorInIndexPagesForDocuments = new AtomicInteger(2);
-
-            int indexTenant = 0;
-            int totalPages = doc.getNumberOfPages();
-            for (int indexPage = 0; indexPage < totalPages && indexTenant < numberOfTenants; indexPage++) {
-
-                addFirstNamesOfTenantsInTheHeaderOfCurrentIndexPage(indexPage, doc, tenantList, fontSpectralExtraBold);
-
-                Tenant leftTenantInPage = tenantList.get(indexTenant);
-                Tenant rightTenantInPage = (indexTenant + 1) < numberOfTenants ? tenantList.get(indexTenant + 1) : null;
-
-                float yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream;
-
-                //The content area in the first page (indexPage == 0)
-                // is different in comparision with the one available in the other pages of indexes
-                if (indexPage == 0) {
-                    //region Static Text (Le dossier en un clin d’oeil)
-                    addStaticTextInFirstTemplateOfIndexes(indexPage, doc, fontSpectralExtraBold);
-                    //endregion
-                    //region Text Box (Type de dossier)
-                    addContentInFirstRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, apartmentSharing.getApplicationType());
-                    //endregion
-                    //region Text Box (Revenus mensuels nets cumulés)
-                    addContentInSecondRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, fontMarianneBold, apartmentSharing.totalSalary() + " €");
-                    //endregion
-                    //region Text Box (Leur garant)
-                    addContentInThirdRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, fontMarianneBold, tenantList);
-                    //endregion
-
-                    //region ContentStreams locations on the y-axis in first page of indexes
-                    yLocationFirstContentStream = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
-                    yLocationSecondContentStream = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
-                    yLocationTenantEmailContentStream = Y_LOCATION_OF_EMAIL_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
-                    yLocationThirdContentStream = Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
-                    //endregion
-                } else {
-                    //region ContentStreams locations on the y-axis in the other pages of indexes
-                    yLocationFirstContentStream = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
-                    yLocationSecondContentStream = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
-                    yLocationTenantEmailContentStream = Y_LOCATION_OF_EMAIL_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
-                    yLocationThirdContentStream = Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
-                    //endregion
-                }
-
-                //region Details of left Tenant in current page
-                float lastYLocationLeftSide = addIndexesOfDocumentsOfTenantInCurrentPage(leftTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
-                List<Guarantor> guarantorsLeftTenant = leftTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
-                for (Guarantor guarantor : guarantorsLeftTenant) {
-                    lastYLocationLeftSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, lastYLocationLeftSide, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
-                }
-                //endregion
-                //region Details of right Tenant in current page
-                if (rightTenantInPage != null) {
-                    float lastYLocationRightSide = addIndexesOfDocumentsOfTenantInCurrentPage(rightTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
-                    List<Guarantor> guarantorsRightTenant = rightTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
-                    for (Guarantor guarantor : guarantorsRightTenant) {
-                        lastYLocationRightSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, lastYLocationRightSide, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
-                    }
-                }
-                //endregion
-
-                indexTenant += 2;
+            if (!completedDossier) {
+                fillIndexPages(doc, apartmentSharing, tenantList, indexPagesForDocuments);
             }
-            //endregion
             doc.save(result);
             log.info("Generation completed");
         } catch (IOException e) {
