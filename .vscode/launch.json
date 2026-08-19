@@ -1,0 +1,83 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "TenantAPI",
+      "mainClass": "fr.dossierfacile.api.front.FrontApplication",
+      "projectName": "dossierfacile-api-tenant",
+      "args": "--spring.profiles.active=dev,mockOvh",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "Bo",
+      "mainClass": "fr.gouv.bo.BOApplication",
+      "projectName": "dossierfacile-bo",
+      "args": "--spring.profiles.active=dev,mockOvh",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "OwnerAPI",
+      "mainClass": "fr.dossierfacile.api.dossierfacileapiowner.DossierfacileApiOwnerApplication",
+      "projectName": "dossierfacile-api-owner",
+      "args": "--spring.profiles.active=dev,mockOvh",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "PDFGeneratorService",
+      "mainClass": "fr.dossierfacile.api.pdfgenerator.PdfGeneratorApplication",
+      "projectName": "dossierfacile-pdf-generator",
+      "args": "--spring.profiles.active=dev,mockOvh",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "TaskSchedulerService",
+      "mainClass": "fr.dossierfacile.scheduler.TaskSchedulerApplication",
+      "projectName": "dossierfacile-task-scheduler",
+      "args": "--spring.profiles.active=dev,mockOvh",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "WatermarkApi",
+      "mainClass": "fr.dossierfacile.api.pdf.PdfApiApplication",
+      "projectName": "dossierfacile-api-watermark",
+      "args": "--spring.profiles.active=dev,mockOvh",
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Tenant+Bo",
+      "preLaunchTask": "docker-infra",
+      "configurations": [
+        "Bo",
+        "PDFGeneratorService",
+        "TaskSchedulerService",
+        "TenantAPI"
+      ]
+    },
+    {
+      "name": "AllInBabe",
+      "preLaunchTask": "docker-infra",
+      "configurations": [
+        "Bo",
+        "OwnerAPI",
+        "PDFGeneratorService",
+        "TaskSchedulerService",
+        "TenantAPI",
+        "WatermarkApi"
+      ]
+    }
+  ]
+}
