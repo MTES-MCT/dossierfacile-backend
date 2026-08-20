@@ -4,7 +4,6 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
@@ -18,13 +17,16 @@ import org.springframework.stereotype.Service;
 public class CompletedEligibilityServiceImpl implements CompletedEligibilityService {
 
     private final TenantUserApiRepository tenantUserApiRepository;
-    private final TenantLogRepository tenantLogRepository;
     private final FeatureFlagService featureFlagService;
 
     @Override
     public boolean isEligibleForOptIn(Tenant tenant) {
         TenantFileStatus status = tenant.getStatus();
-        if (status != TenantFileStatus.TO_PROCESS && status != TenantFileStatus.COMPLETED) {
+        // The question is available on any submitted dossier. On a VALIDATED or
+        // DECLINED dossier the choice has no immediate effect on the status: it
+        // applies to the next re-submission
+        if (status != TenantFileStatus.TO_PROCESS && status != TenantFileStatus.COMPLETED
+                && status != TenantFileStatus.VALIDATED && status != TenantFileStatus.DECLINED) {
             return false;
         }
         return checkEligibilityRules(tenant);
@@ -47,9 +49,6 @@ public class CompletedEligibilityServiceImpl implements CompletedEligibilityServ
         // Strict rule: any partner link (DFC or owner), even a dangling one, disables the opt-in
         // TODO(completed-optin): relax this rule once partners handle the COMPLETED status
         if (tenantUserApiRepository.existsByTenant(tenant)) {
-            return false;
-        }
-        if (tenantLogRepository.hasBeenValidatedOrDenied(tenant.getId())) {
             return false;
         }
         // The feature flag check comes last: its first evaluation persists a bucket

@@ -183,13 +183,17 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     @Override
     public void createFullPdf(UUID token) {
         ApartmentSharing apartmentSharing = findValidApartmentSharing(token, true);
+        requestFullPdfGeneration(apartmentSharing, token.toString());
+    }
 
-        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), token.toString());
+    // token is only used for logs and error reporting, null when the request does not come from a sharing link
+    private void requestFullPdfGeneration(ApartmentSharing apartmentSharing, String token) {
+        checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(apartmentSharing.getId(), token);
 
-        FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
-        switch (status) {
-            case COMPLETED -> log.warn("Trying to create Full PDF on completed Status -" + token);
-            case IN_PROGRESS -> log.warn("Trying to create Full PDF on in progress Status -" + token);
+        FileStatus pdfStatus = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
+        switch (pdfStatus) {
+            case COMPLETED -> log.warn("Trying to create Full PDF on completed Status{}", token == null ? "" : " -" + token);
+            case IN_PROGRESS -> log.warn("Trying to create Full PDF on in progress Status{}", token == null ? "" : " -" + token);
             default -> {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
                 producer.generateFullPdf(apartmentSharing.getId());
@@ -298,18 +302,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         if (apartmentSharing == null) {
             throw new ApartmentSharingNotFoundException("No apartment sharing found for tenant");
         }
-
-        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), null);
-
-        FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
-        switch (status) {
-            case COMPLETED -> log.warn("Trying to create Full PDF on completed Status");
-            case IN_PROGRESS -> log.warn("Trying to create Full PDF on in progress Status");
-            default -> {
-                apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
-                producer.generateFullPdf(apartmentSharing.getId());
-            }
-        }
+        requestFullPdfGeneration(apartmentSharing, null);
     }
 
 
@@ -400,8 +393,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         zos.closeEntry();
     }
 
-    private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {
-        int numberOfTenants = tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(apartmentSharingId);
+    private void checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(long apartmentSharingId, String token) {
+        int numberOfTenants = tenantRepository.countTenantsBlockingFullPdfGeneration(apartmentSharingId);
         if (numberOfTenants > 0) {
             if (token != null) {
                 throw new ApartmentSharingUnexpectedException(token);

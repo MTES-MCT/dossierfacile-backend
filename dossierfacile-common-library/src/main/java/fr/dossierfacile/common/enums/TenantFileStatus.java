@@ -19,4 +19,13 @@ public enum TenantFileStatus {
     public String getLabel() {
         return label;
     }
+
+    /**
+     * A dossier can be shared by link or mail once complete and submitted:
+     * either verified by an operator (VALIDATED) or completed without
+     * operator verification (COMPLETED).
+     */
+    public boolean isCompletedOrValidated() {
+        return this == VALIDATED || this == COMPLETED;
+    }
 }

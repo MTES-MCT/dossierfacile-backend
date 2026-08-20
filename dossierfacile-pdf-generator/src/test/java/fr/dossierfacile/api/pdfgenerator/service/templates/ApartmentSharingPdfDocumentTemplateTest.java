@@ -3,6 +3,7 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceImpl;
 import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharingResolver;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
@@ -40,13 +41,27 @@ public class ApartmentSharingPdfDocumentTemplateTest {
 
     @BeforeEach
     void init_mocks() {
-        Mockito.when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(0);
+        Mockito.when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
         Mockito.when(downloadService.getDocumentInputStream(any())).then(answer -> ApartmentSharingPdfDocumentTemplateTest.class.getResourceAsStream("/CNI.pdf"));
     }
 
     @Test
     void should_generate_pdf(ApartmentSharing apartmentSharing) throws IOException {
         File resultFile = new File("target/fullPdfGeneration.pdf");
+
+        try (FileOutputStream w = new FileOutputStream(resultFile); InputStream is = pdfService.render(apartmentSharing)) {
+            byte[] result = is.readAllBytes();
+            w.write(result);
+            Assertions.assertThat(result).isNotEmpty();
+        }
+    }
+
+    // A COMPLETED dossier renders with the dedicated first-page template
+    // (visual check: target/fullPdfGenerationCompleted.pdf)
+    @Test
+    void should_generate_pdf_for_completed_dossier(ApartmentSharing apartmentSharing) throws IOException {
+        apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.COMPLETED));
+        File resultFile = new File("target/fullPdfGenerationCompleted.pdf");
 
         try (FileOutputStream w = new FileOutputStream(resultFile); InputStream is = pdfService.render(apartmentSharing)) {
             byte[] result = is.readAllBytes();

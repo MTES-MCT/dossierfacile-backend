@@ -180,7 +180,7 @@ class ApartmentSharingServiceImplTest {
             @Test
             void shouldThrowExceptionButStillTriggerPdfCreation() {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
-                when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(0);
+                when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
 
                 assertThrows(IllegalStateException.class, () ->
                         apartmentSharingService.downloadFullPdfForTenant(tenant)
@@ -195,7 +195,7 @@ class ApartmentSharingServiceImplTest {
             @Test
             void shouldThrowExceptionButStillTriggerPdfCreation() {
                 apartmentSharing.setDossierPdfDocumentStatus(null);
-                when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(0);
+                when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
 
                 assertThrows(IllegalStateException.class, () ->
                         apartmentSharingService.downloadFullPdfForTenant(tenant)
@@ -226,7 +226,7 @@ class ApartmentSharingServiceImplTest {
             @Test
             void shouldNotTriggerPdfGeneration() {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.COMPLETED);
-                when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(0);
+                when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
 
                 apartmentSharingService.createFullPdfForTenant(tenant);
 
@@ -239,7 +239,7 @@ class ApartmentSharingServiceImplTest {
             @Test
             void shouldNotTriggerPdfGeneration() {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.IN_PROGRESS);
-                when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(0);
+                when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
 
                 apartmentSharingService.createFullPdfForTenant(tenant);
 
@@ -252,7 +252,7 @@ class ApartmentSharingServiceImplTest {
             @Test
             void shouldTriggerPdfGeneration() {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
-                when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(0);
+                when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
 
                 apartmentSharingService.createFullPdfForTenant(tenant);
 
@@ -265,7 +265,7 @@ class ApartmentSharingServiceImplTest {
             @Test
             void shouldTriggerPdfGeneration() {
                 apartmentSharing.setDossierPdfDocumentStatus(null);
-                when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(0);
+                when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
 
                 apartmentSharingService.createFullPdfForTenant(tenant);
 
@@ -279,7 +279,7 @@ class ApartmentSharingServiceImplTest {
             @Test
             void shouldNotTriggerPdfGeneration() {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
-                when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(1);
+                when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(1);
 
                 assertThrows(ApartmentSharingUnexpectedException.class, () ->
                         apartmentSharingService.createFullPdfForTenant(tenant)
@@ -294,7 +294,7 @@ class ApartmentSharingServiceImplTest {
             @Test
             void shouldNotTriggerPdfGeneration() {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
-                when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(2);
+                when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(2);
 
                 assertThrows(ApartmentSharingUnexpectedException.class, () ->
                         apartmentSharingService.createFullPdfForTenant(tenant)

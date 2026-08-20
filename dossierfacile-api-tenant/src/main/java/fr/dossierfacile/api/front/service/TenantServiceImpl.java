@@ -25,6 +25,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -67,6 +68,7 @@ public class TenantServiceImpl implements TenantService {
     private final TenantMapperForMail tenantMapperForMail;
     private final CompletedEligibilityService completedEligibilityService;
     private final TenantStatusService tenantStatusService;
+    private final ApartmentSharingCommonService apartmentSharingCommonService;
 
     // There is a dependency cycle between TenantServiceImpl and TenantStatusService
     // (TenantStatusService -> ApartmentSharingService -> TenantPermissionsService -> TenantService),
@@ -86,7 +88,8 @@ public class TenantServiceImpl implements TenantService {
                              DocumentRepository documentRepository,
                              TenantMapperForMail tenantMapperForMail,
                              CompletedEligibilityService completedEligibilityService,
-                             @Lazy TenantStatusService tenantStatusService) {
+                             @Lazy TenantStatusService tenantStatusService,
+                             ApartmentSharingCommonService apartmentSharingCommonService) {
         this.apartmentSharingRepository = apartmentSharingRepository;
         this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
         this.confirmationTokenService = confirmationTokenService;
@@ -103,6 +106,7 @@ public class TenantServiceImpl implements TenantService {
         this.tenantMapperForMail = tenantMapperForMail;
         this.completedEligibilityService = completedEligibilityService;
         this.tenantStatusService = tenantStatusService;
+        this.apartmentSharingCommonService = apartmentSharingCommonService;
     }
 
     @Override
@@ -221,7 +225,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public void sendFileByMail(Tenant tenant, ShareFileByMailForm form) {
-        requireValidatedDossier(tenant);
+        requireCompletedOrValidatedDossier(tenant);
         UUID token = UUID.randomUUID();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
         List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(tenant.getApartmentSharing(), date);
@@ -255,7 +259,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public String createSharingLink(Tenant tenant, ShareFileByLinkForm form) {
-        requireValidatedDossier(tenant);
+        requireCompletedOrValidatedDossier(tenant);
         UUID token = UUID.randomUUID();
         ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
                 .apartmentSharing(tenant.getApartmentSharing())
@@ -273,13 +277,10 @@ public class TenantServiceImpl implements TenantService {
         return path + token;
     }
 
-    // Sharing by link or mail is reserved to fully validated dossiers. This backend
-    // check guarantees a COMPLETED (non verified) dossier can only be shared as ZIP.
-    // TODO(completed-optin): allow COMPLETED here once link/mail sharing (public page,
-    // full PDF, wording) has been reworked to support non-verified dossiers
-    private void requireValidatedDossier(Tenant tenant) {
-        if (tenant.getApartmentSharing().getStatus() != TenantFileStatus.VALIDATED) {
-            throw new TenantIllegalStateException("Sharing a dossier by link or mail requires a validated dossier");
+    // Sharing by link or mail is reserved to VALIDATED or COMPLETED dossiers
+    private void requireCompletedOrValidatedDossier(Tenant tenant) {
+        if (!tenant.getApartmentSharing().getStatus().isCompletedOrValidated()) {
+            throw new TenantIllegalStateException("Sharing a dossier by link or mail requires a validated or completed dossier");
         }
     }
 
@@ -291,11 +292,18 @@ public class TenantServiceImpl implements TenantService {
         }
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setValidationRequested(validationRequested);
-        // Queue position is based on the moment of the choice
+        // Queue position is based on the moment of the choice (harmless when the
+        // dossier is VALIDATED or DECLINED: it is not in the TO_PROCESS queue and
+        // the choice only applies to the next re-submission)
         tenant.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
         tenantRepository.save(tenant);
         logService.saveLog(validationRequested ? LogType.VALIDATION_REQUESTED : LogType.VALIDATION_DECLINED, tenant.getId());
         Tenant updatedTenant = tenantStatusService.updateTenantStatus(tenant);
+        if (previousStatus == TenantFileStatus.COMPLETED && updatedTenant.getStatus() != TenantFileStatus.COMPLETED) {
+            // The full PDF was rendered with the COMPLETED design: it must not
+            // survive the switch out of COMPLETED
+            apartmentSharingCommonService.resetDossierPdfGenerated(updatedTenant.getApartmentSharing());
+        }
         // Entering the verification queue: reuse the standard "waiting for review" email
         if (validationRequested && previousStatus == TenantFileStatus.COMPLETED
                 && updatedTenant.getStatus() == TenantFileStatus.TO_PROCESS) {

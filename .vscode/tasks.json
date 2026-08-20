@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docker-infra",
+      "detail": "Start local infra (postgres, rabbitmq, redis, nginx) + Keycloak",
+      "type": "shell",
+      "command": "docker compose -f docker-compose.dev.yml -f docker-compose.overwrite.yml up -d && docker compose -f ../Dossier-Facile-Keycloak/docker-compose.dev.yml up -d",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "silent", "panel": "dedicated", "close": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-infra-down",
+      "detail": "Stop local infra + Keycloak",
+      "type": "shell",
+      "command": "docker compose -f docker-compose.dev.yml down && docker compose -f ../Dossier-Facile-Keycloak/docker-compose.dev.yml down",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    }
+  ]
+}

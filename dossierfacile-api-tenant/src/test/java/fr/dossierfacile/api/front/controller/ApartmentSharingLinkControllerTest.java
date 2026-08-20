@@ -7,6 +7,9 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
@@ -33,6 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -72,6 +76,96 @@ public class ApartmentSharingLinkControllerTest {
     @PostConstruct
     void setSelf() {
         self = this;
+    }
+
+    private static ApartmentSharing apartmentSharingWithStatus(TenantFileStatus status) {
+        ApartmentSharing apartmentSharing = new ApartmentSharing();
+        apartmentSharing.setApplicationType(ApplicationType.ALONE);
+        Tenant tenant = new Tenant();
+        tenant.setTenantType(TenantType.CREATE);
+        tenant.setStatus(status);
+        tenant.setApartmentSharing(apartmentSharing);
+        apartmentSharing.setTenants(new ArrayList<>(List.of(tenant)));
+        return apartmentSharing;
+    }
+
+    private static Tenant tenantWithDossierStatus(TenantFileStatus status) {
+        return apartmentSharingWithStatus(status).getTenants().get(0);
+    }
+
+    @Nested
+    class UpdateDefaultLinkTests {
+
+        record UpdateDefaultLinkTestParameter() {
+        }
+
+        static List<Arguments> provideUpdateDefaultLinkParameters() {
+
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 401 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    new UpdateDefaultLinkTestParameter(),
+                                    401,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when dossier is VALIDATED",
+                            new ControllerParameter<>(
+                                    new UpdateDefaultLinkTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.VALIDATED));
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when dossier is COMPLETED",
+                            new ControllerParameter<>(
+                                    new UpdateDefaultLinkTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.COMPLETED));
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 409 when dossier is neither COMPLETED nor VALIDATED",
+                            new ControllerParameter<>(
+                                    new UpdateDefaultLinkTestParameter(),
+                                    409,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.TO_PROCESS));
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideUpdateDefaultLinkParameters")
+        void parameterizedTests(ControllerParameter<UpdateDefaultLinkTestParameter> parameter) throws Exception {
+
+            var mockMvcRequestBuilder = put("/api/application/links/default")
+                    .param("isFullData", "true")
+                    .contentType("application/json");
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
     }
 
     @Nested
@@ -231,6 +325,18 @@ public class ApartmentSharingLinkControllerTest {
                                     },
                                     Collections.emptyList()
                             )
+                    ),
+                    Pair.of("Should respond 200 when enabling a link on a COMPLETED dossier",
+                            new ControllerParameter<>(
+                                    new UpdateApartmentSharingLinksStatusTestParameter(1L, true),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.COMPLETED));
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
                     )
             );
         }
@@ -353,6 +459,18 @@ public class ApartmentSharingLinkControllerTest {
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when resending a link on a COMPLETED dossier",
+                            new ControllerParameter<>(
+                                    new ResendApartmentSharingLinkTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.COMPLETED));
                                         return v;
                                     },
                                     Collections.emptyList()

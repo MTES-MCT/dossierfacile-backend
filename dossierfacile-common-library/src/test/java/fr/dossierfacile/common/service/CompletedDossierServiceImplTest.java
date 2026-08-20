@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.dto.mail.TenantDto;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.UserApi;
@@ -8,6 +9,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -21,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 class CompletedDossierServiceImplTest {
@@ -30,10 +33,12 @@ class CompletedDossierServiceImplTest {
     private TenantLogCommonService tenantLogCommonService;
     private TenantMapperForMail tenantMapperForMail;
     private MailCommonService mailCommonService;
+    private ApartmentSharingCommonService apartmentSharingCommonService;
 
     private CompletedDossierServiceImpl service;
 
     private Tenant tenant;
+    private ApartmentSharing apartmentSharing;
 
     @BeforeEach
     void setUp() {
@@ -42,16 +47,19 @@ class CompletedDossierServiceImplTest {
         tenantLogCommonService = mock(TenantLogCommonService.class);
         tenantMapperForMail = mock(TenantMapperForMail.class);
         mailCommonService = mock(MailCommonService.class);
+        apartmentSharingCommonService = mock(ApartmentSharingCommonService.class);
 
         service = new CompletedDossierServiceImpl(
                 completedEligibilityService,
                 tenantCommonRepository,
                 tenantLogCommonService,
                 tenantMapperForMail,
-                Optional.of(mailCommonService)
+                Optional.of(mailCommonService),
+                apartmentSharingCommonService
         );
 
-        tenant = Tenant.builder().id(100L).build();
+        apartmentSharing = ApartmentSharing.builder().id(300L).build();
+        tenant = Tenant.builder().id(100L).apartmentSharing(apartmentSharing).build();
     }
 
     @Nested
@@ -108,6 +116,8 @@ class CompletedDossierServiceImplTest {
                 verify(tenantCommonRepository).save(tenant);
                 verify(tenantLogCommonService).saveTenantLog(argThat(log ->
                         log.getLogType() == LogType.COMPLETED_SWITCHED_TO_PROCESS && log.getTenantId().equals(tenant.getId())));
+                // The full PDF rendered with the COMPLETED design is dropped
+                verify(apartmentSharingCommonService).resetDossierPdfGenerated(apartmentSharing);
 
                 // And - the mail mentioning the partner is sent after commit
                 verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
@@ -130,6 +140,7 @@ class CompletedDossierServiceImplTest {
             assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
             verify(tenantCommonRepository).save(tenant);
             verify(tenantLogCommonService).saveTenantLog(any(TenantLog.class));
+            verify(apartmentSharingCommonService).resetDossierPdfGenerated(apartmentSharing);
             verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
         }
 
@@ -142,6 +153,7 @@ class CompletedDossierServiceImplTest {
             assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.VALIDATED);
             verify(tenantCommonRepository, never()).save(any(Tenant.class));
             verify(tenantLogCommonService, never()).saveTenantLog(any(TenantLog.class));
+            verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
             verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
         }
     }

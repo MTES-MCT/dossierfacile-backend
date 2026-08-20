@@ -14,8 +14,10 @@ public interface CompletedEligibilityService {
 
     /**
      * Whether the opt-in choice is available to this tenant (drives the dashboard widget).
-     * Requires a submitted dossier (TO_PROCESS or COMPLETED), ALONE application, no partner
-     * link, never validated nor denied, and the feature flag enabled for this user.
+     * Requires a submitted dossier (TO_PROCESS, COMPLETED, VALIDATED or DECLINED), ALONE
+     * application, no partner link, and the feature flag enabled for this user.
+     * On a VALIDATED or DECLINED dossier the choice has no immediate effect on the status:
+     * it applies to the next re-submission.
      * Does NOT depend on {@code validationRequested}: the widget stays visible after an answer.
      */
     boolean isEligibleForOptIn(Tenant tenant);
