@@ -228,6 +228,10 @@ In each application folder, run
 mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 
+### VS Code launch configurations
+
+The repository includes `.vscode/launch.json` configurations for the main Spring Boot modules and compound launches (`Tenant+Bo`, `AllInBabe`). The compound launches run the `docker-infra` task first; this task starts the local Docker Compose stack and expects the `Dossier-Facile-Keycloak` repository to be checked out next to this repository.
+
 ## Coding agent context (`AGENTS.md`)
 
 The team chose an agent-agnostic approach: [`AGENTS.md`](AGENTS.md) files, following the [open `AGENTS.md` standard](https://agents.md). It describes the domain model, modules, and cross-cutting concerns (sharing, permissions, partners, etc.) and is read by most AI coding assistants without tool-specific configuration.
