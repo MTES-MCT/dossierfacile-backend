@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.BoTenantLogRepository;
@@ -26,9 +27,10 @@ class DocumentDeniedReasonsServiceTest {
 
     private final DocumentDeniedReasonsRepository reasonsRepository = mock(DocumentDeniedReasonsRepository.class);
     private final BoTenantLogRepository logRepository = mock(BoTenantLogRepository.class);
+    private final TenantCommonRepository tenantRepository = mock(TenantCommonRepository.class);
     private final TenantLogCommonService tenantLogCommonService = mock(TenantLogCommonService.class);
     private final ObjectMapper objectMapper = mock(ObjectMapper.class);
-    private final TenantLogService logService = new TenantLogService(logRepository, tenantLogCommonService, objectMapper);
+    private final TenantLogService logService = new TenantLogService(logRepository, tenantRepository, tenantLogCommonService, objectMapper);
     private final DocumentDeniedReasonsService service = new DocumentDeniedReasonsService(reasonsRepository, logService);
 
     @Nested
