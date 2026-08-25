@@ -34,16 +34,9 @@ public class OwnerController {
     private final OwnerMapper ownerMapper;
 
     @PostMapping("/names")
-    public ResponseEntity<OwnerModel> names(HttpServletResponse response,  @RequestBody NamesForm namesForm) {
-        try {
-            OwnerModel ownerModel = ownerService.setNames(namesForm);
-            return ok(ownerModel);
-        } catch (DataIntegrityViolationException d) {
-            if (d.getMessage() != null && d.getMessage().contains("email_type_uniq")) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email_exists");
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "bad request");
+    public ResponseEntity<OwnerModel> names(HttpServletResponse response, @RequestBody NamesForm namesForm) {
+        OwnerModel ownerModel = ownerService.setNames(namesForm);
+        return ok(ownerModel);
     }
 
     @PostMapping("/logout")
