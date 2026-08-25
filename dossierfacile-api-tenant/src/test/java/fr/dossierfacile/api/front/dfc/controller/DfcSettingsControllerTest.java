@@ -174,21 +174,21 @@ class DfcSettingsControllerTest {
                     .id(1L)
                     .name("test")
                     .email("test@test.fr")
-                    .urlCallback("http://localhost")
+                    .urlCallback("https://partner.example.com/webhook")
                     .partnerApiKeyCallback("test")
                     .build();
 
             PartnerSettings partnerSettings = new PartnerSettings();
             partnerSettings.setName("test");
             partnerSettings.setEmail("test@test.fr");
-            partnerSettings.setUrlCallback("http://localhost");
+            partnerSettings.setUrlCallback("https://partner.example.com/webhook");
             partnerSettings.setPartnerApiKeyCallback("test2");
 
             var expectedUserApiModified = UserApi.builder()
                     .id(1L)
                     .name("test")
                     .email("test@test.fr")
-                    .urlCallback("http://localhost")
+                    .urlCallback("https://partner.example.com/webhook")
                     .partnerApiKeyCallback("test2")
                     .build();
 
