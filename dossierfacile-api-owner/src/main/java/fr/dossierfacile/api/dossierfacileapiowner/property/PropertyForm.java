@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import fr.dossierfacile.api.dossierfacileapiowner.annotation.ValidDpeDate;
+import fr.dossierfacile.api.dossierfacileapiowner.annotation.ValidDpeNumber;
 import fr.dossierfacile.common.enums.PropertyFurniture;
 import fr.dossierfacile.common.enums.PropertyType;
 import lombok.AllArgsConstructor;
@@ -37,6 +38,7 @@ public class PropertyForm {
     @ValidDpeDate
     private String dpeDate;
 
+    @ValidDpeNumber
     private String ademeNumber;
 
     private Boolean dpeNotRequired;
