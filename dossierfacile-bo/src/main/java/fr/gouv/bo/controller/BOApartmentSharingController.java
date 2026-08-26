@@ -135,7 +135,7 @@ public class BOApartmentSharingController {
         Map<Long, Boolean> isAutoValidatedByTenant = tenants.stream()
                 .collect(java.util.stream.Collectors.toMap(
                         Tenant::getId,
-                        t -> logService.isTenantAutoValidated(t.getId())
+                        logService::isTenantAutoValidated
                 ));
 
         model.addAttribute(IS_AUTO_VALIDATED_BY_TENANT, isAutoValidatedByTenant);
