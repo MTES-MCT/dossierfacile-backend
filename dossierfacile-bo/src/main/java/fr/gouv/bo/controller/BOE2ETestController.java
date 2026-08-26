@@ -8,6 +8,9 @@ import fr.gouv.bo.service.KeycloakService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -123,6 +126,30 @@ public class BOE2ETestController {
     }
 
     /**
+     * Creates the Keycloak account fully provisioned (enabled, verified email,
+     * non-temporary password) so e2e tests can log in directly, without going
+     * through the registration UI nor the verification email. The tenant
+     * itself is created in DB on the first authenticated API call, as after a
+     * regular signup.
+     */
+    @PostMapping("/users")
+    public ResponseEntity<Void> createUser(@Valid @RequestBody CreateUserRequest body) {
+        ResponseEntity<Void> rejection = rejectIfForbidden(body.email(), "create");
+        if (rejection != null) {
+            return rejection;
+        }
+
+        try {
+            return keycloakService.createKeycloakUser(body.email(), body.password())
+                    ? ResponseEntity.ok().build()
+                    : ResponseEntity.status(409).build();
+        } catch (Exception e) {
+            log.error("Error creating test user: {}", body.email(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * Idempotent reset of a test account: deletes the tenant (and its whole
      * apartment sharing) if present, and the Keycloak account either way.
      */
@@ -167,4 +194,9 @@ public class BOE2ETestController {
     }
 
     public record DeclineRequest(String messageBody, List<String> documentCategories) {}
+
+    public record CreateUserRequest(
+            @NotBlank @Email String email,
+            @NotBlank String password
+    ) {}
 }

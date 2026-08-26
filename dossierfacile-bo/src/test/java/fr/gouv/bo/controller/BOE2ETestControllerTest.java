@@ -75,6 +75,7 @@ class BOE2ETestControllerTest {
             assertThat(controller.validateTenant(TEST_EMAIL).getStatusCode().value()).isEqualTo(403);
             assertThat(controller.declineTenant(TEST_EMAIL, declineRequest(null)).getStatusCode().value()).isEqualTo(403);
             assertThat(controller.verifyEmail(TEST_EMAIL).getStatusCode().value()).isEqualTo(403);
+            assertThat(controller.createUser(createRequest(TEST_EMAIL, "abcdef12345!")).getStatusCode().value()).isEqualTo(403);
             assertThat(controller.deleteUser(TEST_EMAIL).getStatusCode().value()).isEqualTo(403);
 
             verifyNoInteractions(tenantService, userService, keycloakService);
@@ -159,6 +160,51 @@ class BOE2ETestControllerTest {
             when(keycloakService.markEmailAsVerified(TEST_EMAIL)).thenThrow(new RuntimeException("keycloak down"));
 
             assertThat(controller.verifyEmail(TEST_EMAIL).getStatusCode().value()).isEqualTo(500);
+        }
+    }
+
+    @Nested
+    class CreateUser {
+
+        @Test
+        void returns200WhenKeycloakAccountIsCreated() {
+            givenProfile("dev");
+            when(keycloakService.createKeycloakUser(TEST_EMAIL, "abcdef12345!")).thenReturn(true);
+
+            ResponseEntity<Void> response = controller.createUser(createRequest(TEST_EMAIL, "abcdef12345!"));
+
+            assertThat(response.getStatusCode().value()).isEqualTo(200);
+        }
+
+        @Test
+        void returns409WhenAccountAlreadyExists() {
+            givenProfile("dev");
+            when(keycloakService.createKeycloakUser(TEST_EMAIL, "abcdef12345!")).thenReturn(false);
+
+            ResponseEntity<Void> response = controller.createUser(createRequest(TEST_EMAIL, "abcdef12345!"));
+
+            assertThat(response.getStatusCode().value()).isEqualTo(409);
+        }
+
+        @Test
+        void rejectsEmailOutsidePattern() {
+            givenProfile("dev");
+
+            ResponseEntity<Void> response = controller.createUser(createRequest("someone@gmail.com", "abcdef12345!"));
+
+            assertThat(response.getStatusCode().value()).isEqualTo(400);
+            verifyNoInteractions(keycloakService);
+        }
+
+        @Test
+        void returns500OnKeycloakError() {
+            givenProfile("dev");
+            when(keycloakService.createKeycloakUser(TEST_EMAIL, "abcdef12345!"))
+                    .thenThrow(new IllegalStateException("Keycloak user creation returned status 400"));
+
+            ResponseEntity<Void> response = controller.createUser(createRequest(TEST_EMAIL, "abcdef12345!"));
+
+            assertThat(response.getStatusCode().value()).isEqualTo(500);
         }
     }
 
@@ -276,5 +322,9 @@ class BOE2ETestControllerTest {
 
     private static BOE2ETestController.DeclineRequest declineRequest(List<String> categories) {
         return new BOE2ETestController.DeclineRequest("message", categories);
+    }
+
+    private static BOE2ETestController.CreateUserRequest createRequest(String email, String password) {
+        return new BOE2ETestController.CreateUserRequest(email, password);
     }
 }

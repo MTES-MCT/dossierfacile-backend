@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +57,32 @@ public class KeycloakServiceImpl implements KeycloakService {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    @Override
+    public boolean createKeycloakUser(String email, String password) {
+        if (findUserByEmail(email).isPresent()) {
+            return false;
+        }
+
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(password);
+        credential.setTemporary(false);
+
+        UserRepresentation user = new UserRepresentation();
+        user.setUsername(email);
+        user.setEmail(email);
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        user.setCredentials(List.of(credential));
+
+        try (Response response = realmResource.users().create(user)) {
+            if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
+                throw new IllegalStateException("Keycloak user creation returned status " + response.getStatus());
+            }
+        }
+        return true;
     }
 
     @Override
