@@ -35,6 +35,15 @@ public class ApartmentSharingPdfDossierFileGenerationServiceImpl implements Apar
 
         ApartmentSharing apartmentSharing = optionalApartmentSharing.get();
 
+        // The generation was invalidated while rendering (document modified, or dossier
+        // switched out of COMPLETED/VALIDATED): discard the freshly generated file
+        if (apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.IN_PROGRESS) {
+            log.warn("Dossier PDF of ApartmentSharing {} is no longer IN_PROGRESS (status: {}), discarding the generated file",
+                    id, apartmentSharing.getDossierPdfDocumentStatus());
+            fileStorageService.delete(file);
+            return;
+        }
+
         // Mark previous pdfDossierFile as TO_DELETE before replacing
         StorageFile previousPdfDossierFile = apartmentSharing.getPdfDossierFile();
         if (previousPdfDossierFile != null) {

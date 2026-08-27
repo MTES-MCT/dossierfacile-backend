@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.OwnerLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -18,6 +19,7 @@ import fr.dossierfacile.common.model.log.ApplicationTypeChange;
 import fr.dossierfacile.common.model.log.DocumentLogDetails;
 import fr.dossierfacile.common.model.log.EditedStep;
 import fr.dossierfacile.common.model.log.FileLogDetails;
+import fr.dossierfacile.common.model.log.GuarantorNotifiedLogDetails;
 import fr.dossierfacile.common.repository.OwnerLogCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -54,6 +56,17 @@ public class LogServiceImpl implements LogService {
                 .tenantId(tenantId)
                 .creationDateTime(LocalDateTime.now())
                 .logDetails(writeAsObjectNode(new EditedStep(stepName)))
+                .build();
+        saveLog(log);
+    }
+
+    @Override
+    public void saveGuarantorNotifiedLog(Guarantor guarantor) {
+        TenantLog log = TenantLog.builder()
+                .logType(LogType.GUARANTOR_NOTIFIED)
+                .tenantId(guarantor.getTenant().getId())
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsObjectNode(new GuarantorNotifiedLogDetails(guarantor.getId(), guarantor.getEmail())))
                 .build();
         saveLog(log);
     }

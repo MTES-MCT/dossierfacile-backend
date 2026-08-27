@@ -223,6 +223,12 @@ public class ApartmentSharingLinkService {
         }
     }
 
+    public void delete(Long linkId, ApartmentSharing apartmentSharing) {
+        var link = apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(linkId, apartmentSharing)
+                .orElseThrow(NotFoundException::new);
+        delete(link.getId());
+    }
+
     public void revokeAllPartnerAccessForTenant(Tenant tenant) {
         tenantUserApiRepository.findAllByTenant(tenant).forEach(this::revokeAccess);
     }

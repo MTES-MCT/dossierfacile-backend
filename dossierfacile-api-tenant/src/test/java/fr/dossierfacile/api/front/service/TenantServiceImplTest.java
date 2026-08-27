@@ -1,22 +1,31 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
+import fr.dossierfacile.api.front.form.ShareFileByLinkForm;
+import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -26,12 +35,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +76,12 @@ class TenantServiceImplTest {
     private DocumentService documentService;
     @Mock
     private DocumentRepository documentRepository;
+    @Mock
+    private CompletedEligibilityService completedEligibilityService;
+    @Mock
+    private TenantStatusService tenantStatusService;
+    @Mock
+    private ApartmentSharingCommonService apartmentSharingCommonService;
 
     @InjectMocks
     private TenantServiceImpl tenantService;
@@ -184,6 +201,142 @@ class TenantServiceImplTest {
 
         verify(documentAnalysisReportRepository, times(1)).save(reportOnCreate);
         assertEquals("Secondary commenting primary", reportOnCreate.getComment());
+    }
+
+    private Tenant aloneTenantWithStatus(TenantFileStatus status) {
+        ApartmentSharing sharing = new ApartmentSharing();
+        sharing.setId(2L);
+        sharing.setApplicationType(ApplicationType.ALONE);
+        sharing.setTenants(new ArrayList<>());
+
+        Tenant tenant = new Tenant();
+        tenant.setId(20L);
+        tenant.setTenantType(TenantType.CREATE);
+        tenant.setStatus(status);
+        tenant.setApartmentSharing(sharing);
+        sharing.getTenants().add(tenant);
+        return tenant;
+    }
+
+    @Test
+    void createSharingLink_isAllowedForValidatedDossier() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.VALIDATED);
+        ShareFileByLinkForm form = ShareFileByLinkForm.builder().title("Agence").fullData(true).daysValid(30).build();
+
+        String url = tenantService.createSharingLink(tenant, form);
+
+        assertTrue(url.startsWith("/file/"));
+        verify(apartmentSharingLinkRepository).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
+    void createSharingLink_isAllowedForCompletedDossier() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
+        ShareFileByLinkForm form = ShareFileByLinkForm.builder().title("Agence").fullData(false).daysValid(30).build();
+
+        String url = tenantService.createSharingLink(tenant, form);
+
+        assertTrue(url.startsWith("/public-file/"));
+        verify(apartmentSharingLinkRepository).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
+    void createSharingLink_isRefusedForNonCompletedOrValidatedDossier() {
+        for (TenantFileStatus status : new TenantFileStatus[]{
+                TenantFileStatus.TO_PROCESS, TenantFileStatus.INCOMPLETE, TenantFileStatus.DECLINED}) {
+            Tenant tenant = aloneTenantWithStatus(status);
+            ShareFileByLinkForm form = ShareFileByLinkForm.builder().title("Agence").daysValid(30).build();
+
+            assertThrows(TenantIllegalStateException.class, () -> tenantService.createSharingLink(tenant, form));
+        }
+        verify(apartmentSharingLinkRepository, never()).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
+    void sendFileByMail_isAllowedForCompletedDossier() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
+        when(apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(any(), any()))
+                .thenReturn(new ArrayList<>());
+        ShareFileByMailForm form = ShareFileByMailForm.builder()
+                .email("owner@example.com").title("Agence").message("Bonjour").fullData(true).daysValid(7).build();
+
+        tenantService.sendFileByMail(tenant, form);
+
+        verify(mailService).sendFileByMail(startsWith("/file/"), eq("owner@example.com"), eq("Bonjour"), any(), any(), any());
+        verify(apartmentSharingLinkRepository).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
+    void sendFileByMail_isRefusedForNonCompletedOrValidatedDossier() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
+        ShareFileByMailForm form = ShareFileByMailForm.builder()
+                .email("owner@example.com").title("Agence").message("Bonjour").daysValid(7).build();
+
+        assertThrows(TenantIllegalStateException.class, () -> tenantService.sendFileByMail(tenant, form));
+        verifyNoInteractions(mailService);
+    }
+
+    @Test
+    void updateValidationRequest_resetsFullPdf_whenDossierLeavesCompleted() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
+        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(tenantStatusService.updateTenantStatus(tenant)).thenAnswer(invocation -> {
+            tenant.setStatus(TenantFileStatus.TO_PROCESS);
+            return tenant;
+        });
+        TransactionSynchronizationManager.initSynchronization();
+
+        try {
+            tenantService.updateValidationRequest(tenant, true);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        // The full PDF was rendered with the "non verified" design and must be dropped
+        verify(apartmentSharingCommonService).resetDossierPdfGenerated(tenant.getApartmentSharing());
+    }
+
+    @Test
+    void updateValidationRequest_keepsFullPdf_whenDossierStaysCompleted() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
+        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
+
+        tenantService.updateValidationRequest(tenant, false);
+
+        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
+    }
+
+    // On a reviewed dossier the choice is recorded without any immediate effect:
+    // it only applies to the next re-submission
+    @Test
+    void updateValidationRequest_onValidatedDossier_persistsChoiceWithoutTouchingStatusOrPdf() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.VALIDATED);
+        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
+
+        Tenant updated = tenantService.updateValidationRequest(tenant, false);
+
+        assertEquals(TenantFileStatus.VALIDATED, updated.getStatus());
+        assertEquals(Boolean.FALSE, updated.getValidationRequested());
+        verify(logService).saveLog(LogType.VALIDATION_DECLINED, tenant.getId());
+        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
+        verifyNoInteractions(mailService);
+    }
+
+    @Test
+    void updateValidationRequest_onDeclinedDossier_persistsChoiceWithoutTouchingStatus() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.DECLINED);
+        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
+
+        Tenant updated = tenantService.updateValidationRequest(tenant, true);
+
+        assertEquals(TenantFileStatus.DECLINED, updated.getStatus());
+        assertEquals(Boolean.TRUE, updated.getValidationRequested());
+        verify(logService).saveLog(LogType.VALIDATION_REQUESTED, tenant.getId());
+        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
+        verifyNoInteractions(mailService);
     }
 
 }

@@ -20,17 +20,6 @@ public interface TenantLogRepository extends JpaRepository<TenantLog, Long> {
             """, nativeQuery = true)
     long countProcessedDossiersFromToday();
 
-    // A dossier that has ever been validated (by an operator, automatically or by
-    // status recomputation) or denied can never become COMPLETED again
-    @Query(value = """
-            SELECT EXISTS (
-                SELECT 1 FROM tenant_log tl
-                WHERE tl.tenant_id = :tenantId
-                  AND tl.log_type IN ('ACCOUNT_VALIDATED', 'ACCOUNT_DENIED', 'ACCOUNT_AUTOMATICALLY_VALIDATED')
-            )
-            """, nativeQuery = true)
-    boolean hasBeenValidatedOrDenied(@Param("tenantId") Long tenantId);
-
     @Query(value = """
             WITH logs_window AS (
                 SELECT id, tenant_id, creation_date, log_type

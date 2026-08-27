@@ -15,6 +15,8 @@ public interface KeycloakService {
 
     boolean markEmailAsVerified(String email);
 
+    boolean createKeycloakUser(String email, String password);
+
     boolean deleteKeycloakUserByEmail(String email);
 
     void deleteKeycloakSingleUser(User tenant);

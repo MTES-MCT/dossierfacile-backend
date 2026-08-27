@@ -27,7 +27,6 @@ public class OwnerServiceImpl implements OwnerService {
         Owner owner = authenticationFacade.getOwner();
         owner.setFirstName(namesForm.getFirstName());
         owner.setLastName(namesForm.getLastName());
-        owner.setEmail(namesForm.getEmail());
         return ownerMapper.toOwnerModel(ownerRepository.save(owner));
     }
 

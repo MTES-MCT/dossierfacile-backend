@@ -62,7 +62,7 @@ class PdfGeneratorServiceImplTest {
         Mockito.when(apartmentSharingCommonService.findById(1L)).thenReturn(Optional.of(apartmentSharing));
         Mockito.when(apartmentSharingCommonService.save(ArgumentMatchers.any())).thenAnswer(i -> i.getArguments()[0]);
 
-        Mockito.when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(1L)).thenReturn(0);
+        Mockito.when(tenantRepository.countTenantsBlockingFullPdfGeneration(1L)).thenReturn(0);
 
         pdfGeneratorService.generateFullDossierPdf(1L);
 

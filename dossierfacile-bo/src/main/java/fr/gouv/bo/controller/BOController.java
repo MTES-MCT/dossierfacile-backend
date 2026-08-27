@@ -130,6 +130,7 @@ public class BOController {
         return "bo/regroup-tenants";
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @PostMapping("/bo/regroup/tenant")
     public String regroupTenants(@ModelAttribute("reGroupData") ReGroupDTO reGroupDTO, RedirectAttributes redirectAttributes) {
 

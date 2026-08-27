@@ -120,6 +120,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         ownerOfDocument.getDocuments().removeIf(d -> Objects.equals(d.getId(), document.getId()));
         documentRepository.delete(document);
+        tenantOfDocument.setReadyForAutoValidation(false);
         tenantStatusService.updateTenantStatus(tenantOfDocument);
         apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
     }

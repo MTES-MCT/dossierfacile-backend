@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -15,4 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class DocumentIARequest {
     private String metadata;
     private MultipartFile file;
+    private String fileUrl;
+    private Map<String, List<WorkflowV2StepParamOverride>> overrides;
 }

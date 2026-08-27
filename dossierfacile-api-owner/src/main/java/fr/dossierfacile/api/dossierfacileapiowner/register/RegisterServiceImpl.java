@@ -2,11 +2,7 @@ package fr.dossierfacile.api.dossierfacileapiowner.register;
 
 import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
-import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerMapper;
-import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
-import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerRepository;
-import fr.dossierfacile.api.dossierfacileapiowner.user.UserRepository;
-import fr.dossierfacile.api.dossierfacileapiowner.user.UserRoleService;
+import fr.dossierfacile.api.dossierfacileapiowner.user.*;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
@@ -22,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Service
@@ -67,6 +64,12 @@ public class RegisterServiceImpl implements RegisterService {
         String email = accountForm.getEmail();
         Owner owner = ownerRepository.findByEmailAndEnabledFalse(email)
                 .orElse(Owner.builder().email(email).build());
+
+        // If there is an existing account with an email not validated, we delete the previous passwordRecoveryToken.
+        if (owner.getId() != null) {
+            passwordRecoveryTokenRepository.findByUser(owner).ifPresent(passwordRecoveryTokenRepository::delete);
+        }
+
         owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
         owner.setFranceConnect(false);
         ownerRepository.save(owner);
@@ -78,8 +81,12 @@ public class RegisterServiceImpl implements RegisterService {
 
     @Override
     public void forgotPassword(String email) {
-        Owner owner = ownerRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
+        Optional<Owner> ownerOptional = ownerRepository.findByEmail(email);
+        if (ownerOptional.isEmpty()) {
+            log.info("Password recovery requested for non-existing email: {}", email);
+            return;
+        }
+        Owner owner = ownerOptional.get();
 
         if (StringUtils.isBlank(owner.getKeycloakId()) || !keycloakService.isKeycloakUser(owner.getKeycloakId())) {
             log.warn("User has not a valid keycloakId - ownerId : " + owner.getId() + ", keycloakId: " + owner.getKeycloakId());
@@ -95,6 +102,15 @@ public class RegisterServiceImpl implements RegisterService {
     public OwnerModel createPassword(String token, String password) {
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
                 .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
+
+        if (
+                passwordRecoveryToken.getExpirationDate() == null ||
+                        passwordRecoveryToken.getExpirationDate().isBefore(LocalDateTime.now(ZoneId.systemDefault()))
+        ) {
+            passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
+            throw new PasswordRecoveryTokenNotFoundException(token);
+        }
+
         User user = passwordRecoveryToken.getUser();
         user.setEnabled(true);
         if (user.getKeycloakId() == null || user.getKeycloakId().isBlank()) {

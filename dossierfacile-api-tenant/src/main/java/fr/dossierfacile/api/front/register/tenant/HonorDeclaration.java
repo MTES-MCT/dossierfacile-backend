@@ -11,10 +11,13 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     private final ApartmentSharingService apartmentSharingService;
     private final TenantMapperForMail tenantMapperForMail;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
+    private final LogService logService;
 
     private static List<Tenant> getTenantOrPartners(Tenant tenant) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
@@ -54,9 +58,13 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         tenant.setClarification(honorDeclarationForm.getClarification());
         for (Tenant t : getTenantOrPartners(tenant)) {
             checkTenantValidity(t);
+            boolean firstSubmission = !Boolean.TRUE.equals(t.getHonorDeclaration());
             t.setHonorDeclaration(honorDeclarationForm.isHonorDeclaration());
             t.lastUpdateDateProfile(LocalDateTime.now(), null);
             tenantStatusService.updateTenantStatus(t);
+            if (firstSubmission) {
+                notifyGuarantors(t);
+            }
         }
 
         tenant = tenantRepository.save(tenant);
@@ -76,6 +84,21 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
 
         return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
 
+    }
+
+    /**
+     * First submission of this tenant's dossier: notify their natural-person guarantors.
+     * Emails set or changed after submission are notified by NameGuarantorNaturalPerson.
+     */
+    private void notifyGuarantors(Tenant tenant) {
+        for (Guarantor guarantor : tenant.getGuarantors()) {
+            if (guarantor.getTypeGuarantor() == TypeGuarantor.NATURAL_PERSON && guarantor.getEmail() != null) {
+                logService.saveGuarantorNotifiedLog(guarantor);
+                String guarantorEmail = guarantor.getEmail();
+                String guarantorName = guarantor.getCompleteName();
+                TransactionalUtil.afterCommit(() -> mailService.sendEmailToGuarantor(guarantorEmail, guarantorName, tenant));
+            }
+        }
     }
 
     private void checkTenantValidity(Tenant tenant) {

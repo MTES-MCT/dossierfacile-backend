@@ -241,7 +241,7 @@ class BOApartmentSharingControllerTest {
 
         @Test
         void deleteToken_whenAuthorized_deletesLinkAndRedirects() {
-            UserPrincipal principal = operatorPrincipal();
+            UserPrincipal principal = supportPrincipal();
             ApartmentSharing apartmentSharing = apartmentSharing(APARTMENT_SHARING_ID);
             when(applicationSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.of(apartmentSharing));
 
@@ -249,7 +249,7 @@ class BOApartmentSharingControllerTest {
 
             assertThat(result).isEqualTo("redirect:/bo/colocation/99");
             verify(applicationAccessService).checkApartmentSharingAccess(principal, APARTMENT_SHARING_ID);
-            verify(apartmentSharingLinkService).delete(LINK_ID);
+            verify(apartmentSharingLinkService).delete(LINK_ID, apartmentSharing);
         }
 
         @Test

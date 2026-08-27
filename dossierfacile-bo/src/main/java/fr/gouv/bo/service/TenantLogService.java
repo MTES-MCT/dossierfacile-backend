@@ -5,11 +5,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.log.DocumentLogDetails;
 import fr.dossierfacile.common.model.log.FileLogDetails;
 import fr.dossierfacile.common.model.log.UpdateMonthlySum;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.gouv.bo.repository.BoTenantLogRepository;
 import lombok.AllArgsConstructor;
@@ -27,6 +30,7 @@ import java.util.Map;
 public class TenantLogService {
 
     private final BoTenantLogRepository logRepository;
+    private final TenantCommonRepository tenantRepository;
     private final TenantLogCommonService tenantLogCommonService;
     private final ObjectMapper objectMapper;
 
@@ -34,6 +38,28 @@ public class TenantLogService {
         List<TenantLog> logList = logRepository.findLogsByTenantId(tenantId);
         logList.sort(Comparator.comparing(TenantLog::getCreationDateTime).reversed());
         return logList;
+    }
+
+    public boolean isTenantAutoValidated(Tenant tenant) {
+        if (tenant == null || tenant.getStatus() != TenantFileStatus.VALIDATED) {
+            return false;
+        }
+        List<TenantLog> logs = logRepository.findLogsByTenantId(tenant.getId());
+        return logs.stream()
+                .filter(l -> l.getLogType() == LogType.ACCOUNT_AUTOMATICALLY_VALIDATED
+                        || (l.getLogType() == LogType.ACCOUNT_VALIDATED && l.getOperatorId() != null)
+                        || l.getLogType() == LogType.ACCOUNT_DENIED)
+                .max(Comparator.comparing(TenantLog::getCreationDateTime, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .map(l -> l.getLogType() == LogType.ACCOUNT_AUTOMATICALLY_VALIDATED)
+                .orElse(false);
+    }
+
+    public boolean isTenantAutoValidated(Long tenantId) {
+        if (tenantId == null) {
+            return false;
+        }
+        Tenant tenant = tenantRepository.findOneById(tenantId);
+        return isTenantAutoValidated(tenant);
     }
 
     public List<Object[]> listLastTreatedFilesByOperator(Long operatorId, int minusDays) {

@@ -2,6 +2,7 @@ package fr.dossierfacile.common.service.interfaces;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -16,6 +17,8 @@ public interface LogService {
     void saveLog(LogType logType, Long tenantId);
 
     void saveStepLog(Long tenantId, String step);
+
+    void saveGuarantorNotifiedLog(Guarantor guarantor);
 
     void saveLogWithOwnerData(OwnerLogType logType, Owner owner);
 

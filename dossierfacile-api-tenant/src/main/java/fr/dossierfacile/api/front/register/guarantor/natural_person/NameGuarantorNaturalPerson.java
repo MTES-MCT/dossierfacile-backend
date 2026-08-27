@@ -16,6 +16,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,7 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
     private final ClientAuthenticationFacade clientAuthenticationFacade;
     private final DocumentIAService documentIAService;
     private final MailService mailService;
+    private final LogService logService;
 
     @Override
     @Transactional
@@ -55,7 +57,6 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
                 || !StringUtils.equals(guarantor.getLastName(), nameGuarantorNaturalPersonForm.getLastName())
                 || !StringUtils.equals(currentPreferredName, newPreferredName);
 
-        // Notify the guarantor only when their email is set for the first time or changed,
         var newEmail = StringUtils.trimToNull(nameGuarantorNaturalPersonForm.getEmail());
         boolean guarantorEmailHasChanged = !StringUtils.equals(guarantor.getEmail(), newEmail);
 
@@ -76,7 +77,9 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
 
-        if (guarantorEmailHasChanged && guarantor.getEmail() != null) {
+        // Notify the guarantor of an email set or changed after the dossier was submitted.
+        if (guarantorEmailHasChanged && guarantor.getEmail() != null && Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
+            logService.saveGuarantorNotifiedLog(guarantor);
             Tenant creator = tenant;
             String guarantorEmail = guarantor.getEmail();
             String guarantorName = guarantor.getCompleteName();
