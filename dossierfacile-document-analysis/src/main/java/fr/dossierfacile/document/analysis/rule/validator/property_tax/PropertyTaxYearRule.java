@@ -19,9 +19,10 @@ import java.util.List;
  *
  * Checks the year (annee_imposition) of the property tax notice (taxe foncière).
  *
- * Like the income tax notice, the expected year switches on September 15th, but the taxe foncière
- * year is the calendar year of issuance: before 15/09 -> N-1, from 15/09 -> N. Only that single
- * expected year is accepted (no tolerance).
+ * Acceptable years depending on the date:
+ * - Before August 1st: N-1
+ * - Between August 1st and October 1st: N-1 and N
+ * - From October 1st: N
  *
  * Decisions:
  * - The rule is blocking. The year is mandatory: if it is not extracted, the document is refused
@@ -58,7 +59,7 @@ public class PropertyTaxYearRule extends BaseDocumentIAValidator {
     @Override
     public RuleValidatorOutput validate(Document document) {
         var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
-        var expectedYear = getExpectedYear();
+        var expectedYears = getExpectedYears();
 
         var extractedYearString = new DocumentIAMergerMapper()
                 .map(documentIAAnalyses, PropertyTaxModel.class)
@@ -66,7 +67,7 @@ public class PropertyTaxYearRule extends BaseDocumentIAValidator {
                 .filter(year -> !year.isBlank())
                 .orElse(null);
 
-        var yearRuleData = new TaxYearsRuleData(expectedYear, List.of());
+        var yearRuleData = new TaxYearsRuleData(expectedYears.getFirst(), List.of());
 
         // The year was not extracted: refused (decision "missing data -> refusal").
         if (extractedYearString == null) {
@@ -77,7 +78,7 @@ public class PropertyTaxYearRule extends BaseDocumentIAValidator {
             var extractedYear = Integer.parseInt(extractedYearString.trim());
             yearRuleData = new TaxYearsRuleData(yearRuleData, List.of(extractedYear));
 
-            if (extractedYear == expectedYear) {
+            if (expectedYears.contains(extractedYear)) {
                 return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), yearRuleData), RuleValidatorOutput.RuleLevel.PASSED);
             }
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), yearRuleData), RuleValidatorOutput.RuleLevel.FAILED);
@@ -92,10 +93,18 @@ public class PropertyTaxYearRule extends BaseDocumentIAValidator {
         return false;
     }
 
-    private int getExpectedYear() {
+    private List<Integer> getExpectedYears() {
         LocalDate now = LocalDate.now(clock);
         int currentYear = now.getYear();
-        LocalDate dateOfChange = LocalDate.of(currentYear, Month.SEPTEMBER, 15);
-        return now.isBefore(dateOfChange) ? currentYear - 1 : currentYear;
+        LocalDate august1 = LocalDate.of(currentYear, Month.AUGUST, 1);
+        LocalDate october1 = LocalDate.of(currentYear, Month.OCTOBER, 1);
+
+        if (now.isBefore(august1)) {
+            return List.of(currentYear - 1);
+        } else if (now.isBefore(october1)) {
+            return List.of(currentYear - 1, currentYear);
+        } else {
+            return List.of(currentYear);
+        }
     }
 }
