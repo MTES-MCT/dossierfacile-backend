@@ -14,6 +14,7 @@ import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -78,6 +79,7 @@ public class TenantService {
     private final SharedFileRepository sharedFileRepository;
     private final CompletedDossierService completedDossierService;
     private final FeatureFlagService featureFlagService;
+    private final LotteryTicketService lotteryTicketService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
@@ -593,8 +595,13 @@ public class TenantService {
             return;
         }
 
+        TenantFileStatus statusBeforeReprocess = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
+        // Deliberate operator re-queue: an assumed lottery bypass
+        if (statusBeforeReprocess != TenantFileStatus.TO_PROCESS && tenant.getStatus() == TenantFileStatus.TO_PROCESS) {
+            tenantLogCommonService.logQueueEntered(tenant.getId(), QueueEntrySource.BO_REPROCESS);
+        }
         tenantLogService.addReprocessTenantLog(tenant.getId(), operator.getId(), reprocessed);
     }
 
@@ -778,6 +785,7 @@ public class TenantService {
             switch (tenant.getStatus()) {
                 case VALIDATED -> changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.ONE);
                 case DECLINED -> changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.ONE);
+                case TO_PROCESS -> tenantLogCommonService.logQueueEntered(tenant.getId(), QueueEntrySource.BO_RECOMPUTE);
             }
             messageService.markReadAdmin(tenant);
         }
@@ -797,6 +805,8 @@ public class TenantService {
     private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.DECLINED);
         tenantRepository.save(tenant);
+        // Verdict: the lottery draw win is spent
+        lotteryTicketService.consumeDrawnTicket(tenant.getId());
         messageService.markReadAdmin(tenant);
 
         tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
@@ -980,6 +990,8 @@ public class TenantService {
         tenant.setApartmentSharing(apartmentSharing);
         // The opt-in choice only makes sense for an ALONE application
         tenant.setValidationRequested(null);
+        // Regroup = definitive lottery exit
+        lotteryTicketService.cancelActiveTicket(tenant);
         tenantRepository.save(tenant);
 
         apartmentSharingRepository.delete(apartmentToDelete);

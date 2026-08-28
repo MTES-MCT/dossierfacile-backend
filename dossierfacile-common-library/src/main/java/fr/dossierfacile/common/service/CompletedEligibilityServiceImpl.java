@@ -3,13 +3,18 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.LotteryTicketStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.repository.LotteryTicketRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -18,6 +23,7 @@ public class CompletedEligibilityServiceImpl implements CompletedEligibilityServ
 
     private final TenantUserApiRepository tenantUserApiRepository;
     private final FeatureFlagService featureFlagService;
+    private final LotteryTicketRepository lotteryTicketRepository;
 
     @Override
     public boolean isEligibleForOptIn(Tenant tenant) {
@@ -34,7 +40,14 @@ public class CompletedEligibilityServiceImpl implements CompletedEligibilityServ
 
     @Override
     public boolean canBeCompleted(Tenant tenant) {
-        if (Boolean.TRUE.equals(tenant.getValidationRequested())) {
+        if (featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)) {
+            // Lottery mode: only a DRAWN ticket keeps the dossier in the
+            // queue; validationRequested is purely declarative
+            if (lotteryTicketRepository.findFirstByTenantIdAndStatusIn(
+                    tenant.getId(), Set.of(LotteryTicketStatus.DRAWN)).isPresent()) {
+                return false;
+            }
+        } else if (Boolean.TRUE.equals(tenant.getValidationRequested())) {
             return false;
         }
         return checkEligibilityRules(tenant);

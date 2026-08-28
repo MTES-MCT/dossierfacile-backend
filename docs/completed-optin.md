@@ -256,6 +256,6 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 
 - **Colocs/couples exclus** (76-77 % du volume est ALONE) : l'extension passera par l'agrégat `ApartmentSharing.getStatus()` déjà en place (« pire statut gagne » : un seul tenant sans opt-in maintient le dossier global en `TO_PROCESS`).
 - ~~**Partage ZIP uniquement**~~ : levé par l'itération « partage COMPLETED » (§7.2) — liens LINK/MAIL, page publique et full PDF au design dédié.
-- **Plafond journalier** : hors MVP ; réutilisera le statut `COMPLETED` comme second chemin d'entrée.
+- ~~**Plafond journalier**~~ : réalisé par le module tirage au sort ([tenant-lottery.md](tenant-lottery.md)) — quand le flag `tenant_lottery` est actif, l'opt-in « oui » enregistre une candidature au tirage quotidien au lieu d'entrer directement en file, et `validation_requested` devient purement déclaratif dans la formule du statut (remplacé par « ticket `DRAWN` »).
 - **Upgrade auto-validation** : laisser le bot Visale valider silencieusement les dossiers `COMPLETED` éligibles (coût opérateur nul, bénéfice usager).
 - Le **frontend** (badge, bloc ZIP, encart de choix — monorepo Dossier-Facile-Frontend) fait l'objet d'une PR séparée consommant `optInEligible` / `validationRequested` / `POST /api/tenant/validation-request`.

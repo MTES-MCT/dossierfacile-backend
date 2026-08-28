@@ -3,6 +3,8 @@ package fr.gouv.bo.controller;
 import fr.dossierfacile.common.entity.FeatureFlag;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
+import fr.dossierfacile.common.service.interfaces.LotteryDrawService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.gouv.bo.service.TenantService;
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +27,7 @@ public class BOFeatureFlagsController {
 
     private final FeatureFlagService featureFlagService;
     private final TenantService tenantService;
+    private final LotteryDrawService lotteryDrawService;
 
     @GetMapping("/bo/feature-flags")
     public String featureFlags(Model model) {
@@ -43,7 +46,13 @@ public class BOFeatureFlagsController {
     @PostMapping("/bo/feature-flags/toggle")
     public String toggleBox(@RequestParam("key") String key) {
         FeatureFlag featureFlag = featureFlagService.getFeatureFlag(key);
-        featureFlagService.toggleFeatureFlag(featureFlag, !featureFlag.isActive());
+        boolean activate = !featureFlag.isActive();
+        featureFlagService.toggleFeatureFlag(featureFlag, activate);
+        // Lottery kill-switch: deactivation flushes pending applications to the queue
+        if (LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG.equals(key) && !activate) {
+            int flushed = lotteryDrawService.flushPendingTicketsToProcessing();
+            log.info("Lottery deactivated: {} pending applications flushed to TO_PROCESS", flushed);
+        }
         return REDIRECT_FEATURE_FLAGS;
     }
 

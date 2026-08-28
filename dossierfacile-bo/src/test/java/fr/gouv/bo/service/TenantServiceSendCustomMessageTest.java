@@ -61,7 +61,8 @@ class TenantServiceSendCustomMessageTest {
                 guarantorRepository,
                 null, null, null, null, null, null,
                 null, // completedEligibilityService
-                null  // mailCommonService
+                null,
+                null
         );
 
         when(messageSource.getMessage(anyString(), any(), any(Locale.class)))

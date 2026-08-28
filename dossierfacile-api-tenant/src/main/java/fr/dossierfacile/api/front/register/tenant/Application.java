@@ -18,6 +18,7 @@ import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
     private final UserService userService;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
     private final TenantStatusService tenantStatusService;
+    private final LotteryTicketService lotteryTicketService;
 
     @Override
     @Transactional
@@ -148,6 +150,8 @@ public class Application implements SaveStep<ApplicationFormV2> {
             // The opt-in choice only makes sense for an ALONE application: reset it on type change
             if (applicationTypeChanged) {
                 retainedTenant.setValidationRequested(null);
+                // Leaving ALONE is an exit from the lottery scope
+                lotteryTicketService.cancelActiveTicket(retainedTenant);
             }
         });
         tenantRepository.saveAll(apartmentSharing.getTenants());
