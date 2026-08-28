@@ -1,12 +1,16 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.LotteryTicket;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.LotteryTicketStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.repository.LotteryTicketRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +18,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +35,8 @@ class CompletedEligibilityServiceImplTest {
     private TenantUserApiRepository tenantUserApiRepository;
     @Mock
     private FeatureFlagService featureFlagService;
+    @Mock
+    private LotteryTicketRepository lotteryTicketRepository;
 
     @InjectMocks
     private CompletedEligibilityServiceImpl completedEligibilityService;
@@ -121,17 +133,24 @@ class CompletedEligibilityServiceImplTest {
     @Nested
     class CanBeCompleted {
 
+        private void mockLotteryFlag(boolean enabled) {
+            when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG))
+                    .thenReturn(enabled);
+        }
+
         @Test
         void should_not_be_completed_when_tenant_requested_a_validation() {
+            mockLotteryFlag(false);
             Tenant tenant = buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
             tenant.setValidationRequested(true);
 
             assertThat(completedEligibilityService.canBeCompleted(tenant)).isFalse();
-            verifyNoInteractions(tenantUserApiRepository, featureFlagService);
+            verifyNoInteractions(tenantUserApiRepository, lotteryTicketRepository);
         }
 
         @Test
         void should_be_completed_when_tenant_never_answered() {
+            mockLotteryFlag(false);
             Tenant tenant = buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
             tenant.setValidationRequested(null);
             mockFullEligibility(tenant, true);
@@ -141,8 +160,45 @@ class CompletedEligibilityServiceImplTest {
 
         @Test
         void should_be_completed_when_tenant_explicitly_declined_the_validation() {
+            mockLotteryFlag(false);
             Tenant tenant = buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
             tenant.setValidationRequested(false);
+            mockFullEligibility(tenant, true);
+
+            assertThat(completedEligibilityService.canBeCompleted(tenant)).isTrue();
+        }
+
+        @Test
+        void lottery_mode_should_not_be_completed_with_a_drawn_ticket() {
+            mockLotteryFlag(true);
+            Tenant tenant = buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
+            when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(
+                    eq(tenant.getId()), eq(Set.of(LotteryTicketStatus.DRAWN))))
+                    .thenReturn(Optional.of(LotteryTicket.builder()
+                            .tenantId(tenant.getId()).status(LotteryTicketStatus.DRAWN).build()));
+
+            assertThat(completedEligibilityService.canBeCompleted(tenant)).isFalse();
+            verifyNoInteractions(tenantUserApiRepository);
+        }
+
+        @Test
+        void lottery_mode_pending_application_should_not_block_completed() {
+            mockLotteryFlag(true);
+            Tenant tenant = buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
+            when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(anyLong(), anyCollection()))
+                    .thenReturn(Optional.empty());
+            mockFullEligibility(tenant, true);
+
+            assertThat(completedEligibilityService.canBeCompleted(tenant)).isTrue();
+        }
+
+        @Test
+        void lottery_mode_validation_requested_is_purely_declarative() {
+            mockLotteryFlag(true);
+            Tenant tenant = buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
+            tenant.setValidationRequested(true);
+            when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(anyLong(), anyCollection()))
+                    .thenReturn(Optional.empty());
             mockFullEligibility(tenant, true);
 
             assertThat(completedEligibilityService.canBeCompleted(tenant)).isTrue();

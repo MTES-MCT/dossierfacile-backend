@@ -42,6 +42,8 @@ public class MailCommonServiceImpl implements MailCommonService {
     private Long templateIdTenantDissociated;
     @Value("${brevo.template.id.completed.switched.to.processing:174}")
     private Long templateIdCompletedSwitchedToProcessing;
+    @Value("${brevo.template.id.lottery.cooldown.ended:176}")
+    private Long templateIdLotteryCooldownEnded;
 
     @Override
     public void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
@@ -101,6 +103,17 @@ public class MailCommonServiceImpl implements MailCommonService {
         Map<String, String> params = createBaseParams(tenant, false);
         params.put("PARTENAIRE", partnerName);
         sendEmailToTenant(tenant, params, templateIdCompletedSwitchedToProcessing);
+    }
+
+    @Async
+    @Override
+    public void sendEmailLotteryCooldownEnded(TenantDto tenant) {
+        if (templateIdLotteryCooldownEnded == null || templateIdLotteryCooldownEnded <= 0) {
+            log.error("Lottery cooldown-ended mail skipped: brevo.template.id.lottery.cooldown.ended is not configured");
+            return;
+        }
+        Map<String, String> params = createBaseParams(tenant, false);
+        sendEmailToTenant(tenant, params, templateIdLotteryCooldownEnded);
     }
 
     @Override

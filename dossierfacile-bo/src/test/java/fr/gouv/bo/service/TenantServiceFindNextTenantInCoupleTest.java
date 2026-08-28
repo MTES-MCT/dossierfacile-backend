@@ -53,7 +53,8 @@ class TenantServiceFindNextTenantInCoupleTest {
                 null, // quotaService
                 null, // sharedFileRepository
                 null, // completedEligibilityService
-                null  // mailCommonService
+                null, 
+                null
         );
     }
 

@@ -10,6 +10,7 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.MapDocumentCategories;
 import fr.dossierfacile.common.mapper.MasksCompletedStatusForPartner;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,10 +46,25 @@ public abstract class TenantMapper implements MasksCompletedStatusForPartner {
     @Autowired
     protected CompletedEligibilityService completedEligibilityService;
 
+    @Autowired
+    protected LotteryTicketService lotteryTicketService;
+
     @Mapping(target = "honorDeclaration", expression = "java(mapHonorDeclaration(tenant))")
     @Mapping(target = "optInEligible", expression = "java(completedEligibilityService.isEligibleForOptIn(tenant))")
     @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
+
+    // Lottery state: not shown to partners
+    @AfterMapping
+    protected void enrichWithLotteryStatus(Tenant tenant, @MappingTarget TenantModel tenantModel, @Context UserApi userApi) {
+        if (userApi != null) {
+            return;
+        }
+        lotteryTicketService.getPublicStatus(tenant.getId()).ifPresent(view -> {
+            tenantModel.setLotteryStatus(view.status());
+            tenantModel.setNextEligibleDate(view.nextEligibleDate());
+        });
+    }
 
     protected boolean mapHonorDeclaration(Tenant tenant) {
         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {

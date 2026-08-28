@@ -7,6 +7,7 @@ import java.util.List;
 public interface FeatureFlagService {
     boolean isFeatureEnabledForUser(Long userId, String key);
     boolean isFeatureEnabledForUser(Long userId, FeatureFlag featureFlag);
+    boolean isFeatureEnabled(String key);
 
     List<FeatureFlag> getAllFeatureFlags();
 

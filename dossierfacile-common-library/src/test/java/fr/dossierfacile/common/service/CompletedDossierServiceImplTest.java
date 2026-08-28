@@ -11,6 +11,7 @@ import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ class CompletedDossierServiceImplTest {
     private TenantMapperForMail tenantMapperForMail;
     private MailCommonService mailCommonService;
     private ApartmentSharingCommonService apartmentSharingCommonService;
+    private LotteryTicketService lotteryTicketService;
 
     private CompletedDossierServiceImpl service;
 
@@ -48,6 +50,7 @@ class CompletedDossierServiceImplTest {
         tenantMapperForMail = mock(TenantMapperForMail.class);
         mailCommonService = mock(MailCommonService.class);
         apartmentSharingCommonService = mock(ApartmentSharingCommonService.class);
+        lotteryTicketService = mock(LotteryTicketService.class);
 
         service = new CompletedDossierServiceImpl(
                 completedEligibilityService,
@@ -55,7 +58,8 @@ class CompletedDossierServiceImplTest {
                 tenantLogCommonService,
                 tenantMapperForMail,
                 Optional.of(mailCommonService),
-                apartmentSharingCommonService
+                apartmentSharingCommonService,
+                lotteryTicketService
         );
 
         apartmentSharing = ApartmentSharing.builder().id(300L).build();

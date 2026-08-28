@@ -52,7 +52,8 @@ class TenantServiceRegroupTenantTest {
                 null,   // quotaService
                 null,   // sharedFileRepository
                 null,   // completedEligibilityService
-                null    // mailCommonService
+                null,   // mailCommonService
+                mock()  // lotteryTicketService 
         );
     }
 

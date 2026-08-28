@@ -2,6 +2,7 @@
 <html lang="fr"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       xmlns:thymeleaf-extras-java8time="http://www.thymeleaf.org/thymeleaf-extras-java8time"
       layout:decorate="~{bo/layout-bo}">
 <head>
@@ -12,6 +13,13 @@
 <div layout:fragment="content" th:remove="tag">
     <div class="col-md-12">
         <div class="container">
+            <!-- Result of the manual draw action (flash messages) -->
+            <div th:if="${lotterySuccessMessage}" class="alert alert-success mt-3" role="alert"
+                 th:text="${lotterySuccessMessage}"></div>
+            <div th:if="${lotteryWarningMessage}" class="alert alert-warning mt-3" role="alert"
+                 th:text="${lotteryWarningMessage}"></div>
+            <div th:if="${lotteryErrorMessage}" class="alert alert-danger mt-3" role="alert"
+                 th:text="${lotteryErrorMessage}"></div>
             <div class="table-responsive">
                 <form th:object="${processCapacitiesDTO}" method="post" th:action="@{/bo/admin/process/capacities}">
                     <table class="table table-striped table-bordered table-hover">
@@ -19,6 +27,11 @@
                         <tr>
                             <th>Date</th>
                             <th>Capacité journalière</th>
+                            <!-- TODO(lottery-bypass): drop the bypass column once every dossier goes through the lottery -->
+                            <th th:if="${lotteryFlagActive}" title="Entrées en file hors tirage sur la veille (jour civil)">Bypass mesuré</th>
+                            <th th:if="${lotteryFlagActive}" title="Places = capacité - bypass">Places</th>
+                            <th th:if="${lotteryFlagActive}" title="Tickets en jeu au moment du tirage">Tickets</th>
+                            <th th:if="${lotteryFlagActive}" title="Dossiers réellement tirés au sort">Tirés</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -35,9 +48,18 @@
                                        th:value="${processCapacity.dailyCount}"
                                        placeholder="Capacité du jour">
                             </td>
+                            <!-- Résultat du tirage du jour, en lecture seule (— tant qu'aucun tirage n'a eu lieu) -->
+                            <td th:if="${lotteryFlagActive}"
+                                th:text="${lotteryDraws[it.index] != null ? lotteryDraws[it.index].bypassCount : '—'}"></td>
+                            <td th:if="${lotteryFlagActive}"
+                                th:text="${lotteryDraws[it.index] != null ? lotteryDraws[it.index].availableSlots : '—'}"></td>
+                            <td th:if="${lotteryFlagActive}"
+                                th:text="${lotteryDraws[it.index] != null ? lotteryDraws[it.index].ticketCount : '—'}"></td>
+                            <td th:if="${lotteryFlagActive}"
+                                th:text="${lotteryDraws[it.index] != null ? lotteryDraws[it.index].drawnCount : '—'}"></td>
                         </tr>
                         <tr>
-                            <td colspan="2">
+                            <td th:colspan="${lotteryFlagActive} ? 6 : 2">
                                 <button type="submit" class="btn btn-success">Enregistrer</button>
                             </td>
                         </tr>
@@ -45,6 +67,35 @@
                         </tbody>
                     </table>
                 </form>
+            </div>
+
+            <!-- Relance manuelle du tirage du jour (ADMIN) : utile quand le job de
+                 minuit n'a pas tourné (capacité non saisie, incident). Idempotent. -->
+            <div class="card mt-3" th:if="${lotteryFlagActive}" sec:authorize="hasRole('ADMIN')">
+                <div class="card-body">
+                    <h5 class="card-title">Tirage au sort du jour</h5>
+                    <p class="card-text" th:if="${lotteryDrawAllowed and todayLotteryDraw == null}">
+                        Aucun tirage n'a encore eu lieu aujourd'hui. Vérifiez que la capacité du jour est
+                        saisie et enregistrée, puis lancez le tirage manuellement.
+                    </p>
+                    <!-- A draw is normally never re-run (one per day): show when and how the
+                         latest one happened. With allow-multiple-per-day (preprod) the
+                         button stays available below. -->
+                    <p class="card-text text-muted" th:if="${todayLotteryDraw != null}">
+                        Le <span th:if="${lotteryDrawAllowed}">dernier</span> tirage du jour a été exécuté à
+                        <strong th:text="${#temporals.format(todayLotteryDraw.createdAt, 'HH')} + 'h' + ${#temporals.format(todayLotteryDraw.createdAt, 'mm')}"></strong> :
+                        <strong th:text="${todayLotteryDraw.drawnCount}"></strong> dossiers tirés
+                        sur <span th:text="${todayLotteryDraw.ticketCount}"></span> tickets
+                        (<span th:text="${todayLotteryDraw.availableSlots}"></span> places
+                        = capacité <span th:text="${todayLotteryDraw.dailyCount}"></span>
+                        − bypass <span th:text="${todayLotteryDraw.bypassCount}"></span>).
+                        <span th:unless="${lotteryDrawAllowed}">Il ne peut pas être rejoué.</span>
+                    </p>
+                    <form th:if="${lotteryDrawAllowed}" method="post" th:action="@{/bo/admin/process/lottery-draw}"
+                          onsubmit="return confirm('Lancer le tirage au sort du jour ?')">
+                        <button type="submit" class="btn btn-warning">Lancer le tirage du jour</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
