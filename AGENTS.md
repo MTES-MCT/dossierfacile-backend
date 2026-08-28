@@ -33,7 +33,7 @@ Build : `mvn clean install`. Dev : `mvn spring-boot:run -Dspring-boot.run.profil
 Hiérarchie : `apartment_sharing` -> `tenant` -> `guarantor` ; `document` -> `file`.
 
 - **`apartment_sharing` (dossier de candidature)** : concept central regroupant les dossiers locataires. `type` (`ApplicationType`) = `ALONE` / `COUPLE` / `GROUP`. Validé quand **tous** ses tenants le sont.
-- **`tenant` (dossier locataire)** : **1 seul par compte utilisateur**. `type` = `CREATE` (principal) / `JOIN` (invité d'un `COUPLE`/`GROUP`). Le principal invite par mail ; il complète le dossier joint **en `COUPLE` uniquement**. Complet = infos (nom/prénom) + 5 documents + déclaration sur l'honneur.
+- **`tenant` (dossier locataire)** : **1 seul par compte utilisateur**. `type` = `CREATE` (principal) / `JOIN` (invité d'un `COUPLE`/`GROUP`). Le principal renseigne un email pour chaque co-locataire et l'invite par mail ; il complète le dossier joint **en `COUPLE` uniquement**. Complet = infos (nom/prénom, email du bénéficiaire si `THIRD_PARTY`) + 5 documents + déclaration sur l'honneur.
 - **`guarantor` (dossier garant)** : 0..n par tenant. `TypeGuarantor` = `NATURAL_PERSON` (≤2) / `ORGANISM` (ex. Visale).
 - **`document`** : rattaché à un `tenant` **ou** un `guarantor` (FK exclusives `tenant_id` / `guarantor_id`). `category` (5 : `IDENTIFICATION`, `RESIDENCY`, `PROFESSIONAL`, `FINANCIAL`, `TAX`) + `subCategory`. = **fusion filigranée de plusieurs `file`**.
 - **`file`** : fichier brut (JPG/PNG/PDF). Fusion + filigrane via **traitement asynchrone**.
@@ -55,6 +55,6 @@ Pour limiter les risques de régressions, évaluer l'impact sur chacun de ces ax
 - **Acteurs / canaux** : opérations du back-office (`bo`), API entrante `DFC`, webhooks sortants vers les SI partenaires (`PartnerCallBackService` / `PartnerCallBackType`, sur changement de statut), documentation utilisateur (site + helpdesk Crisp). Ne pas casser les contrats API/webhook.
 - **Permissions selon le type de candidature** (`TenantPermissionsService.canAccess`) : accès aux autres dossiers du `apartment_sharing` **uniquement en `COUPLE`** (pas en `GROUP`). Qui accède à un dossier locataire accède aux documents de ses garants. Respecter les permissions existantes.
 - **Canaux de partage** (`ApartmentSharingLinkType`) : `LINK`, `MAIL`, `PARTNER`, `OWNER` — couvrir les 4.
-- **Bénéficiaire réel** (`TenantOwnerType` = `SELF` / `THIRD_PARTY`) : `user_account ≠ tenant`, ne jamais supposer l'égalité des identités.
+- **Bénéficiaire réel** (`TenantOwnerType` = `SELF` / `THIRD_PARTY`) : `user_account ≠ tenant`, ne jamais supposer l'égalité des identités. En `THIRD_PARTY`, `tenant.beneficiaryEmail` est requis, persisté et notifié quand il est défini ou modifié.
 - **Changement de statut & partage** : raisonner au niveau `apartment_sharing` (pas seulement `tenant`) — le partage porte sur le `apartment_sharing`, qui regroupe tous les tenants.
 - **Rétro-compatibilité `pdf-generator`** : toute modification doit rester rétro-compatible pour `api-tenant` et `api-watermark`, les 2 services backend qui en dépendent.
