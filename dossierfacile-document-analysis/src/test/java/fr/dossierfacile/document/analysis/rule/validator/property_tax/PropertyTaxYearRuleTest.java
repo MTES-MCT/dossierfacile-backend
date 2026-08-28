@@ -33,29 +33,72 @@ class PropertyTaxYearRuleTest {
     }
 
     @Test
-    @DisplayName("Should pass with year N-1 before Sept 15")
-    void should_pass_with_previous_year_before_deadline() {
-        // 2026-04-10 -> expected year 2025
+    @DisplayName("Should pass only with year N-1 before Aug 1")
+    void should_pass_only_with_previous_year_before_august() {
+        // 2026-04-10 -> expectedYears: [2025], expectedYear in ruleData: 2025
         PropertyTaxYearRule validator = createValidator(LocalDate.of(2026, Month.APRIL, 10));
 
-        RuleValidatorOutput result = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2025")));
+        // Year N-1 passes
+        RuleValidatorOutput resultNMinus1 = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2025")));
+        assertThat(resultNMinus1.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        assertThat(resultNMinus1.rule().getRule()).isEqualTo(DocumentRule.R_PROPERTY_TAX_WRONG_YEAR);
+        TaxYearsRuleData dataNMinus1 = (TaxYearsRuleData) resultNMinus1.rule().getRuleData();
+        assertThat(dataNMinus1.expectedYear()).isEqualTo(2025);
+        assertThat(dataNMinus1.extractedYears()).containsExactly(2025);
 
-        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
-        assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_PROPERTY_TAX_WRONG_YEAR);
-        TaxYearsRuleData data = (TaxYearsRuleData) result.rule().getRuleData();
-        assertThat(data.expectedYear()).isEqualTo(2025);
-        assertThat(data.extractedYears()).containsExactly(2025);
+        // Year N fails (new tax notice not issued before Aug 1)
+        RuleValidatorOutput resultN = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2026")));
+        assertThat(resultN.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        TaxYearsRuleData dataN = (TaxYearsRuleData) resultN.rule().getRuleData();
+        assertThat(dataN.expectedYear()).isEqualTo(2025);
+        assertThat(dataN.extractedYears()).containsExactly(2026);
     }
 
     @Test
-    @DisplayName("Should pass with year N from Sept 15")
-    void should_pass_with_current_year_from_deadline() {
-        // 2026-09-15 -> expected year 2026
-        PropertyTaxYearRule validator = createValidator(LocalDate.of(2026, Month.SEPTEMBER, 15));
+    @DisplayName("Should pass with year N-1 or N between Aug 1 and Oct 1")
+    void should_pass_with_previous_or_current_year_between_august_and_october() {
+        // 2026-08-15 -> expectedYears: [2025, 2026], expectedYear in ruleData: 2025
+        PropertyTaxYearRule validator = createValidator(LocalDate.of(2026, Month.AUGUST, 15));
 
-        RuleValidatorOutput result = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2026")));
+        // Year N-1 passes
+        RuleValidatorOutput resultNMinus1 = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2025")));
+        assertThat(resultNMinus1.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        TaxYearsRuleData dataNMinus1 = (TaxYearsRuleData) resultNMinus1.rule().getRuleData();
+        assertThat(dataNMinus1.expectedYear()).isEqualTo(2025);
+        assertThat(dataNMinus1.extractedYears()).containsExactly(2025);
 
-        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        // Year N passes
+        RuleValidatorOutput resultN = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2026")));
+        assertThat(resultN.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        TaxYearsRuleData dataN = (TaxYearsRuleData) resultN.rule().getRuleData();
+        assertThat(dataN.expectedYear()).isEqualTo(2025);
+        assertThat(dataN.extractedYears()).containsExactly(2026);
+
+        // Year N-2 fails
+        RuleValidatorOutput resultNMinus2 = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2024")));
+        assertThat(resultNMinus2.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+    }
+
+    @Test
+    @DisplayName("Should pass only with year N from Oct 1")
+    void should_pass_only_with_current_year_from_october() {
+        // 2026-10-01 -> expectedYears: [2026], expectedYear in ruleData: 2026
+        PropertyTaxYearRule validator = createValidator(LocalDate.of(2026, Month.OCTOBER, 1));
+
+        // Year N passes
+        RuleValidatorOutput resultN = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2026")));
+        assertThat(resultN.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        TaxYearsRuleData dataN = (TaxYearsRuleData) resultN.rule().getRuleData();
+        assertThat(dataN.expectedYear()).isEqualTo(2026);
+        assertThat(dataN.extractedYears()).containsExactly(2026);
+
+        // Year N-1 fails
+        RuleValidatorOutput resultNMinus1 = validator.validate(documentWithAnalysis(fakeTaxeFonciere("2025")));
+        assertThat(resultNMinus1.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        assertThat(resultNMinus1.isBlocking()).isTrue();
+        TaxYearsRuleData dataNMinus1 = (TaxYearsRuleData) resultNMinus1.rule().getRuleData();
+        assertThat(dataNMinus1.expectedYear()).isEqualTo(2026);
+        assertThat(dataNMinus1.extractedYears()).containsExactly(2025);
     }
 
     @Test
