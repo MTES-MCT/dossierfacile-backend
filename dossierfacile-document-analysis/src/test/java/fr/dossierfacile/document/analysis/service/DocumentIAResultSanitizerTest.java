@@ -195,6 +195,47 @@ class DocumentIAResultSanitizerTest {
         }
 
         @Test
+        void should_keep_allowed_typed_data_for_professional_2ddoc() {
+            DocumentIAResultSanitizer sanitizer = newSanitizer(List.of(fr.dossierfacile.document.analysis.rule.validator.professional.document_ia_model.PNDSProfessionalActivity2DDoc.class));
+
+            Document professionalDoc = new Document();
+            professionalDoc.setDocumentCategory(DocumentCategory.PROFESSIONAL);
+            professionalDoc.setDocumentSubCategory(DocumentSubCategory.CDI);
+
+            ResultModel input = ResultModel.builder()
+                    .barcodes(List.of(
+                            BarcodeModel.builder()
+                                    .rawData(buildSampleRawData("REF", "DIALLA BAH KONATE"))
+                                    .typedData(List.of(
+                                            GenericProperty.builder().name("doc_type").type(GenericProperty.TYPE_STRING).value("29").build(),
+                                            GenericProperty.builder().name("date_debut_contrat").type(GenericProperty.TYPE_DATE).value("2025-09-04").build(),
+                                            GenericProperty.builder().name("periode_declaration_contrat").type(GenericProperty.TYPE_STRING).value("092024062026").build(),
+                                            GenericProperty.builder().name("liste_prenoms").type(GenericProperty.TYPE_STRING).value("DIALLA BAH").build(),
+                                            GenericProperty.builder().name("nom_patronymique").type(GenericProperty.TYPE_STRING).value("KONATE").build(),
+                                            GenericProperty.builder().name("nature_contrat").type(GenericProperty.TYPE_STRING).value("01").build(),
+                                            GenericProperty.builder().name("unauthorized_noise").type(GenericProperty.TYPE_STRING).value("remove_me").build()
+                                    ))
+                                    .build()
+                    ))
+                    .build();
+
+            ResultModel output = sanitizer.sanitize(input, professionalDoc);
+
+            assertThat(output.getBarcodes()).hasSize(1);
+            assertThat(output.getBarcodes().get(0).getRawData()).isNull();
+            assertThat(output.getBarcodes().get(0).getTypedData())
+                    .extracting(GenericProperty::getName)
+                    .containsExactlyInAnyOrder(
+                            "doc_type",
+                            "date_debut_contrat",
+                            "periode_declaration_contrat",
+                            "liste_prenoms",
+                            "nom_patronymique",
+                            "nature_contrat"
+                    );
+        }
+
+        @Test
         void should_remove_raw_data_for_all_barcodes_even_when_typed_data_is_null_or_empty() {
             DocumentIAResultSanitizer sanitizer = newSanitizer(List.of(TestIdentityTwoDDocModel.class));
 

@@ -17,13 +17,18 @@ public class DocumentAnalysisServiceConfiguration {
             CarteNationalIdentiteRulesValidationService carteNationalIdentiteRulesValidationService,
             BulletinSalaireRulesValidationService bulletinSalaireRulesValidationService,
             AvisImpositionRulesValidationService avisImpositionRulesValidationService,
-            VisaleCertificateRulesValidationService visaleCertificateRulesValidationService
+            VisaleCertificateRulesValidationService visaleCertificateRulesValidationService,
+            ProfessionalRulesValidationService professionalRulesValidationService
     ) {
         EnumMap<DocumentSubCategory, AbstractRulesValidationService> validators = new EnumMap<>(DocumentSubCategory.class);
         validators.put(DocumentSubCategory.FRENCH_IDENTITY_CARD, carteNationalIdentiteRulesValidationService);
         validators.put(DocumentSubCategory.SALARY, bulletinSalaireRulesValidationService);
         validators.put(DocumentSubCategory.MY_NAME, avisImpositionRulesValidationService);
         validators.put(DocumentSubCategory.VISALE, visaleCertificateRulesValidationService);
+
+        // Professional documents (CDI, CDD, ALTERNATION, INTERNSHIP, INTERMITTENT)
+        ProfessionalRulesValidationService.PROFESSIONAL_SUB_CATEGORIES
+                .forEach(it -> validators.put(it, professionalRulesValidationService));
 
         // Property tax notice (taxe foncière, document category RESIDENCY/OWNER). has its own dedicated rules with strict classification.
         validators.put(DocumentSubCategory.OWNER, new PropertyTaxRulesValidationService());
