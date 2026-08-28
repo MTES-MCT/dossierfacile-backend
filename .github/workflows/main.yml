@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v3
@@ -20,3 +23,42 @@ jobs:
           cache: maven
       - name: Build & test
         run: mvn --batch-mode verify --file pom.xml
+
+      - name: Generate JaCoCo coverage summary
+        if: github.event_name == 'pull_request'
+        run: |
+          python3 - <<'PYEOF' > coverage-summary.md
+          import glob, xml.etree.ElementTree as ET
+
+          def pct(covered, missed):
+              total = covered + missed
+              return f"{100 * covered / total:.1f}%" if total else "—"
+
+          rows = []
+          tot_c = tot_m = 0
+          for path in sorted(glob.glob("**/target/site/jacoco/jacoco.xml", recursive=True)):
+              root = ET.parse(path).getroot()
+              name = root.get("name")
+              counters = {c.get("type"): (int(c.get("covered")), int(c.get("missed")))
+                          for c in root.findall("counter")}
+              c, m = counters.get("INSTRUCTION", (0, 0))
+              rows.append((name, c, m))
+              tot_c += c
+              tot_m += m
+
+          print("## Coverage JaCoCo par module")
+          print()
+          print("| Module | Coverage |")
+          print("|---|---:|")
+          for name, c, m in rows:
+              print(f"| `{name}` | {pct(c, m)} |")
+          print(f"| **Total** | **{pct(tot_c, tot_m)}** |")
+          PYEOF
+          cat coverage-summary.md
+
+      - name: Post coverage comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: jacoco-coverage
+          path: coverage-summary.md
