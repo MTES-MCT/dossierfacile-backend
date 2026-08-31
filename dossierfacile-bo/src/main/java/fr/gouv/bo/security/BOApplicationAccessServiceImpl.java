@@ -2,6 +2,7 @@ package fr.gouv.bo.security;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.OperatorLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -63,6 +64,12 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
     @Override
     public void checkFileAccess(UserPrincipal principal, File file) {
         Tenant tenant = tenantResolver.resolveTenantFromFile(file);
+        checkTenantAccess(principal, tenant.getId());
+    }
+
+    @Override
+    public void checkDocumentAccess(UserPrincipal principal, Document document) {
+        Tenant tenant = tenantResolver.resolveTenantFromDocument(document);
         checkTenantAccess(principal, tenant.getId());
     }
 
