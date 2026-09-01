@@ -990,6 +990,8 @@ public class TenantService {
 
     // Rollback action for the COMPLETED opt-in MVP: sends every COMPLETED dossier back
     // to the operator queue.
+    // TODO(completed-optin-rollout-100): remove together with the feature flag check
+    //  (CompletedEligibilityServiceImpl) and the BO rollback endpoint
     @Transactional(propagation = Propagation.NEVER)
     public int switchCompletedDossiersBackToProcessing() {
         FeatureFlag featureFlag = featureFlagService.getFeatureFlag(CompletedEligibilityService.COMPLETED_OPTIN_FEATURE_FLAG);
