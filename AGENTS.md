@@ -35,7 +35,7 @@ Hiérarchie : `apartment_sharing` -> `tenant` -> `guarantor` ; `document` -> `fi
 - **`apartment_sharing` (dossier de candidature)** : concept central regroupant les dossiers locataires. `type` (`ApplicationType`) = `ALONE` / `COUPLE` / `GROUP`. Validé quand **tous** ses tenants le sont.
 - **`tenant` (dossier locataire)** : **1 seul par compte utilisateur**. `type` = `CREATE` (principal) / `JOIN` (invité d'un `COUPLE`/`GROUP`). Le principal invite par mail ; il complète le dossier joint **en `COUPLE` uniquement**. Complet = infos (nom/prénom) + 5 documents + déclaration sur l'honneur.
 - **`guarantor` (dossier garant)** : 0..n par tenant. `TypeGuarantor` = `NATURAL_PERSON` (≤2) / `ORGANISM` (ex. Visale).
-- **`document`** : rattaché à un `tenant` **ou** un `guarantor` (FK exclusives `tenant_id` / `guarantor_id`). `category` (5 : `IDENTIFICATION`, `RESIDENCY`, `PROFESSIONAL`, `FINANCIAL`, `TAX`) + `subCategory`. = **fusion filigranée de plusieurs `file`**.
+- **`document`** : rattaché à un `tenant` **ou** un `guarantor` (FK exclusives `tenant_id` / `guarantor_id`). `category` (5 : `IDENTIFICATION`, `RESIDENCY`, `PROFESSIONAL`, `FINANCIAL`, `TAX`) + `subCategory`. = **fusion filigranée de plusieurs `file`**. Les catégories `TAX`, `RESIDENCY`, `IDENTIFICATION` et `PROFESSIONAL` sont uniques par `tenant`/`guarantor` en base : remplacer un document existant plutôt que créer un doublon.
 - **`file`** : fichier brut (JPG/PNG/PDF). Fusion + filigrane via **traitement asynchrone**.
 
 ## Statuts (`status` de `apartment_sharing`, `tenant`, `document`)
