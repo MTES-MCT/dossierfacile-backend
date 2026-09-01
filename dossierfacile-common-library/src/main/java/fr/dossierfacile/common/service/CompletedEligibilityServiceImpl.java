@@ -53,6 +53,8 @@ public class CompletedEligibilityServiceImpl implements CompletedEligibilityServ
         }
         // The feature flag check comes last: its first evaluation persists a bucket
         // assignment for the user, so only real candidates enter the metrics denominator
+        // TODO(completed-optin-rollout-100): remove this check (and the flag) once the rollout
+        //  is stable at 100%.
         return featureFlagService.isFeatureEnabledForUser(tenant.getId(), COMPLETED_OPTIN_FEATURE_FLAG);
     }
 }

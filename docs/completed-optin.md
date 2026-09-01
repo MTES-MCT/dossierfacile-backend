@@ -48,11 +48,7 @@ COMPLETED  ⟺  dossier complet + déclaration sur l'honneur signée
 ```
 
 ### 3.3 Invariant : un dossier en file n'en sort que sur décision explicite
-L'éligibilité peut changer **après** la soumission (hausse du `rollout_pct` : `ROLLOUT_INCREASED` rebascule d'un coup toutes les assignations `HASH` dont le bucket passe sous le nouveau seuil ; suppression d'une ligne `tenant_userapi` ; dissociation d'une coloc). Sans garde, un dossier `TO_PROCESS` devenu éligible quittait silencieusement la file au premier recalcul de statut — y compris lors d'une action opérateur dans le BO (`deleteFile`, `changeDocumentStatus`…), le verdict échouant ensuite sur le garde-fou `processFile` (incident du 27/08/2026, 3 dossiers).
-
-Règle (`CompletedDossierService.toCompletedIfEligible`) : la surcouche `COMPLETED` ne s'applique qu'à l'**entrée** en `TO_PROCESS`, c'est-à-dire quand le statut **persisté** n'est pas `TO_PROCESS` — soumission (`INCOMPLETE`), re-soumission après refus (`DECLINED` : le remplacement d'une pièce refusée ramène directement en `TO_PROCESS`, sans nouvelle signature) ou après validation (`VALIDATED`). Un dossier déjà `TO_PROCESS` reste `TO_PROCESS` quel que soit le recalcul (édition locataire, édition opérateur, changement d'éligibilité).
-
-Les seules sorties de la file sont donc explicites : le verdict opérateur, et l'annulation de la demande de vérification par le locataire, qui passe par **`CompletedDossierService.switchToCompleted()`** (statut `COMPLETED`, `last_update_date` de l'`apartment_sharing` rafraîchi ; garde : `TO_PROCESS` + `canBeCompleted`). Conséquence pour les paliers de rollout : les dossiers déjà en file au moment du palier y restent et sont traités normalement (*grandfathering*) — aucune action, aucun mail le jour du palier.
+L'éligibilité peut changer **après** la soumission (hausse du `rollout_pct` : `ROLLOUT_INCREASED` rebascule d'un coup toutes les assignations `HASH` dont le bucket passe sous le nouveau seuil ; suppression d'une ligne `tenant_userapi` ; dissociation d'une coloc). Sans garde, un dossier `TO_PROCESS` devenu éligible quittait silencieusement la file au premier recalcul de statut — y compris lors d'une action opérateur dans le BO.
 
 ### 3.2 Éligibilité (`CompletedEligibilityService`, common-library)
 Toujours **calculée à la volée, jamais stockée** (elle dépend d'états qui changent à tout moment). Conditions, évaluées de la moins chère à la plus chère :

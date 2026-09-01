@@ -31,6 +31,7 @@ public class BOFeatureFlagsController {
         List<FeatureFlag> featureFlags = featureFlagService.getAllFeatureFlags();
         model.addAttribute("featureFlags", featureFlags);
         // The COMPLETED rollback is a full rollback only: allowed once the flag is deactivated or at 0%
+        // TODO remove this block once optin is rolled out to 100% 
         boolean completedRollbackAllowed = featureFlags.stream()
                 .filter(flag -> CompletedEligibilityService.COMPLETED_OPTIN_FEATURE_FLAG.equals(flag.getKey()))
                 .findFirst()
@@ -59,6 +60,7 @@ public class BOFeatureFlagsController {
 
     // Rollback action for the COMPLETED opt-in MVP: sends every COMPLETED dossier back
     // to the operator queue. Meant to be run manually after lowering/deactivating the flag.
+    // TODO(completed-optin-rollout-100): remove together with the flag check (see above)
     @PostMapping("/bo/feature-flags/completed-rollback")
     public String rollbackCompletedDossiers() {
         int count = tenantService.switchCompletedDossiersBackToProcessing();
