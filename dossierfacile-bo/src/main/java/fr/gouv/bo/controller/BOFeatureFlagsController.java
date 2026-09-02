@@ -48,10 +48,16 @@ public class BOFeatureFlagsController {
         FeatureFlag featureFlag = featureFlagService.getFeatureFlag(key);
         boolean activate = !featureFlag.isActive();
         featureFlagService.toggleFeatureFlag(featureFlag, activate);
-        // Lottery kill-switch: deactivation flushes pending applications to the queue
-        if (LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG.equals(key) && !activate) {
-            int flushed = lotteryDrawService.flushPendingTicketsToProcessing();
-            log.info("Lottery deactivated: {} pending applications flushed to TO_PROCESS", flushed);
+        if (LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG.equals(key)) {
+            if (activate) {
+                // Opt-ins already in the queue keep their place: they bypass the lottery
+                int granted = lotteryDrawService.grantTicketsToQueuedOptIns();
+                log.info("Lottery activated: {} queued opt-ins granted a DRAWN ticket", granted);
+            } else {
+                // Kill-switch: deactivation flushes pending applications to the queue
+                int flushed = lotteryDrawService.flushPendingTicketsToProcessing();
+                log.info("Lottery deactivated: {} pending applications flushed to TO_PROCESS", flushed);
+            }
         }
         return REDIRECT_FEATURE_FLAGS;
     }

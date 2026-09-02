@@ -106,21 +106,8 @@ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
         </rollback>
     </changeSet>
 
-    <!-- Grandfathering: pre-lottery opt-ins currently waiting in the queue get a
-         DRAWN ticket so the "in queue via opt-in <=> DRAWN ticket"
-         invariant holds from day one and no status recomputation can eject them -->
-    <changeSet id="20260901000000-4" author="dossierfacile">
-        <sql>
-            INSERT INTO lottery_ticket (tenant_id, status, created_at, drawn_at)
-            SELECT id, 'DRAWN', now(), now()
-            FROM tenant
-            WHERE status = 'TO_PROCESS' AND validation_requested = true;
-        </sql>
-        <rollback>
-            <sql>
-                DELETE FROM lottery_ticket WHERE lottery_draw_id IS NULL AND status = 'DRAWN';
-            </sql>
-        </rollback>
-    </changeSet>
+    <!-- Grandfathering of the opt-ins already in the queue is done on flag activation
+         (LotteryDrawService.grantTicketsToQueuedOptIns), not here: it must also cover
+         the opt-ins made while the flag is off (including after a kill-switch) -->
 
 </databaseChangeLog>

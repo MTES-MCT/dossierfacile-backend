@@ -435,4 +435,21 @@ class LotteryDrawServiceImplTest {
             verify(tenantLogCommonService, never()).logQueueEntered(anyLong(), any());
         }
     }
+
+    @Nested
+    class GrantTicketsToQueuedOptIns {
+
+        @Test
+        void should_grant_tickets_through_the_repository_without_touching_the_dossiers() {
+            when(lotteryTicketRepository.grantDrawnTicketsToQueuedOptIns()).thenReturn(3);
+
+            int granted = service.grantTicketsToQueuedOptIns();
+
+            assertThat(granted).isEqualTo(3);
+            verify(lotteryTicketRepository).grantDrawnTicketsToQueuedOptIns();
+            // Already TO_PROCESS: no queue entry, no rank refresh
+            verify(tenantLogCommonService, never()).logQueueEntered(anyLong(), any());
+            verify(tenantCommonRepository, never()).refreshRank();
+        }
+    }
 }

@@ -3,6 +3,7 @@ package fr.dossierfacile.common.repository;
 import fr.dossierfacile.common.entity.LotteryTicket;
 import fr.dossierfacile.common.enums.LotteryTicketStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
@@ -54,4 +55,22 @@ public interface LotteryTicketRepository extends JpaRepository<LotteryTicket, Lo
 
     List<LotteryTicket> findAllByStatusAndCooldownUntilLessThanEqualAndCooldownNotifiedAtIsNull(
             LotteryTicketStatus status, LocalDate maxCooldownUntil);
+
+    /**
+     * Grandfathering on flag activation: opt-ins already waiting in the queue (no
+     * lottery involved) get a DRAWN ticket so the "in queue via opt-in <=> DRAWN
+     * ticket" invariant holds and no status recomputation ejects them. Idempotent:
+     * tenants holding an active ticket are skipped. Returns the inserted count.
+     */
+    @Modifying
+    @Query(value = """
+            INSERT INTO lottery_ticket (tenant_id, status, created_at, drawn_at)
+            SELECT t.id, 'DRAWN', now(), now()
+            FROM tenant t
+            WHERE t.status = 'TO_PROCESS'
+              AND t.validation_requested = true
+              AND NOT EXISTS (SELECT 1 FROM lottery_ticket lt
+                              WHERE lt.tenant_id = t.id AND lt.status IN ('PENDING', 'DRAWN'))
+            """, nativeQuery = true)
+    int grantDrawnTicketsToQueuedOptIns();
 }
