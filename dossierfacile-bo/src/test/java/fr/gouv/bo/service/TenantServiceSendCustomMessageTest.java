@@ -60,9 +60,10 @@ class TenantServiceSendCustomMessageTest {
                 null, null, null, null,
                 guarantorRepository,
                 null, null, null, null, null, null,
-                null, // completedEligibilityService
-                null,
-                null
+                null, // completedDossierService
+                null, // operatorReviewPolicy
+                null, // featureFlagService
+                null  // lotteryTicketService
         );
 
         when(messageSource.getMessage(anyString(), any(), any(Locale.class)))

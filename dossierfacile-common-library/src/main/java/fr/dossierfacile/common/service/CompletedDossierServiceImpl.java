@@ -11,7 +11,6 @@ import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -31,21 +30,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CompletedDossierServiceImpl implements CompletedDossierService {
 
-    private final CompletedEligibilityService completedEligibilityService;
     private final TenantCommonRepository tenantCommonRepository;
     private final TenantLogCommonService tenantLogCommonService;
     private final TenantMapperForMail tenantMapperForMail;
     private final Optional<MailCommonService> mailCommonService;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final LotteryTicketService lotteryTicketService;
-
-    @Override
-    public TenantFileStatus toCompletedIfEligible(Tenant tenant, TenantFileStatus computedStatus) {
-        if (computedStatus == TenantFileStatus.TO_PROCESS && completedEligibilityService.canBeCompleted(tenant)) {
-            return TenantFileStatus.COMPLETED;
-        }
-        return computedStatus;
-    }
 
     // A COMPLETED dossier must never be exposed to partners: it goes back to the
     // operator queue, positioned at the time of the switch. The user's explicit

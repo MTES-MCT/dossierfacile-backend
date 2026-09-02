@@ -10,7 +10,6 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -29,7 +28,6 @@ import static org.mockito.Mockito.*;
 
 class CompletedDossierServiceImplTest {
 
-    private CompletedEligibilityService completedEligibilityService;
     private TenantCommonRepository tenantCommonRepository;
     private TenantLogCommonService tenantLogCommonService;
     private TenantMapperForMail tenantMapperForMail;
@@ -44,7 +42,6 @@ class CompletedDossierServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        completedEligibilityService = mock(CompletedEligibilityService.class);
         tenantCommonRepository = mock(TenantCommonRepository.class);
         tenantLogCommonService = mock(TenantLogCommonService.class);
         tenantMapperForMail = mock(TenantMapperForMail.class);
@@ -53,7 +50,6 @@ class CompletedDossierServiceImplTest {
         lotteryTicketService = mock(LotteryTicketService.class);
 
         service = new CompletedDossierServiceImpl(
-                completedEligibilityService,
                 tenantCommonRepository,
                 tenantLogCommonService,
                 tenantMapperForMail,
@@ -64,35 +60,6 @@ class CompletedDossierServiceImplTest {
 
         apartmentSharing = ApartmentSharing.builder().id(300L).build();
         tenant = Tenant.builder().id(100L).apartmentSharing(apartmentSharing).build();
-    }
-
-    @Nested
-    class ToCompletedIfEligible {
-
-        @Test
-        void should_switch_to_completed_when_eligible() {
-            when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(true);
-
-            assertThat(service.toCompletedIfEligible(tenant, TenantFileStatus.TO_PROCESS))
-                    .isEqualTo(TenantFileStatus.COMPLETED);
-        }
-
-        @Test
-        void should_keep_to_process_when_not_eligible() {
-            when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(false);
-
-            assertThat(service.toCompletedIfEligible(tenant, TenantFileStatus.TO_PROCESS))
-                    .isEqualTo(TenantFileStatus.TO_PROCESS);
-        }
-
-        @Test
-        void should_return_other_statuses_unchanged_without_checking_eligibility() {
-            for (TenantFileStatus status : new TenantFileStatus[]{
-                    TenantFileStatus.INCOMPLETE, TenantFileStatus.VALIDATED, TenantFileStatus.DECLINED, TenantFileStatus.ARCHIVED}) {
-                assertThat(service.toCompletedIfEligible(tenant, status)).isEqualTo(status);
-            }
-            verifyNoInteractions(completedEligibilityService);
-        }
     }
 
     @Nested

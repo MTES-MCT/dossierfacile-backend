@@ -17,6 +17,7 @@ import fr.dossierfacile.common.repository.ProcessingCapacityRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryDrawService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
@@ -56,6 +57,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
     private final LotteryDrawRepository lotteryDrawRepository;
     private final LotteryTicketRepository lotteryTicketRepository;
     private final LotteryTicketService lotteryTicketService;
+    private final OperatorReviewPolicy operatorReviewPolicy;
     private final TenantLogRepository tenantLogRepository;
     private final TenantCommonRepository tenantCommonRepository;
     private final TenantLogCommonService tenantLogCommonService;
@@ -98,7 +100,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
         List<LotteryTicket> tickets = lotteryTicketRepository.findDrawTickets();
 
         LotteryDraw draw = self.createDraw(drawDate, capacity.getDailyCount(), (int) bypassCount, availableSlots, tickets.size());
-        // Dossier not COMPLETED at draw time => application cancelled (no cooldown)
+        // Dossier out of the draw scope => application cancelled (no cooldown)
         cancelOutOfScopeTickets(drawDate);
         if (availableSlots <= 0) {
             log.warn("Lottery draw for {}: no available slot ({} = capacity {} - bypass {}), no ticket drawn " +
@@ -205,7 +207,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
             }
         }
         if (cancelled > 0) {
-            log.info("Lottery draw for {}: {} applications cancelled (dossier not COMPLETED at draw time)",
+            log.info("Lottery draw for {}: {} applications cancelled (dossier out of the draw scope)",
                     drawDate, cancelled);
         }
     }
@@ -217,7 +219,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
             return false;
         }
         Tenant tenant = tenantCommonRepository.findById(ticket.getTenantId()).orElse(null);
-        if (tenant != null && tenant.getStatus() == TenantFileStatus.COMPLETED) {
+        if (isEligibleForLottery(tenant)) {
             // Back in shape since the query: leave the application alone
             return false;
         }
@@ -226,7 +228,17 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
     }
 
     /**
-     * DRAWN + dossier to TO_PROCESS. A dossier that left COMPLETED since
+     * COMPLETED dossier still in the scope (ALONE, no partner
+     * link, in the rollout). Safety net for tickets not cancelled at the source.
+     */
+    private boolean isEligibleForLottery(Tenant tenant) {
+        return tenant != null
+                && tenant.getStatus() == TenantFileStatus.COMPLETED
+                && operatorReviewPolicy.supportsCompletedStatus(tenant);
+    }
+
+    /**
+     * DRAWN + dossier to TO_PROCESS. A dossier that left the draw scope since
      * the tickets were listed is cancelled (the slot is lost — rare, accepted).
      * drawId is null for a flush (grant outside any draw).
      */
@@ -240,7 +252,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
         if (tenant == null) {
             return false;
         }
-        if (tenant.getStatus() != TenantFileStatus.COMPLETED) {
+        if (!isEligibleForLottery(tenant)) {
             lotteryTicketService.cancelTicket(ticket);
             return false;
         }
@@ -269,8 +281,8 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
             return;
         }
         Tenant tenant = tenantCommonRepository.findById(ticket.getTenantId()).orElse(null);
-        if (tenant == null || tenant.getStatus() != TenantFileStatus.COMPLETED) {
-            // Left COMPLETED since the tickets were listed: cancelled, not penalized
+        if (!isEligibleForLottery(tenant)) {
+            // Lost its eligibility since the ticket was created, no cooldown
             lotteryTicketService.cancelTicket(ticket);
             return;
         }
@@ -298,8 +310,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
         ticket.setCooldownNotifiedAt(LocalDateTime.now(ZoneId.systemDefault()));
         lotteryTicketRepository.save(ticket);
         Tenant tenant = tenantCommonRepository.findById(ticket.getTenantId()).orElse(null);
-        if (tenant == null || tenant.getStatus() != TenantFileStatus.COMPLETED) {
-            // "Apply again" would be misleading on a dossier that left COMPLETED
+        if (!isEligibleForLottery(tenant)) {
             return false;
         }
         if (mailCommonService.isEmpty()) {

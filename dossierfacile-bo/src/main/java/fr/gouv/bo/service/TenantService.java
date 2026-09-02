@@ -12,7 +12,7 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -78,6 +78,7 @@ public class TenantService {
     private final QuotaService quotaService;
     private final SharedFileRepository sharedFileRepository;
     private final CompletedDossierService completedDossierService;
+    private final OperatorReviewPolicy operatorReviewPolicy;
     private final FeatureFlagService featureFlagService;
     private final LotteryTicketService lotteryTicketService;
 
@@ -779,7 +780,7 @@ public class TenantService {
     @Transactional
     protected void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
-        tenant.setStatus(completedDossierService.toCompletedIfEligible(tenant, tenant.computeStatus()));
+        tenant.setStatus(operatorReviewPolicy.resolveStatus(tenant, tenant.computeStatus()));
         tenantRepository.save(tenant);
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
@@ -1004,7 +1005,7 @@ public class TenantService {
     // to the operator queue.
     @Transactional(propagation = Propagation.NEVER)
     public int switchCompletedDossiersBackToProcessing() {
-        FeatureFlag featureFlag = featureFlagService.getFeatureFlag(CompletedEligibilityService.COMPLETED_OPTIN_FEATURE_FLAG);
+        FeatureFlag featureFlag = featureFlagService.getFeatureFlag(OperatorReviewPolicy.COMPLETED_OPTIN_FEATURE_FLAG);
         if (featureFlag.isActive() && featureFlag.getRolloutPct() > 0) {
             throw new IllegalStateException("Full rollback only: deactivate the feature flag or set its rollout to 0% first");
         }

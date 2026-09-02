@@ -46,15 +46,19 @@ COMPLETED  ⟺  dossier complet + déclaration sur l'honneur signée
               + validation_requested ≠ true
 ```
 
-### 3.2 Éligibilité (`CompletedEligibilityService`, common-library)
-Toujours **calculée à la volée, jamais stockée** (elle dépend d'états qui changent à tout moment). Conditions, évaluées de la moins chère à la plus chère :
+### 3.2 Périmètre et file opérateur (`OperatorReviewPolicy`, common-library)
+Toujours **calculé à la volée, jamais stocké** (dépend d'états qui changent à tout moment).
+
+Condition dans l'ordre :
 1. `application_type = ALONE` ;
 2. **aucune** ligne `tenant_userapi` — règle stricte : tout lien partenaire (DFC ou propriétaire via `dfconnect-proprietaire`), même résiduel après suppression de la candidature, désactive l'opt-in ;
 3. **en dernier** : `FeatureFlagService.isFeatureEnabledForUser(tenantId, "tenant_completed_optin")` — la première évaluation persiste l'assignation de bucket du user ; en le plaçant en dernier, seuls les candidats réels entrent dans le dénominateur des métriques, et les candidats hors rollout (`enabled = false`) forment le groupe contrôle.
 
-Deux méthodes publiques :
-- `isEligibleForOptIn(tenant)` : conditions 1-3 + dossier soumis (statut `TO_PROCESS`, `COMPLETED`, `VALIDATED` ou `DECLINED`). Pilote l'affichage de la question côté front ; **indépendante de `validation_requested`** (la question reste modifiable après réponse). Sur un dossier `VALIDATED`/`DECLINED`, le choix est enregistré **sans effet immédiat sur le statut** : il s'applique à la prochaine re-soumission (UI dédiée à venir ; l'encart actuel ne s'affiche que pour `COMPLETED` et `TO_PROCESS` + demande en cours).
-- `canBeCompleted(tenant)` : conditions 1-3 + `validation_requested ≠ true`. Utilisée pour l'attribution du statut `COMPLETED` ; l'appelant garantit que le statut calculé est `TO_PROCESS`.
+Quatre méthodes publiques :
+- `supportsCompletedStatus(tenant)` : conditions 1-3. Indépendante du statut courant et du choix utilisateur, donc utilisable pendant une transition de statut et par le tirage.
+- `canRequestOperatorReview(tenant)` : `supportsCompletedStatus` + dossier complet (`TenantFileStatus.isCompletedOrBetter()` : `COMPLETED`, `TO_PROCESS`, `VALIDATED`) ou `DECLINED`. Pilote l'affichage de la question côté front (`optInEligible`) ; **indépendante de `validation_requested`** (la question reste modifiable après réponse). Sur un dossier `VALIDATED`/`DECLINED`, le choix est enregistré **sans effet immédiat sur le statut** : il s'applique à la prochaine re-soumission (UI dédiée à venir ; l'encart actuel ne s'affiche que pour `COMPLETED` et `TO_PROCESS` + demande en cours).
+- `isOperatorReviewGranted(tenant)` : une place en file a été accordée. Flag lottery OFF : `validation_requested = true` ; flag ON : ticket `DRAWN` (voir tenant-lottery.md §3).
+- `resolveStatus(tenant, computedStatus)` : statut à persister. Un `TO_PROCESS` calculé devient `COMPLETED` si le dossier est dans le périmètre et qu'aucune revue n'est accordée ; tout autre statut calculé est rendu inchangé.
 
 ---
 
@@ -75,7 +79,7 @@ Deux méthodes publiques :
             +---------------------------------------------------------------+
             |                  dossierfacile-common-library                 |
             |                                                               |
-            |  CompletedEligibilityService / Impl (§3)                      |
+            |  OperatorReviewPolicy / Impl (§3)                             |
             |  PartnerCallBackServiceImpl.registerTenant (bascule §7.1)     |
             |  ApartmentSharing.getStatus() : agrégat COMPLETED (§5.3)      |
             |  PartnerVisibleStatus.mask : filet + log.error (§7.3)         |
@@ -97,10 +101,10 @@ Deux méthodes publiques :
 ## 5. Transitions de statut
 
 ### 5.1 Entrée : passage en COMPLETED à la soumission (api-tenant)
-`TenantStatusServiceImpl.updateTenantStatus()` — appelé par tous les `SaveStep`, dont la déclaration sur l'honneur — applique `CompletedDossierService.toCompletedIfEligible()` : si `computeStatus()` retourne `TO_PROCESS` **et** `canBeCompleted(tenant)`, le statut persisté devient `COMPLETED`. `Tenant.computeStatus()` est inchangé. Aucun webhook partenaire n'est émis (un dossier passé en `COMPLETED` n'a par définition aucun partenaire lié).
+`TenantStatusServiceImpl.updateTenantStatus()` — appelé par tous les `SaveStep`, dont la déclaration sur l'honneur — applique `OperatorReviewPolicy.resolveStatus(tenant, computeStatus())` : un `TO_PROCESS` calculé est persisté en `COMPLETED` ou `TO_PROCESS` selon la policy. `Tenant.computeStatus()` est inchangé. Aucun webhook partenaire n'est émis (un dossier passé en `COMPLETED` n'a par définition aucun partenaire lié).
 
 ### 5.2 Même règle côté BO
-`fr.gouv.bo.service.TenantService.updateTenantStatus()` (re-synchronisation après suppression/modification de document par un opérateur) applique la même règle via `CompletedDossierService.toCompletedIfEligible()` — la logique n'existe qu'à un seul endroit.
+`fr.gouv.bo.service.TenantService.updateTenantStatus()` (re-synchronisation après suppression/modification de document par un opérateur) applique la même règle via `OperatorReviewPolicy.resolveStatus()` — la logique n'existe qu'à un seul endroit.
 
 ### 5.3 Agrégat coloc
 `ApartmentSharing.getStatus()` gère `COMPLETED` explicitement (entre `TO_PROCESS` et `VALIDATED`), la structure existante de la méthode restant inchangée. Sans ce cas, un dossier ALONE `COMPLETED` serait tombé dans le `return VALIDATED` final — exposant tokens de partage, full PDF et mails propriétaire « dossier validé ».
@@ -121,7 +125,7 @@ Toute sortie de `COMPLETED` invalide le full PDF (design « non vérifié », §
 ## 6. Choix de l'utilisateur & exposition front
 
 - **`PUT /api/tenant/validation-request`** (scope `dossier`), body `{"validationRequested": true|false}` :
-  - refuse (`409`) si `isEligibleForOptIn` est faux ;
+  - refuse (`409`) si `canRequestOperatorReview` est faux ;
   - persiste le choix, positionne `last_update_date = now`, journalise (`VALIDATION_REQUESTED` / `VALIDATION_DECLINED`), recalcule le statut ;
   - si le dossier passe effectivement `COMPLETED → TO_PROCESS` (réponse « oui »), envoie le **template Brevo 56 existant** (« dossier complet, en attente de vérification ») — même situation qu'une soumission classique, aucun nouveau template ;
   - accepté aussi sur un dossier `VALIDATED` ou `DECLINED` : le recalcul de statut est alors un no-op (`computeStatus()` retourne le même statut), le choix est simplement enregistré pour la prochaine re-soumission.

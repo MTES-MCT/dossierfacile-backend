@@ -14,7 +14,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ class NameSaveStepTest {
     @MockitoBean
     MailService mailService;
     @MockitoBean
-    CompletedEligibilityService completedEligibilityService;
+    OperatorReviewPolicy operatorReviewPolicy;
     @MockitoBean
     LotteryTicketService lotteryTicketService;
 
