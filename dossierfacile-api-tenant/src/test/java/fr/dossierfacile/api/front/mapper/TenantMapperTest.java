@@ -18,7 +18,7 @@ import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +51,7 @@ class TenantMapperTest {
         mapper.applicationBaseUrl = "https://api.example.com";
         mapper.tenantBaseUrl = "https://example.com";
         mapper.minBrokenRulesLevel = DocumentRuleLevel.WARN;
-        mapper.completedEligibilityService = mock(CompletedEligibilityService.class);
+        mapper.operatorReviewPolicy = mock(OperatorReviewPolicy.class);
         LotteryTicketService lotteryTicketService = mock(LotteryTicketService.class);
         when(lotteryTicketService.getPublicStatus(any())).thenReturn(Optional.empty());
         mapper.lotteryTicketService = lotteryTicketService;

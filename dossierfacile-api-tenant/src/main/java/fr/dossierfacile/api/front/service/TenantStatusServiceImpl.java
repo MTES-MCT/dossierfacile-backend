@@ -10,8 +10,8 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.QueueEntrySource;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -31,7 +31,7 @@ public class TenantStatusServiceImpl implements TenantStatusService {
     private final TenantCommonRepository tenantRepository;
     private final TenantCommonService tenantCommonService;
     private final TenantLogCommonService tenantLogCommonService;
-    private final CompletedDossierService completedDossierService;
+    private final OperatorReviewPolicy operatorReviewPolicy;
     private final LotteryTicketService lotteryTicketService;
 
     @Override
@@ -44,7 +44,7 @@ public class TenantStatusServiceImpl implements TenantStatusService {
             tenant.getGuarantors().forEach(Guarantor::getDocuments);
         }
 
-        var newTenantStatus = completedDossierService.toCompletedIfEligible(tenant, tenant.computeStatus());
+        var newTenantStatus = operatorReviewPolicy.resolveStatus(tenant, tenant.computeStatus());
         if (previousStatus != newTenantStatus) {
             if (newTenantStatus == TenantFileStatus.VALIDATED) {
                 tenantCommonService.changeTenantStatusToValidated(tenant);

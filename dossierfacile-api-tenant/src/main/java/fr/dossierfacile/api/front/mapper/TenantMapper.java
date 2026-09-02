@@ -9,7 +9,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.MapDocumentCategories;
 import fr.dossierfacile.common.mapper.MasksCompletedStatusForPartner;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +44,13 @@ public abstract class TenantMapper implements MasksCompletedStatusForPartner {
     protected String tenantBaseUrl;
 
     @Autowired
-    protected CompletedEligibilityService completedEligibilityService;
+    protected OperatorReviewPolicy operatorReviewPolicy;
 
     @Autowired
     protected LotteryTicketService lotteryTicketService;
 
     @Mapping(target = "honorDeclaration", expression = "java(mapHonorDeclaration(tenant))")
-    @Mapping(target = "optInEligible", expression = "java(completedEligibilityService.isEligibleForOptIn(tenant))")
+    @Mapping(target = "optInEligible", expression = "java(operatorReviewPolicy.canRequestOperatorReview(tenant))")
     @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 

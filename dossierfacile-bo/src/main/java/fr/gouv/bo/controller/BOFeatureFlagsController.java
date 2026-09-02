@@ -1,7 +1,7 @@
 package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.FeatureFlag;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryDrawService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
@@ -36,7 +36,7 @@ public class BOFeatureFlagsController {
         // The COMPLETED rollback is a full rollback only: allowed once the flag is deactivated or at 0%
         // TODO remove this block once optin is rolled out to 100% 
         boolean completedRollbackAllowed = featureFlags.stream()
-                .filter(flag -> CompletedEligibilityService.COMPLETED_OPTIN_FEATURE_FLAG.equals(flag.getKey()))
+                .filter(flag -> OperatorReviewPolicy.COMPLETED_OPTIN_FEATURE_FLAG.equals(flag.getKey()))
                 .findFirst()
                 .map(flag -> !flag.isActive() || flag.getRolloutPct() == 0)
                 .orElse(false);

@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.LotteryTicket;
 import fr.dossierfacile.common.entity.LotteryDraw;
 import fr.dossierfacile.common.entity.ProcessingCapacity;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LotteryTicketStatus;
 import fr.dossierfacile.common.enums.QueueEntrySource;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -14,7 +15,9 @@ import fr.dossierfacile.common.repository.LotteryDrawRepository;
 import fr.dossierfacile.common.repository.ProcessingCapacityRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
+import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
@@ -49,6 +52,8 @@ class LotteryDrawServiceImplTest {
     private LotteryDrawRepository lotteryDrawRepository;
     private LotteryTicketRepository lotteryTicketRepository;
     private LotteryTicketServiceImpl lotteryTicketService;
+    private TenantUserApiRepository tenantUserApiRepository;
+    private OperatorReviewPolicyImpl operatorReviewPolicy;
     private TenantLogRepository tenantLogRepository;
     private TenantCommonRepository tenantCommonRepository;
     private TenantLogCommonService tenantLogCommonService;
@@ -72,9 +77,11 @@ class LotteryDrawServiceImplTest {
         apartmentSharingCommonService = mock(ApartmentSharingCommonService.class);
         tenantMapperForMail = mock(TenantMapperForMail.class);
         mailCommonService = mock(MailCommonService.class);
-        // Real collaborator: cancellation is the shared 3-line rule, stubbing it would hide it
         lotteryTicketService = new LotteryTicketServiceImpl(
                 lotteryTicketRepository, tenantLogCommonService, featureFlagService);
+        tenantUserApiRepository = mock(TenantUserApiRepository.class);
+        operatorReviewPolicy = new OperatorReviewPolicyImpl(
+                tenantUserApiRepository, featureFlagService, lotteryTicketRepository);
 
         service = new LotteryDrawServiceImpl(
                 featureFlagService,
@@ -82,6 +89,7 @@ class LotteryDrawServiceImplTest {
                 lotteryDrawRepository,
                 lotteryTicketRepository,
                 lotteryTicketService,
+                operatorReviewPolicy,
                 tenantLogRepository,
                 tenantCommonRepository,
                 tenantLogCommonService,
@@ -93,6 +101,9 @@ class LotteryDrawServiceImplTest {
         ReflectionTestUtils.setField(service, "self", service);
 
         when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(true);
+        // Every tenant is in the opt-in rollout unless a test says otherwise
+        when(featureFlagService.isFeatureEnabledForUser(anyLong(), eq(OperatorReviewPolicy.COMPLETED_OPTIN_FEATURE_FLAG)))
+                .thenReturn(true);
         when(lotteryDrawRepository.findFirstByDrawDateOrderByIdDesc(DRAW_DATE)).thenReturn(Optional.empty());
         when(lotteryTicketRepository.findPendingOutOfDrawScope()).thenReturn(List.of());
         when(lotteryDrawRepository.save(any())).thenAnswer(invocation -> {
@@ -122,22 +133,36 @@ class LotteryDrawServiceImplTest {
     }
 
     private Tenant tenant(Long id, TenantFileStatus status) {
+        return tenant(id, status, ApplicationType.ALONE);
+    }
+
+    private Tenant tenant(Long id, TenantFileStatus status, ApplicationType applicationType) {
         Tenant tenant = Tenant.builder().id(id).status(status)
-                .apartmentSharing(ApartmentSharing.builder().id(id + 500).build()).build();
+                .apartmentSharing(ApartmentSharing.builder().id(id + 500).applicationType(applicationType).build()).build();
         when(tenantCommonRepository.findById(id)).thenReturn(Optional.of(tenant));
         return tenant;
     }
 
+    /** The SQL lists the pool, then the dossier or ticket changes before its own transaction. */
+    private void listedThenChanged(List<LotteryTicket> pool, Runnable change) {
+        when(lotteryTicketRepository.findDrawTickets()).thenAnswer(invocation -> {
+            change.run();
+            return pool;
+        });
+    }
+
     private LotteryTicket pendingTicket(Long id, Long tenantId) {
-        LotteryTicket ticket = LotteryTicket.builder().id(id).tenantId(tenantId)
-                .status(LotteryTicketStatus.PENDING).build();
+        return ticket(id, tenantId, LotteryTicketStatus.PENDING);
+    }
+
+    private LotteryTicket ticket(Long id, Long tenantId, LotteryTicketStatus status) {
+        LotteryTicket ticket = LotteryTicket.builder().id(id).tenantId(tenantId).status(status).build();
         when(lotteryTicketRepository.findById(id)).thenReturn(Optional.of(ticket));
         return ticket;
     }
 
     @Nested
     class ExecuteDraw {
-
         @Test
         void should_skip_when_the_flag_is_off() {
             when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(false);
@@ -147,12 +172,30 @@ class LotteryDrawServiceImplTest {
         }
 
         @Test
-        void should_be_idempotent_when_a_draw_already_exists() {
+        void should_return_the_existing_draw_when_already_executed_today() {
             LotteryDraw existingDraw = LotteryDraw.builder().id(1L).drawDate(DRAW_DATE).build();
             when(lotteryDrawRepository.findFirstByDrawDateOrderByIdDesc(DRAW_DATE)).thenReturn(Optional.of(existingDraw));
 
             assertThat(service.executeDrawIfNeeded(DRAW_DATE)).contains(existingDraw);
             verify(lotteryDrawRepository, never()).save(any());
+        }
+
+        @Test
+        void should_run_a_second_draw_the_same_day_when_multiple_draws_are_allowed() {
+            ReflectionTestUtils.setField(service, "allowMultipleDrawsPerDay", true);
+            LotteryDraw firstDraw = LotteryDraw.builder().id(1L).drawDate(DRAW_DATE).drawnCount(3).build();
+            when(lotteryDrawRepository.findFirstByDrawDateOrderByIdDesc(DRAW_DATE)).thenReturn(Optional.of(firstDraw));
+            mockCapacity(10);
+            mockBypass(0);
+            LotteryTicket ticket = pendingTicket(1L, 100L);
+            tenant(100L, TenantFileStatus.COMPLETED);
+            when(lotteryTicketRepository.findDrawTickets()).thenReturn(List.of(ticket));
+
+            Optional<LotteryDraw> secondDraw = service.executeDrawIfNeeded(DRAW_DATE);
+
+            assertThat(secondDraw).isPresent();
+            assertThat(secondDraw.get().getId()).isNotEqualTo(firstDraw.getId());
+            assertThat(ticket.getStatus()).isEqualTo(LotteryTicketStatus.DRAWN);
         }
 
         @Test
@@ -204,24 +247,9 @@ class LotteryDrawServiceImplTest {
             verify(tenantCommonRepository).refreshRank();
         }
 
-        // Rare case: a dossier is picked but its status is no longer COMPLETED when draw is executed.
-        @Test
-        void should_cancel_a_potential_winner_whose_dossier_left_completed_during_the_draw() {
-            mockCapacity(10);
-            mockBypass(0);
-            LotteryTicket ticket = pendingTicket(1L, 100L);
-            tenant(100L, TenantFileStatus.INCOMPLETE);
-            when(lotteryTicketRepository.findDrawTickets()).thenReturn(List.of(ticket));
-
-            Optional<LotteryDraw> draw = service.executeDrawIfNeeded(DRAW_DATE);
-
-            assertThat(ticket.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
-            // No cooldown: the tenant can apply again
-            assertThat(draw).hasValueSatisfying(r -> assertThat(r.getDrawnCount()).isZero());
-        }
 
         @Test
-        void should_cancel_pending_applications_whose_dossier_is_not_completed_at_draw_time() {
+        void should_cancel_when_the_dossier_is_no_longer_completed() {
             mockCapacity(10);
             mockBypass(0);
             LotteryTicket outOfScope = pendingTicket(1L, 100L);
@@ -232,12 +260,27 @@ class LotteryDrawServiceImplTest {
             service.executeDrawIfNeeded(DRAW_DATE);
 
             assertThat(outOfScope.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
-            // No cooldown: the tenant can apply again as soon as the dossier is re-signed
             assertThat(outOfScope.getCooldownUntil()).isNull();
         }
 
         @Test
-        void should_cancel_not_completed_applications_even_without_available_slots() {
+        void should_cancel_when_the_dossier_is_no_longer_alone() {
+            mockCapacity(10);
+            mockBypass(0);
+            LotteryTicket ticket = pendingTicket(1L, 100L);
+            Tenant coupleTenant = tenant(100L, TenantFileStatus.COMPLETED, ApplicationType.COUPLE);
+            when(lotteryTicketRepository.findPendingOutOfDrawScope()).thenReturn(List.of(ticket));
+            when(lotteryTicketRepository.findDrawTickets()).thenReturn(List.of());
+
+            service.executeDrawIfNeeded(DRAW_DATE);
+
+            assertThat(ticket.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
+            assertThat(ticket.getCooldownUntil()).isNull();
+            assertThat(coupleTenant.getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+        }
+
+        @Test
+        void should_cancel_when_no_slot_is_available() {
             mockCapacity(5);
             mockBypass(8); // no slot
             LotteryTicket outOfScope = pendingTicket(1L, 100L);
@@ -250,22 +293,80 @@ class LotteryDrawServiceImplTest {
             assertThat(outOfScope.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
         }
 
+        // Race condition: the pool is listed by SQL, then each ticket is re-read in its
+        // own transaction. A dossier that changed in between is cancelled without
+        // cooldown, the slot is lost. listedThenChanged() simulates the change right
+        // after the listing.
+
         @Test
-        void should_run_a_second_draw_the_same_day_when_multiple_draws_are_allowed() {
-            ReflectionTestUtils.setField(service, "allowMultipleDrawsPerDay", true);
-            LotteryDraw firstDraw = LotteryDraw.builder().id(1L).drawDate(DRAW_DATE).drawnCount(3).build();
-            when(lotteryDrawRepository.findFirstByDrawDateOrderByIdDesc(DRAW_DATE)).thenReturn(Optional.of(firstDraw));
+        void should_cancel_when_the_dossier_left_completed_during_the_draw() {
             mockCapacity(10);
             mockBypass(0);
             LotteryTicket ticket = pendingTicket(1L, 100L);
+            Tenant tenant = tenant(100L, TenantFileStatus.COMPLETED);
+            listedThenChanged(List.of(ticket), () -> tenant.setStatus(TenantFileStatus.INCOMPLETE));
+
+            Optional<LotteryDraw> draw = service.executeDrawIfNeeded(DRAW_DATE);
+
+            assertThat(ticket.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
+            assertThat(ticket.getCooldownUntil()).isNull();
+            assertThat(draw).hasValueSatisfying(r -> assertThat(r.getDrawnCount()).isZero());
+        }
+
+        @Test
+        void should_cancel_when_a_partner_was_linked_during_the_draw() {
+            mockCapacity(10);
+            mockBypass(0);
+            LotteryTicket ticket = pendingTicket(1L, 100L);
+            Tenant tenant = tenant(100L, TenantFileStatus.COMPLETED);
+            listedThenChanged(List.of(ticket), () -> when(tenantUserApiRepository.existsByTenant(tenant)).thenReturn(true));
+
+            Optional<LotteryDraw> draw = service.executeDrawIfNeeded(DRAW_DATE);
+
+            assertThat(ticket.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
+            assertThat(ticket.getCooldownUntil()).isNull();
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+            assertThat(draw).hasValueSatisfying(r -> assertThat(r.getDrawnCount()).isZero());
+            verify(tenantLogCommonService, never()).logQueueEntered(anyLong(), any());
+        }
+
+        @Test
+        void should_cancel_when_the_dossier_became_a_couple_during_the_draw() {
+            mockCapacity(10);
+            mockBypass(9); // 1 slot: the second ticket goes through markNotDrawn
+            LotteryTicket winner = pendingTicket(1L, 100L);
+            LotteryTicket coupleTicket = pendingTicket(2L, 200L);
             tenant(100L, TenantFileStatus.COMPLETED);
-            when(lotteryTicketRepository.findDrawTickets()).thenReturn(List.of(ticket));
+            Tenant tenant = tenant(200L, TenantFileStatus.COMPLETED);
+            listedThenChanged(List.of(winner, coupleTicket),
+                    () -> tenant.getApartmentSharing().setApplicationType(ApplicationType.COUPLE));
 
-            Optional<LotteryDraw> secondDraw = service.executeDrawIfNeeded(DRAW_DATE);
+            service.executeDrawIfNeeded(DRAW_DATE);
 
-            assertThat(secondDraw).isPresent();
-            assertThat(secondDraw.get().getId()).isNotEqualTo(firstDraw.getId());
-            assertThat(ticket.getStatus()).isEqualTo(LotteryTicketStatus.DRAWN);
+            assertThat(winner.getStatus()).isEqualTo(LotteryTicketStatus.DRAWN);
+            assertThat(coupleTicket.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
+            assertThat(coupleTicket.getCooldownUntil()).isNull();
+        }
+
+        @Test
+        void should_not_override_a_cancellation_made_during_the_draw() {
+            mockCapacity(10);
+            mockBypass(9); // 1 slot
+            LotteryTicket cancelledByTenant = pendingTicket(1L, 100L);
+            LotteryTicket next = pendingTicket(2L, 200L);
+            tenant(200L, TenantFileStatus.COMPLETED);
+            listedThenChanged(List.of(cancelledByTenant, next),
+                    () -> cancelledByTenant.setStatus(LotteryTicketStatus.CANCELLED));
+
+            Optional<LotteryDraw> draw = service.executeDrawIfNeeded(DRAW_DATE);
+
+            // The tenant's decision stands, its dossier is not even loaded
+            assertThat(cancelledByTenant.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
+            verify(tenantCommonRepository, never()).findById(100L);
+            verify(tenantLogCommonService, never()).logQueueEntered(anyLong(), any());
+            // The slot is lost, not handed to the next ticket
+            assertThat(next.getStatus()).isEqualTo(LotteryTicketStatus.NOT_DRAWN);
+            assertThat(draw).hasValueSatisfying(r -> assertThat(r.getDrawnCount()).isZero());
         }
     }
 

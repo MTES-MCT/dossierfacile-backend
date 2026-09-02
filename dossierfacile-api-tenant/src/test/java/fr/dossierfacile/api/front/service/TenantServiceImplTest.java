@@ -25,8 +25,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
-import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
@@ -80,7 +79,7 @@ class TenantServiceImplTest {
     @Mock
     private DocumentRepository documentRepository;
     @Mock
-    private CompletedEligibilityService completedEligibilityService;
+    private OperatorReviewPolicy operatorReviewPolicy;
     @Mock
     private TenantStatusService tenantStatusService;
     @Mock
@@ -288,7 +287,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_resetsFullPdf_whenDossierLeavesCompleted() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenAnswer(invocation -> {
             tenant.setStatus(TenantFileStatus.TO_PROCESS);
             return tenant;
@@ -308,7 +307,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_keepsFullPdf_whenDossierStaysCompleted() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
 
         tenantService.updateValidationRequest(tenant, false);
@@ -321,7 +320,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_onValidatedDossier_persistsChoiceWithoutTouchingStatusOrPdf() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.VALIDATED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
 
         Tenant updated = tenantService.updateValidationRequest(tenant, false);
@@ -374,7 +373,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_onDeclinedDossier_persistsChoiceWithoutTouchingStatus() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.DECLINED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
 
         Tenant updated = tenantService.updateValidationRequest(tenant, true);
@@ -390,7 +389,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_lotteryMode_registersAnApplicationWithoutTouchingStatus() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(true);
         when(lotteryTicketService.getCooldownEndDate(tenant.getId())).thenReturn(Optional.empty());
 
@@ -408,7 +407,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_lotteryMode_isRefusedDuringCooldown() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(true);
         when(lotteryTicketService.getCooldownEndDate(tenant.getId()))
                 .thenReturn(Optional.of(java.time.LocalDate.now().plusDays(2)));
@@ -420,7 +419,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_lotteryMode_cancellationWithdrawsTheEntryAndRecomputesStatus() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(true);
         // Without a DRAWN ticket, the recomputation brings the drawn
         // unprocessed dossier back to COMPLETED

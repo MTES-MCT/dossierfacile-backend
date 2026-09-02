@@ -26,8 +26,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
-import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -69,8 +68,7 @@ public class TenantServiceImpl implements TenantService {
     private final DocumentService documentService;
     private final DocumentRepository documentRepository;
     private final TenantMapperForMail tenantMapperForMail;
-    private final CompletedEligibilityService completedEligibilityService;
-    private final CompletedDossierService completedDossierService;
+    private final OperatorReviewPolicy operatorReviewPolicy;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final FeatureFlagService featureFlagService;
@@ -93,8 +91,7 @@ public class TenantServiceImpl implements TenantService {
                              DocumentService documentService,
                              DocumentRepository documentRepository,
                              TenantMapperForMail tenantMapperForMail,
-                             CompletedEligibilityService completedEligibilityService,
-                             CompletedDossierService completedDossierService,
+                             OperatorReviewPolicy operatorReviewPolicy,
                              @Lazy TenantStatusService tenantStatusService,
                              ApartmentSharingCommonService apartmentSharingCommonService,
                              FeatureFlagService featureFlagService,
@@ -113,8 +110,7 @@ public class TenantServiceImpl implements TenantService {
         this.documentService = documentService;
         this.documentRepository = documentRepository;
         this.tenantMapperForMail = tenantMapperForMail;
-        this.completedEligibilityService = completedEligibilityService;
-        this.completedDossierService = completedDossierService;
+        this.operatorReviewPolicy = operatorReviewPolicy;
         this.tenantStatusService = tenantStatusService;
         this.apartmentSharingCommonService = apartmentSharingCommonService;
         this.featureFlagService = featureFlagService;
@@ -299,7 +295,7 @@ public class TenantServiceImpl implements TenantService {
     @Override
     @Transactional
     public Tenant updateValidationRequest(Tenant tenant, boolean validationRequested) {
-        if (!completedEligibilityService.isEligibleForOptIn(tenant)) {
+        if (!operatorReviewPolicy.canRequestOperatorReview(tenant)) {
             throw new TenantIllegalStateException("Tenant is not eligible to the operator validation opt-in");
         }
         if (featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)) {

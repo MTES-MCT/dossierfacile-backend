@@ -56,4 +56,5 @@ zxing-cpp/data/zxing-cpp
 .mvn/wrapper/maven-wrapper.jar
 .mvn/wrapper/maven-wrapper.properties
 
-*.dbcnb
+# sql notebook
+docs/*.dbcnb
