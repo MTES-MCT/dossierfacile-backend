@@ -181,6 +181,16 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
         return flushed;
     }
 
+    @Override
+    @Transactional
+    public int grantTicketsToQueuedOptIns() {
+        // Grandfathering: the dossiers are already TO_PROCESS, nothing else to update
+        // (no status change, no QUEUE_ENTERED, no mail, no rank refresh)
+        int granted = lotteryTicketRepository.grantDrawnTicketsToQueuedOptIns();
+        log.info("Lottery activation: {} opt-ins already in the queue granted a DRAWN ticket", granted);
+        return granted;
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected LotteryDraw createDraw(LocalDate drawDate, int dailyCount, int bypassCount, int availableSlots, int ticketCount) {
         return lotteryDrawRepository.save(LotteryDraw.builder()

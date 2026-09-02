@@ -29,4 +29,10 @@ public interface LotteryDrawService {
      * (DRAWN + TO_PROCESS + mail), the others cancelled. Returns the flushed count.
      */
     int flushPendingTicketsToProcessing();
+
+    /**
+     * On flag activation: opt-ins already waiting in the queue keep their place —
+     * they get a DRAWN ticket outside any draw (idempotent). Returns the granted count.
+     */
+    int grantTicketsToQueuedOptIns();
 }

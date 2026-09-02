@@ -58,7 +58,7 @@ Flag global on/off `tenant_lottery` (`FeatureFlagService.isFeatureEnabled`, igno
 
 Le périmètre (`supportsCompletedStatus` : ALONE, aucun lien partenaire, dans le rollout) ne dépend pas du flag.
 
-**Reprise** (changeSet 4) : les dossiers `TO_PROCESS` avec `validation_requested = true` au déploiement reçoivent un ticket `DRAWN`, pour que « le ticket fait foi » tienne dès le premier jour.
+**Reprise à l'activation** (`LotteryDrawService.grantTicketsToQueuedOptIns`, appelé par `BOFeatureFlagsController.toggle` inactif→actif) : les dossiers `TO_PROCESS` avec `validation_requested = true` et sans ticket actif reçoivent un ticket `DRAWN` hors tirage (`lottery_draw_id` nul), pour que « le ticket fait foi » tienne dès l'activation. Métier : un dossier déjà dans la file y reste, il **bypasse le tirage**. Fait à l'activation et non à la migration pour couvrir aussi les opt-ins faits flag OFF, y compris après un kill-switch. Une seule requête SQL idempotente, sans changement de statut, sans `QUEUE_ENTERED`, sans mail.
 
 ## 4. Composants
 
@@ -77,7 +77,7 @@ Le périmètre (`supportsCompletedStatus` : ALONE, aucun lien partenaire, dans l
  bo
    TenantService                  QUEUE_ENTERED (BO_RECOMPUTE, BO_REPROCESS), consommation au refus,
                                   annulation au regroupement
-   BOFeatureFlagsController       flush à la désactivation du flag
+   BOFeatureFlagsController       reprise des opt-ins en file à l'activation (§3), flush à la désactivation (§8)
    BOProcessDossierController     colonnes lecture seule (bypass/places/tickets/tirés) + bouton
                                   « Lancer le tirage du jour » (ADMIN), remplacé par le détail du
                                   tirage une fois exécuté ; messages flash succès / déjà exécuté / échec
@@ -113,7 +113,7 @@ Bypass de J−1 = `count(QUEUE_ENTERED where bypass = true)` (`TenantLogReposito
 
 ## 8. Désactivation du flag (kill-switch)
 
-`BOFeatureFlagsController.toggle` actif→inactif appelle `flushPendingTicketsToProcessing()` : **un tirage où tout le monde gagne**, sans ligne `lottery_draw` — chaque `PENDING` passe par `drawTicket(ticket, null)` : dossier `COMPLETED` → `DRAWN` + `TO_PROCESS`, sinon `CANCELLED`. Les `DRAWN` suivent leur vie normale ; les cooldowns ne reçoivent plus de mail J+3. Le clic opt-in redevient instantanément le comportement historique.
+`BOFeatureFlagsController.toggle` actif→inactif appelle `flushPendingTicketsToProcessing()` : **un tirage où tout le monde gagne**, sans ligne `lottery_draw` — chaque `PENDING` passe par `drawTicket(ticket, null)` : dossier `COMPLETED` → `DRAWN` + `TO_PROCESS`, sinon `CANCELLED`. Les `DRAWN` suivent leur vie normale ; les cooldowns ne reçoivent plus de mail J+3. Le clic opt-in redevient instantanément le comportement historique. À la réactivation du flag, la reprise (§3) redonne un ticket `DRAWN` aux opt-ins entrés en file entre-temps.
 
 ## 9. Exposition front (jamais partenaires)
 
@@ -145,7 +145,7 @@ Le calcul « traité entre le … et le … » (`GET /api/tenant/{id}/expectedPr
 
 ## 13. Séquence de déploiement
 
-1. Déployer BO/api-tenant (migration Liquibase), **puis** task-scheduler (`spring.liquibase.enabled=false` chez lui). Flag OFF : comportement inchangé ; tickets de reprise créés ; `QUEUE_ENTERED` commence à s'accumuler.
+1. Déployer BO/api-tenant (migration Liquibase), **puis** task-scheduler (`spring.liquibase.enabled=false` chez lui). Flag OFF : comportement inchangé ; `QUEUE_ENTERED` commence à s'accumuler. Les tickets de reprise seront créés à l'activation du flag (§3).
 2. Créer le template Brevo « fin de cooldown » et renseigner `brevo.template.id.lottery.cooldown.ended`.
 3. Déployer le frontend (nouveaux états de l'encart, wording neutre compatible flag OFF).
 4. Saisir les capacités sur `/bo/admin/process/capacities`. En préprod seulement : `lottery.draw.allow-multiple-per-day=true`.
