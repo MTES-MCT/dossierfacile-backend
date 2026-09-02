@@ -41,6 +41,7 @@ Un dossier candidat (`Tenant`) est positionné à `ready_for_auto_validation = t
 ### 3.2 Documents Éligibles
 Actuellement, les documents éligibles à l'auto-validation sont :
 - Categorie / Sous-catégorie : `DocumentSubCategory.VISALE` (Garantie Visale).
+- Categorie / Sous-catégorie : `DocumentSubCategory.OWNER` (Taxe foncière).
 
 ### 3.3 Réinitialisation à `false`
 Le drapeau `ready_for_auto_validation` est automatiquement réinitialisé à `false` dans les cas suivants :

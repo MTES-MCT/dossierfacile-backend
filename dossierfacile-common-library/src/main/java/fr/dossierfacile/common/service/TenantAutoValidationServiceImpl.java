@@ -2,18 +2,8 @@ package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentAnalysisReport;
-import fr.dossierfacile.common.entity.DocumentAnalysisStatus;
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.TenantLog;
-import fr.dossierfacile.common.enums.AutoValidationResultStatus;
-import fr.dossierfacile.common.enums.DocumentAutoValidationReason;
-import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.model.log.AutoValidationDocumentDetail;
 import fr.dossierfacile.common.model.log.AutoValidationLogDetails;
 import fr.dossierfacile.common.repository.DocumentCommonRepository;
@@ -50,7 +40,8 @@ public class TenantAutoValidationServiceImpl implements TenantAutoValidationServ
         if (document == null || document.getDocumentSubCategory() == null) {
             return false;
         }
-        return document.getDocumentSubCategory() == DocumentSubCategory.VISALE;
+        return document.getDocumentSubCategory() == DocumentSubCategory.VISALE ||
+                document.getDocumentSubCategory() == DocumentSubCategory.OWNER;
     }
 
     @Override
