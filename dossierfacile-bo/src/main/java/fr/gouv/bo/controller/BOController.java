@@ -1,5 +1,6 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.config.ratelimit.RateLimit;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
@@ -191,6 +192,7 @@ public class BOController {
     }
 
     @GetMapping("/bo/regeneratePdfDocument/{id}")
+    @RateLimit(name = "bo-regenerate-pdf", capacity = 10, period = 1, unit = java.util.concurrent.TimeUnit.MINUTES)
     public String regeneratePdfDocument(@PathVariable Long id) {
         Document document = documentService.findDocumentById(id);
         documentService.regeneratePdf(document);

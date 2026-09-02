@@ -1,5 +1,7 @@
 package fr.dossierfacile.api.pdf.exceptions.controller;
 
+import fr.dossierfacile.common.config.ratelimit.RateLimitExceededException;
+
 import fr.dossierfacile.api.pdf.exceptions.DocumentBadRequestException;
 import fr.dossierfacile.api.pdf.exceptions.DocumentNotFoundException;
 import fr.dossierfacile.api.pdf.exceptions.DocumentTokenNotFoundException;
@@ -147,6 +149,14 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.PROCESSING, ex.getLocalizedMessage());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({RateLimitExceededException.class})
+    public ResponseEntity<Object> handleRateLimitExceededException(final RateLimitExceededException ex) {
+        logger.error(ex.getMessage(), ex);
+
+        final ApiError apiError = new ApiError(HttpStatus.TOO_MANY_REQUESTS, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
