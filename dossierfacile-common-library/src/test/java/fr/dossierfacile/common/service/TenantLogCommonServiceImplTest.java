@@ -43,7 +43,7 @@ class TenantLogCommonServiceImplTest {
 
     @Test
     void should_flag_the_entry_as_bypass_without_a_drawn_ticket() {
-        when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(eq(TENANT_ID), eq(Set.of(LotteryTicketStatus.DRAWN))))
+        when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(TENANT_ID, Set.of(LotteryTicketStatus.DRAWN)))
                 .thenReturn(Optional.empty());
 
         TenantLog log = logQueueEntered(QueueEntrySource.SUBMISSION);
@@ -56,7 +56,7 @@ class TenantLogCommonServiceImplTest {
 
     @Test
     void should_not_flag_the_entry_as_bypass_with_a_drawn_ticket() {
-        when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(eq(TENANT_ID), eq(Set.of(LotteryTicketStatus.DRAWN))))
+        when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(TENANT_ID, Set.of(LotteryTicketStatus.DRAWN)))
                 .thenReturn(Optional.of(LotteryTicket.builder().tenantId(TENANT_ID).status(LotteryTicketStatus.DRAWN).build()));
 
         TenantLog log = logQueueEntered(QueueEntrySource.LOTTERY_DRAW);

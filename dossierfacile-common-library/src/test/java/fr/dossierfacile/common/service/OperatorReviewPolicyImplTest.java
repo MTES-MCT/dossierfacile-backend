@@ -71,7 +71,7 @@ class OperatorReviewPolicyImplTest {
         Optional<LotteryTicket> ticket = present
                 ? Optional.of(LotteryTicket.builder().tenantId(tenant.getId()).status(LotteryTicketStatus.DRAWN).build())
                 : Optional.empty();
-        when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(eq(tenant.getId()), eq(Set.of(LotteryTicketStatus.DRAWN))))
+        when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(tenant.getId(), Set.of(LotteryTicketStatus.DRAWN)))
                 .thenReturn(ticket);
     }
 
