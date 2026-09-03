@@ -26,12 +26,33 @@
                         <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Capacité journalière</th>
+                            <!-- Column definitions as Bootstrap tooltips (initialized in the javascripts fragment) -->
+                            <th>Capacité journalière
+                                <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
+                                      data-bs-toggle="tooltip"
+                                      title="Charge opérateur totale visée pour le jour (tirés + bypass). À saisir et enregistrer avant le tirage."></span>
+                            </th>
                             <!-- TODO(lottery-bypass): drop the bypass column once every dossier goes through the lottery -->
-                            <th th:if="${lotteryFlagActive}" title="Entrées en file hors tirage sur la veille (jour civil)">Bypass mesuré</th>
-                            <th th:if="${lotteryFlagActive}" title="Places = capacité - bypass">Places</th>
-                            <th th:if="${lotteryFlagActive}" title="Tickets en jeu au moment du tirage">Tickets</th>
-                            <th th:if="${lotteryFlagActive}" title="Dossiers réellement tirés au sort">Tirés</th>
+                            <th th:if="${lotteryFlagActive}">Bypass mesuré
+                                <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
+                                      data-bs-toggle="tooltip"
+                                      title="Dossiers entrés en file la veille sans passer par le tirage (liaison partenaire, couple ou colocation, hors rollout). Déduit de la capacité."></span>
+                            </th>
+                            <th th:if="${lotteryFlagActive}">Places
+                                <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
+                                      data-bs-toggle="tooltip"
+                                      title="Capacité − bypass : nombre maximal de tickets tirés. Si ≤ 0, aucun tirage et les tickets restent en attente."></span>
+                            </th>
+                            <th th:if="${lotteryFlagActive}">Tickets
+                                <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
+                                      data-bs-toggle="tooltip"
+                                      title="Demandes de vérification en attente sur un dossier complet, seul et sans partenaire au moment du tirage."></span>
+                            </th>
+                            <th th:if="${lotteryFlagActive}">Tirés
+                                <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
+                                      data-bs-toggle="tooltip"
+                                      title="Tickets tirés au sort : les dossiers correspondants sont passés en file de traitement."></span>
+                            </th>
                         </tr>
                         </thead>
                         <tbody>
@@ -104,6 +125,11 @@
 
 <div layout:fragment="javascripts" th:remove="tag">
     <script src="/js/bo/index.js"></script>
+    <script>
+        // Bootstrap 5 tooltips are opt-in: enable the column definitions
+        document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            .forEach(function (el) { new bootstrap.Tooltip(el); });
+    </script>
 </div>
 </body>
 </html>
