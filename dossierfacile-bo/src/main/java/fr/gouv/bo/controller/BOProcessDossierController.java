@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +63,7 @@ public class BOProcessDossierController {
         boolean lotteryFlagActive = featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG);
         // Button only while today's draw has not run (a draw is never re-run),
         // unless allow-multiple-per-day (preprod)
-        LotteryDraw todayDraw = lotteryDrawRepository.findFirstByDrawDateOrderByIdDesc(LocalDate.now()).orElse(null);
+        LotteryDraw todayDraw = lotteryDrawRepository.findFirstByDrawDateOrderByIdDesc(LocalDate.now(ZoneId.of("Europe/Paris"))).orElse(null);
         model.addAttribute("todayLotteryDraw", todayDraw);
         model.addAttribute("lotteryDrawAllowed",
                 lotteryFlagActive && (todayDraw == null || lotteryDrawService.allowsMultipleDrawsPerDay()));
@@ -83,7 +84,7 @@ public class BOProcessDossierController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/lottery-draw")
     public String launchTodayDraw(RedirectAttributes redirectAttributes) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Paris"));
         Optional<LotteryDraw> existingDraw = lotteryDrawRepository.findFirstByDrawDateOrderByIdDesc(today);
         if (existingDraw.isPresent() && !lotteryDrawService.allowsMultipleDrawsPerDay()) {
             // Surface it instead of silently doing nothing

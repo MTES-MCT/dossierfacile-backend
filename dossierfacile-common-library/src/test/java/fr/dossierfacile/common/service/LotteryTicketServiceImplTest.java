@@ -55,7 +55,7 @@ class LotteryTicketServiceImplTest {
 
     private void mockActiveTicket(LotteryTicket ticket) {
         when(lotteryTicketRepository.findFirstByTenantIdAndStatusIn(
-                eq(TENANT_ID), eq(Set.of(LotteryTicketStatus.PENDING, LotteryTicketStatus.DRAWN))))
+                TENANT_ID, Set.of(LotteryTicketStatus.PENDING, LotteryTicketStatus.DRAWN)))
                 .thenReturn(Optional.ofNullable(ticket));
     }
 
