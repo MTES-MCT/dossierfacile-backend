@@ -55,3 +55,6 @@ zxing-cpp/data/zxing-cpp
 # Maven wrapper - generated files not tracked
 .mvn/wrapper/maven-wrapper.jar
 .mvn/wrapper/maven-wrapper.properties
+
+# sql notebook
+docs/*.dbcnb

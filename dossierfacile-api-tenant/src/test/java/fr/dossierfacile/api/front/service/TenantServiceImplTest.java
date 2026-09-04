@@ -25,7 +25,9 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
+import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -77,11 +79,15 @@ class TenantServiceImplTest {
     @Mock
     private DocumentRepository documentRepository;
     @Mock
-    private CompletedEligibilityService completedEligibilityService;
+    private OperatorReviewPolicy operatorReviewPolicy;
     @Mock
     private TenantStatusService tenantStatusService;
     @Mock
     private ApartmentSharingCommonService apartmentSharingCommonService;
+    @Mock
+    private FeatureFlagService featureFlagService;
+    @Mock
+    private LotteryTicketService lotteryTicketService;
 
     @InjectMocks
     private TenantServiceImpl tenantService;
@@ -279,7 +285,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_resetsFullPdf_whenDossierLeavesCompleted() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenAnswer(invocation -> {
             tenant.setStatus(TenantFileStatus.TO_PROCESS);
             return tenant;
@@ -299,7 +305,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_keepsFullPdf_whenDossierStaysCompleted() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
 
         tenantService.updateValidationRequest(tenant, false);
@@ -312,7 +318,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_onValidatedDossier_persistsChoiceWithoutTouchingStatusOrPdf() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.VALIDATED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
 
         Tenant updated = tenantService.updateValidationRequest(tenant, false);
@@ -327,7 +333,7 @@ class TenantServiceImplTest {
     @Test
     void updateValidationRequest_onDeclinedDossier_persistsChoiceWithoutTouchingStatus() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.DECLINED);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
 
         Tenant updated = tenantService.updateValidationRequest(tenant, true);
@@ -336,6 +342,58 @@ class TenantServiceImplTest {
         assertEquals(Boolean.TRUE, updated.getValidationRequested());
         verify(logService).saveLog(LogType.VALIDATION_REQUESTED, tenant.getId());
         verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
+        verifyNoInteractions(mailService);
+    }
+
+    // Lottery mode: the click registers an application instead of entering the queue
+    @Test
+    void updateValidationRequest_lotteryMode_registersAnApplicationWithoutTouchingStatus() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
+        when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(true);
+        when(lotteryTicketService.getCooldownEndDate(tenant.getId())).thenReturn(Optional.empty());
+
+        Tenant updated = tenantService.updateValidationRequest(tenant, true);
+
+        assertEquals(TenantFileStatus.COMPLETED, updated.getStatus());
+        assertEquals(Boolean.TRUE, updated.getValidationRequested());
+        verify(lotteryTicketService).apply(tenant);
+        verify(logService).saveLog(LogType.VALIDATION_REQUESTED, tenant.getId());
+        // No queue entry, no queue position, no mail: everything happens at draw time
+        verifyNoInteractions(tenantStatusService, mailService);
+        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
+    }
+
+    @Test
+    void updateValidationRequest_lotteryMode_isRefusedDuringCooldown() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
+        when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(true);
+        when(lotteryTicketService.getCooldownEndDate(tenant.getId()))
+                .thenReturn(Optional.of(java.time.LocalDate.now().plusDays(2)));
+
+        assertThrows(TenantIllegalStateException.class, () -> tenantService.updateValidationRequest(tenant, true));
+        verify(lotteryTicketService, never()).apply(any());
+    }
+
+    @Test
+    void updateValidationRequest_lotteryMode_cancellationWithdrawsTheEntryAndRecomputesStatus() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
+        when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(true);
+        // Without a DRAWN ticket, the recomputation brings the drawn
+        // unprocessed dossier back to COMPLETED
+        when(tenantStatusService.updateTenantStatus(tenant)).thenAnswer(invocation -> {
+            tenant.setStatus(TenantFileStatus.COMPLETED);
+            return tenant;
+        });
+
+        Tenant updated = tenantService.updateValidationRequest(tenant, false);
+
+        assertEquals(TenantFileStatus.COMPLETED, updated.getStatus());
+        assertEquals(Boolean.FALSE, updated.getValidationRequested());
+        verify(lotteryTicketService).cancelActiveTicket(tenant);
+        verify(logService).saveLog(LogType.VALIDATION_DECLINED, tenant.getId());
         verifyNoInteractions(mailService);
     }
 

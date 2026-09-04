@@ -12,8 +12,9 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -77,7 +78,9 @@ public class TenantService {
     private final QuotaService quotaService;
     private final SharedFileRepository sharedFileRepository;
     private final CompletedDossierService completedDossierService;
+    private final OperatorReviewPolicy operatorReviewPolicy;
     private final FeatureFlagService featureFlagService;
+    private final LotteryTicketService lotteryTicketService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
@@ -593,8 +596,13 @@ public class TenantService {
             return;
         }
 
+        TenantFileStatus statusBeforeReprocess = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
+        // Deliberate operator re-queue: an assumed lottery bypass
+        if (statusBeforeReprocess != TenantFileStatus.TO_PROCESS && tenant.getStatus() == TenantFileStatus.TO_PROCESS) {
+            tenantLogCommonService.logQueueEntered(tenant.getId(), QueueEntrySource.BO_REPROCESS);
+        }
         tenantLogService.addReprocessTenantLog(tenant.getId(), operator.getId(), reprocessed);
     }
 
@@ -772,12 +780,13 @@ public class TenantService {
     @Transactional
     protected void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
-        tenant.setStatus(completedDossierService.toCompletedIfEligible(tenant, tenant.computeStatus()));
+        tenant.setStatus(operatorReviewPolicy.resolveStatus(tenant, tenant.computeStatus()));
         tenantRepository.save(tenant);
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
                 case VALIDATED -> changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.ONE);
                 case DECLINED -> changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.ONE);
+                case TO_PROCESS -> tenantLogCommonService.logQueueEntered(tenant.getId(), QueueEntrySource.BO_RECOMPUTE);
             }
             messageService.markReadAdmin(tenant);
         }
@@ -797,6 +806,8 @@ public class TenantService {
     private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.DECLINED);
         tenantRepository.save(tenant);
+        // Verdict: the lottery draw win is spent
+        lotteryTicketService.consumeDrawnTicket(tenant.getId());
         messageService.markReadAdmin(tenant);
 
         tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
@@ -980,6 +991,8 @@ public class TenantService {
         tenant.setApartmentSharing(apartmentSharing);
         // The opt-in choice only makes sense for an ALONE application
         tenant.setValidationRequested(null);
+        // Regroup = definitive lottery exit
+        lotteryTicketService.cancelActiveTicket(tenant);
         tenantRepository.save(tenant);
 
         apartmentSharingRepository.delete(apartmentToDelete);
@@ -992,7 +1005,7 @@ public class TenantService {
     // to the operator queue.
     @Transactional(propagation = Propagation.NEVER)
     public int switchCompletedDossiersBackToProcessing() {
-        FeatureFlag featureFlag = featureFlagService.getFeatureFlag(CompletedEligibilityService.COMPLETED_OPTIN_FEATURE_FLAG);
+        FeatureFlag featureFlag = featureFlagService.getFeatureFlag(OperatorReviewPolicy.COMPLETED_OPTIN_FEATURE_FLAG);
         if (featureFlag.isActive() && featureFlag.getRolloutPct() > 0) {
             throw new IllegalStateException("Full rollback only: deactivate the feature flag or set its rollout to 0% first");
         }

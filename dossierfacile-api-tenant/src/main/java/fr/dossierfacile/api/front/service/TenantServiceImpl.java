@@ -26,9 +26,11 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
+import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -66,9 +68,11 @@ public class TenantServiceImpl implements TenantService {
     private final DocumentService documentService;
     private final DocumentRepository documentRepository;
     private final TenantMapperForMail tenantMapperForMail;
-    private final CompletedEligibilityService completedEligibilityService;
+    private final OperatorReviewPolicy operatorReviewPolicy;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
+    private final FeatureFlagService featureFlagService;
+    private final LotteryTicketService lotteryTicketService;
 
     // There is a dependency cycle between TenantServiceImpl and TenantStatusService
     // (TenantStatusService -> ApartmentSharingService -> TenantPermissionsService -> TenantService),
@@ -87,9 +91,11 @@ public class TenantServiceImpl implements TenantService {
                              DocumentService documentService,
                              DocumentRepository documentRepository,
                              TenantMapperForMail tenantMapperForMail,
-                             CompletedEligibilityService completedEligibilityService,
+                             OperatorReviewPolicy operatorReviewPolicy,
                              @Lazy TenantStatusService tenantStatusService,
-                             ApartmentSharingCommonService apartmentSharingCommonService) {
+                             ApartmentSharingCommonService apartmentSharingCommonService,
+                             FeatureFlagService featureFlagService,
+                             LotteryTicketService lotteryTicketService) {
         this.apartmentSharingRepository = apartmentSharingRepository;
         this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
         this.confirmationTokenService = confirmationTokenService;
@@ -104,9 +110,11 @@ public class TenantServiceImpl implements TenantService {
         this.documentService = documentService;
         this.documentRepository = documentRepository;
         this.tenantMapperForMail = tenantMapperForMail;
-        this.completedEligibilityService = completedEligibilityService;
+        this.operatorReviewPolicy = operatorReviewPolicy;
         this.tenantStatusService = tenantStatusService;
         this.apartmentSharingCommonService = apartmentSharingCommonService;
+        this.featureFlagService = featureFlagService;
+        this.lotteryTicketService = lotteryTicketService;
     }
 
     @Override
@@ -287,8 +295,11 @@ public class TenantServiceImpl implements TenantService {
     @Override
     @Transactional
     public Tenant updateValidationRequest(Tenant tenant, boolean validationRequested) {
-        if (!completedEligibilityService.isEligibleForOptIn(tenant)) {
+        if (!operatorReviewPolicy.canRequestOperatorReview(tenant)) {
             throw new TenantIllegalStateException("Tenant is not eligible to the operator validation opt-in");
+        }
+        if (featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)) {
+            return updateValidationRequestWithLottery(tenant, validationRequested);
         }
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setValidationRequested(validationRequested);
@@ -311,6 +322,27 @@ public class TenantServiceImpl implements TenantService {
             TransactionalUtil.afterCommit(() -> mailService.sendEmailAccountCompleted(tenantDto));
         }
         return updatedTenant;
+    }
+
+    /**
+     * Lottery mode: optin registers a lottery ticket; opt-out withdraws it
+     */
+    private Tenant updateValidationRequestWithLottery(Tenant tenant, boolean validationRequested) {
+        if (validationRequested) {
+            lotteryTicketService.getCooldownEndDate(tenant.getId()).ifPresent(endDate -> {
+                throw new TenantIllegalStateException("A new lottery application is not allowed before " + endDate);
+            });
+        }
+        tenant.setValidationRequested(validationRequested);
+        tenantRepository.save(tenant);
+        logService.saveLog(validationRequested ? LogType.VALIDATION_REQUESTED : LogType.VALIDATION_DECLINED, tenant.getId());
+        if (validationRequested) {
+            lotteryTicketService.apply(tenant);
+            return tenant;
+        }
+        // opt-out
+        lotteryTicketService.cancelActiveTicket(tenant);
+        return tenantStatusService.updateTenantStatus(tenant);
     }
 
     @Override

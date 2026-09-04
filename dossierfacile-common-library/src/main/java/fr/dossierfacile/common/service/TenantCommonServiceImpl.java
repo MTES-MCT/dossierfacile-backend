@@ -14,6 +14,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentCommonRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
@@ -45,6 +46,7 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     private final TenantMapperForMail tenantMapperForMail;
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
     private ApartmentSharingCommonService apartmentSharingCommonService;
+    private final LotteryTicketService lotteryTicketService;
 
     @Override
     public void deleteTenantData(Tenant tenant) {
@@ -84,6 +86,8 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     public void changeTenantStatusToValidated(Tenant tenant) {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantCommonRepository.save(tenant);
+        // the lottery draw win is spent
+        lotteryTicketService.consumeDrawnTicket(tenant.getId());
 
         // prepare for mail
         TenantDto tenantDto = tenantMapperForMail.toDto(tenant);

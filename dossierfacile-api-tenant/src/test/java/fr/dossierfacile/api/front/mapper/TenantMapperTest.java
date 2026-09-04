@@ -18,7 +18,8 @@ import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -30,12 +31,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static fr.dossierfacile.api.front.mapper.TenantGraphBuilder.aTenant;
 import static fr.dossierfacile.api.front.mapper.TenantGraphBuilder.rule;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class TenantMapperTest {
 
@@ -47,7 +51,10 @@ class TenantMapperTest {
         mapper.applicationBaseUrl = "https://api.example.com";
         mapper.tenantBaseUrl = "https://example.com";
         mapper.minBrokenRulesLevel = DocumentRuleLevel.WARN;
-        mapper.completedEligibilityService = mock(CompletedEligibilityService.class);
+        mapper.operatorReviewPolicy = mock(OperatorReviewPolicy.class);
+        LotteryTicketService lotteryTicketService = mock(LotteryTicketService.class);
+        when(lotteryTicketService.getPublicStatus(any())).thenReturn(Optional.empty());
+        mapper.lotteryTicketService = lotteryTicketService;
 
         // Required because @AfterMapping accesses SecurityContextHolder
         var securityContext = SecurityContextHolder.createEmptyContext();

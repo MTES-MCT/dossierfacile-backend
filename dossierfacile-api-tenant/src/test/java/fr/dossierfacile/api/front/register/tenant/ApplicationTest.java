@@ -18,6 +18,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.assertj.core.api.Assertions;
@@ -67,6 +68,8 @@ public class ApplicationTest {
     ClientAuthenticationFacade clientAuthenticationFacade;
     @Mock
     TenantStatusService tenantStatusService;
+    @Mock
+    LotteryTicketService lotteryTicketService;
 
     @Spy
     @InjectMocks
