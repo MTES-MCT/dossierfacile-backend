@@ -103,6 +103,8 @@
                     Rollback total uniquement : le flag <code>tenant_completed_optin</code> doit d'abord être
                     désactivé ou à 0&nbsp;%.
                 </p>
+                <!-- TODO(completed-optin-rollout-100): remove this rollback section together with
+                     BOFeatureFlagsController#rollbackCompletedDossiers -->
                 <p th:unless="${completedRollbackAllowed}" class="alert alert-secondary mb-0">
                     <i class="fa fa-lock"></i>
                     Action indisponible : désactivez le flag <code>tenant_completed_optin</code> ou passez son rollout à 0&nbsp;% pour la débloquer.
