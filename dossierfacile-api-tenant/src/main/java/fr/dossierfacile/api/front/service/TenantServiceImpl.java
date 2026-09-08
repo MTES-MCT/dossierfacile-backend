@@ -309,15 +309,7 @@ public class TenantServiceImpl implements TenantService {
         tenant.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
         tenantRepository.save(tenant);
         logService.saveLog(validationRequested ? LogType.VALIDATION_REQUESTED : LogType.VALIDATION_DECLINED, tenant.getId());
-        Tenant updatedTenant;
-        if (!validationRequested && previousStatus == TenantFileStatus.TO_PROCESS) {
-            // Leaving the operator queue is never done by the status recomputation:
-            // the opt-out is the explicit switch
-            completedDossierService.switchToCompleted(tenant);
-            updatedTenant = tenant;
-        } else {
-            updatedTenant = tenantStatusService.updateTenantStatus(tenant);
-        }
+        Tenant updatedTenant = tenantStatusService.updateTenantStatus(tenant);
         if (previousStatus == TenantFileStatus.COMPLETED && updatedTenant.getStatus() != TenantFileStatus.COMPLETED) {
             // The full PDF was rendered with the COMPLETED design: it must not
             // survive the switch out of COMPLETED

@@ -106,8 +106,6 @@ class DfcTenantsControllerIntegrationTest {
     @MockitoBean
     private FeatureFlagService featureFlagService;
     @MockitoBean
-    private CompletedDossierService completedDossierService;
-    @MockitoBean
     private TenantStatusService tenantStatusService;
     @MockitoBean
     private ApartmentSharingCommonService apartmentSharingCommonService;

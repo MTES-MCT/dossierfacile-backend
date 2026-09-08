@@ -83,8 +83,6 @@ class TenantServiceImplTest {
     @Mock
     private TenantStatusService tenantStatusService;
     @Mock
-    private CompletedDossierService completedDossierService;
-    @Mock
     private ApartmentSharingCommonService apartmentSharingCommonService;
     @Mock
     private FeatureFlagService featureFlagService;
@@ -332,16 +330,14 @@ class TenantServiceImplTest {
         verifyNoInteractions(mailService);
     }
 
-    // Withdrawing the request is the only way a dossier leaves the queue on its own:
-    // it goes through the explicit switch, never through the status recomputation
     @Test
-    void updateValidationRequest_optOutFromQueue_usesExplicitSwitch() {
+    void updateValidationRequest_optOutFromQueue_recomputesStatus() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
         tenant.setValidationRequested(true);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
-        when(completedDossierService.switchToCompleted(tenant)).thenAnswer(invocation -> {
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
+        when(tenantStatusService.updateTenantStatus(tenant)).thenAnswer(invocation -> {
             tenant.setStatus(TenantFileStatus.COMPLETED);
-            return true;
+            return tenant;
         });
 
         Tenant updated = tenantService.updateValidationRequest(tenant, false);
@@ -349,8 +345,7 @@ class TenantServiceImplTest {
         assertEquals(TenantFileStatus.COMPLETED, updated.getStatus());
         assertEquals(Boolean.FALSE, updated.getValidationRequested());
         verify(logService).saveLog(LogType.VALIDATION_DECLINED, tenant.getId());
-        verify(completedDossierService).switchToCompleted(tenant);
-        verify(tenantStatusService, never()).updateTenantStatus(any());
+        verify(tenantStatusService).updateTenantStatus(tenant);
         verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
         verifyNoInteractions(mailService);
     }
@@ -359,14 +354,13 @@ class TenantServiceImplTest {
     void updateValidationRequest_optInFromQueue_goesThroughStatusRecomputation() {
         // A TO_PROCESS dossier asking for a verification stays in the queue
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
-        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
 
         Tenant updated = tenantService.updateValidationRequest(tenant, true);
 
         assertEquals(TenantFileStatus.TO_PROCESS, updated.getStatus());
         verify(tenantStatusService).updateTenantStatus(tenant);
-        verify(completedDossierService, never()).switchToCompleted(any());
         verifyNoInteractions(mailService);
     }
 
