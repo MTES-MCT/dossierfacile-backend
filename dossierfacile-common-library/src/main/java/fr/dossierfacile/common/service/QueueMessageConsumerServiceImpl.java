@@ -19,8 +19,8 @@ public class QueueMessageConsumerServiceImpl implements QueueMessageConsumerServ
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public QueueMessage popFirstMessage(QueueName queueName, long toTimestamp) {
-        QueueMessage msg = queueMessageRepository.findFirstByStatusAndQueueNameAndTimestampLessThanOrderByTimestampAsc(
-                QueueMessageStatus.PENDING, queueName, toTimestamp);
+        QueueMessage msg = queueMessageRepository.findFirstByStatusAndQueueNameAndTimestampLessThanOrderByTimestampAscSkipLocked(
+                QueueMessageStatus.PENDING.name(), queueName.name(), toTimestamp);
         if (msg != null) {
             msg.setStatus(QueueMessageStatus.PROCESSING);
             queueMessageRepository.save(msg);

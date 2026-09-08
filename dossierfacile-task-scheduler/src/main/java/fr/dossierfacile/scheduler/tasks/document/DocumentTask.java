@@ -5,7 +5,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
-import fr.dossierfacile.common.repository.QueueMessageRepository;
+import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class DocumentTask extends AbstractTask {
     private final DocumentRepository documentRepository;
     private final PartnerCallbackService partnerCallbackService;
     private final DocumentDeleteMailService documentDeleteMailService;
-    private final QueueMessageRepository queueMessageRepository;
+    private final QueueMessageService queueMessageService;
     @Value("${document.pdf.failed.delay.before.delete.hours}")
     private Long delayBeforeDeleteHours;
 
@@ -82,11 +82,6 @@ public class DocumentTask extends AbstractTask {
 
     private void sendForPDFGeneration(Document document) {
         log.info("Sending document with ID [{}] for pdf generation", document.getId());
-        queueMessageRepository.save(QueueMessage.builder()
-                .queueName(QueueName.QUEUE_DOCUMENT_WATERMARK_PDF)
-                .documentId(document.getId())
-                .status(QueueMessageStatus.PENDING)
-                .timestamp(System.currentTimeMillis())
-                .build());
+        queueMessageService.sendDocumentPendingMessage(document.getId());
     }
 }

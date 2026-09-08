@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class WatermarkDFDocumentConsumer {
     private final DocumentService documentService;
     private final QueueMessageService queueMessageService;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final AtomicBoolean isRunning = new AtomicBoolean(false);
     @Value("${document.pdf-generation.delay.ms}")
     private Long documentPdfGenerationDelay;
     @Value("${document.pdf-generation.timeout.ms}")
@@ -34,35 +36,50 @@ public class WatermarkDFDocumentConsumer {
 
     @PostConstruct
     public void startConsumer() {
-        scheduler.scheduleAtFixedRate(this::receiveDocument, 0, 2, TimeUnit.SECONDS);
+        scheduler.scheduleWithFixedDelay(this::receiveDocument, 0, 2, TimeUnit.SECONDS);
     }
 
     private void receiveDocument() {
+        if (!isRunning.compareAndSet(false, true)) {
+            return;
+        }
         try {
-            queueMessageService.consume(
-                    QueueName.QUEUE_DOCUMENT_WATERMARK_PDF,
-                    documentPdfGenerationDelay,
-                    documentPdfGenerationTimeout,
-                    (msg) -> {
-                        long executionTimestamp = System.currentTimeMillis();
-                        StorageFile watermarkFile = null;
-                        try {
-                            watermarkFile = pdfGeneratorService.generateBOPdfDocument(msg.getDocumentId());
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        };
-                        documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, msg.getDocumentId());
-                    }, (jobContext -> {
-                        log.info("Ending processing");
-                        logAggregator.sendWorkerLogs(
-                                jobContext.getProcessId(),
-                                ActionType.DOCUMENT_WATERMARK.name(),
-                                jobContext.getStartTime(),
-                                JobContextUtil.prepareJobAttributes(jobContext)
-                        );
-                    }));
+            int processedCount = 0;
+            boolean messageConsumed;
+            do {
+                messageConsumed = queueMessageService.consume(
+                        QueueName.QUEUE_DOCUMENT_WATERMARK_PDF,
+                        documentPdfGenerationDelay,
+                        documentPdfGenerationTimeout,
+                        (msg) -> {
+                            long executionTimestamp = System.currentTimeMillis();
+                            StorageFile watermarkFile = null;
+                            try {
+                                watermarkFile = pdfGeneratorService.generateBOPdfDocument(msg.getDocumentId());
+                            } catch (FileNotFoundException e) {
+                                throw new RuntimeException(e);
+                            };
+                            documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, msg.getDocumentId());
+                        }, (jobContext -> {
+                            log.info("Ending processing");
+                            logAggregator.sendWorkerLogs(
+                                    jobContext.getProcessId(),
+                                    ActionType.DOCUMENT_WATERMARK.name(),
+                                    jobContext.getStartTime(),
+                                    JobContextUtil.prepareJobAttributes(jobContext)
+                            );
+                        }));
+                if (messageConsumed) {
+                    processedCount++;
+                }
+            } while (messageConsumed);
+            if (processedCount > 0) {
+                log.info("Finished processing batch of {} messages for {}, queue is now empty 😴", processedCount, QueueName.QUEUE_DOCUMENT_WATERMARK_PDF);
+            }
         } catch (Exception e) {
-            log.error("Unable to consume the message queue");
+            log.error("Unable to consume the message queue", e);
+        } finally {
+            isRunning.set(false);
         }
     }
 }

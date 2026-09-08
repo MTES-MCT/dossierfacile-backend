@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20260804140000-01" author="nsagon" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_queue_message_depilage
+            ON public.queue_message (queue_name, status, timestamp);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260804140000-02-clean-duplicates" author="nsagon">
+        <sql>
+            DELETE FROM public.queue_message
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id, ROW_NUMBER() OVER (PARTITION BY queue_name, document_id ORDER BY timestamp DESC) as rn
+                    FROM public.queue_message
+                    WHERE status = 'PENDING' AND document_id IS NOT NULL
+                ) qm WHERE qm.rn > 1
+            );
+
+            DELETE FROM public.queue_message
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id, ROW_NUMBER() OVER (PARTITION BY queue_name, file_id ORDER BY timestamp DESC) as rn
+                    FROM public.queue_message
+                    WHERE status = 'PENDING' AND file_id IS NOT NULL
+                ) qm WHERE qm.rn > 1
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260804140000-02" author="nsagon" runInTransaction="false">
+        <sql>
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uk_queue_message_pending_doc
+            ON public.queue_message (queue_name, document_id)
+            WHERE status = 'PENDING' AND document_id IS NOT NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260804140000-03" author="nsagon" runInTransaction="false">
+        <sql>
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uk_queue_message_pending_file
+            ON public.queue_message (queue_name, file_id)
+            WHERE status = 'PENDING' AND file_id IS NOT NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
