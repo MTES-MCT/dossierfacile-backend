@@ -68,6 +68,18 @@ class TenantAutoValidationServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should return true when document subCategory is OWNER")
+    void isEligibleForAutoValidation_owner_returnsTrue() {
+        Document document = Document.builder()
+                .documentSubCategory(DocumentSubCategory.OWNER)
+                .build();
+
+        boolean eligible = tenantAutoValidationService.isEligibleForAutoValidation(document);
+
+        assertTrue(eligible);
+    }
+
+    @Test
     @DisplayName("Should return false when document subCategory is not VISALE")
     void isEligibleForAutoValidation_otherSubCategory_returnsFalse() {
         Document document = Document.builder()
