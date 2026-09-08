@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.document.analysis.external.documentia.WorkflowV2StepParamOverride;
+import fr.dossierfacile.document.analysis.rule.ProfessionalRulesValidationService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ public class DocumentIAConfig {
     private static final String FEATURE_FLAG_SALARY_MORE_3_MONTHS_ANALYSIS_KEY = "document-ia-salary-more-3-months-analysis";
     private static final String FEATURE_FLAG_RESIDENCY_ANALYSIS_KEY = "document-ia-residency-classification";
     private static final String FEATURE_FLAG_PROPERTY_TAX_ANALYSIS_KEY = "document-ia-property-tax-analysis";
+    private static final String FEATURE_FLAG_PROFESSIONAL_ANALYSIS_KEY = "document-ia-professional-analysis";
 
     @Data
     public static class WorkflowConfig {
@@ -68,12 +70,18 @@ public class DocumentIAConfig {
             return featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_RESIDENCY_ANALYSIS_KEY);
         }
 
+        if (ProfessionalRulesValidationService.PROFESSIONAL_SUB_CATEGORIES.contains(document.getDocumentSubCategory())) {
+            return featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_PROFESSIONAL_ANALYSIS_KEY);
+        }
+
         return false;
     }
 
     public WorkflowConfig getWorkflowConfig(Document document) {
         return switch (document.getDocumentSubCategory()) {
             case MY_NAME -> new WorkflowConfig("document-barcode-extraction-v2");
+            // Professional subtypes
+            case CDI, CDD, ALTERNATION, INTERNSHIP, INTERMITTENT -> new WorkflowConfig("document-barcode-extraction-v2");
             case TENANT, GUEST -> new WorkflowConfig("document-classification-v2", Map.of(
                     "extract_content_ocr", List.of(new WorkflowV2StepParamOverride("model", "tesseract"))
             ));

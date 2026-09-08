@@ -261,6 +261,18 @@ public enum DocumentRule {
             "La taxe foncière n'est pas de l'année requise",
             "La taxe foncière est de l'année requise",
             "Impossible de vérifier l'année de la taxe foncière"
+    ),
+    R_PROFESSIONAL_2DDOC_ISSUE_DATE(
+            DocumentRuleLevel.CRITICAL,
+            "Le document d'activité professionnelle a été émis il y a plus de 2 mois",
+            "Le document d'activité professionnelle a été émis il y a moins de 2 mois",
+            "Impossible de vérifier la date d'émission du document d'activité professionnelle"
+    ),
+    R_PROFESSIONAL_NAME_MATCH(
+            DocumentRuleLevel.CRITICAL,
+            "Le nom et le prénom sur le document d'activité professionnelle ne correspondent pas",
+            "Le nom et le prénom sur le document d'activité professionnelle correspondent",
+            "Impossible de vérifier le nom et le prénom sur le document d'activité professionnelle"
     );
 
     private final DocumentRuleLevel level;

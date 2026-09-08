@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import javax.annotation.Nullable;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -36,4 +37,6 @@ public class BarcodeModel implements Serializable {
     private String antsType;
     @JsonProperty("doc_type")
     private String docType;
+    @JsonProperty("issue_date")
+    private LocalDate issueDate;
 }
