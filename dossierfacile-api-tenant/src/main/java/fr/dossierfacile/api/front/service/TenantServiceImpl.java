@@ -26,6 +26,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -67,6 +68,7 @@ public class TenantServiceImpl implements TenantService {
     private final DocumentRepository documentRepository;
     private final TenantMapperForMail tenantMapperForMail;
     private final CompletedEligibilityService completedEligibilityService;
+    private final CompletedDossierService completedDossierService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
 
@@ -88,6 +90,7 @@ public class TenantServiceImpl implements TenantService {
                              DocumentRepository documentRepository,
                              TenantMapperForMail tenantMapperForMail,
                              CompletedEligibilityService completedEligibilityService,
+                             CompletedDossierService completedDossierService,
                              @Lazy TenantStatusService tenantStatusService,
                              ApartmentSharingCommonService apartmentSharingCommonService) {
         this.apartmentSharingRepository = apartmentSharingRepository;
@@ -105,6 +108,7 @@ public class TenantServiceImpl implements TenantService {
         this.documentRepository = documentRepository;
         this.tenantMapperForMail = tenantMapperForMail;
         this.completedEligibilityService = completedEligibilityService;
+        this.completedDossierService = completedDossierService;
         this.tenantStatusService = tenantStatusService;
         this.apartmentSharingCommonService = apartmentSharingCommonService;
     }
@@ -298,7 +302,15 @@ public class TenantServiceImpl implements TenantService {
         tenant.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
         tenantRepository.save(tenant);
         logService.saveLog(validationRequested ? LogType.VALIDATION_REQUESTED : LogType.VALIDATION_DECLINED, tenant.getId());
-        Tenant updatedTenant = tenantStatusService.updateTenantStatus(tenant);
+        Tenant updatedTenant;
+        if (!validationRequested && previousStatus == TenantFileStatus.TO_PROCESS) {
+            // Leaving the operator queue is never done by the status recomputation:
+            // the opt-out is the explicit switch
+            completedDossierService.switchToCompleted(tenant);
+            updatedTenant = tenant;
+        } else {
+            updatedTenant = tenantStatusService.updateTenantStatus(tenant);
+        }
         if (previousStatus == TenantFileStatus.COMPLETED && updatedTenant.getStatus() != TenantFileStatus.COMPLETED) {
             // The full PDF was rendered with the COMPLETED design: it must not
             // survive the switch out of COMPLETED

@@ -25,6 +25,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -80,6 +81,8 @@ class TenantServiceImplTest {
     private CompletedEligibilityService completedEligibilityService;
     @Mock
     private TenantStatusService tenantStatusService;
+    @Mock
+    private CompletedDossierService completedDossierService;
     @Mock
     private ApartmentSharingCommonService apartmentSharingCommonService;
 
@@ -321,6 +324,44 @@ class TenantServiceImplTest {
         assertEquals(Boolean.FALSE, updated.getValidationRequested());
         verify(logService).saveLog(LogType.VALIDATION_DECLINED, tenant.getId());
         verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
+        verifyNoInteractions(mailService);
+    }
+
+    // Withdrawing the request is the only way a dossier leaves the queue on its own:
+    // it goes through the explicit switch, never through the status recomputation
+    @Test
+    void updateValidationRequest_optOutFromQueue_usesExplicitSwitch() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
+        tenant.setValidationRequested(true);
+        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(completedDossierService.switchToCompleted(tenant)).thenAnswer(invocation -> {
+            tenant.setStatus(TenantFileStatus.COMPLETED);
+            return true;
+        });
+
+        Tenant updated = tenantService.updateValidationRequest(tenant, false);
+
+        assertEquals(TenantFileStatus.COMPLETED, updated.getStatus());
+        assertEquals(Boolean.FALSE, updated.getValidationRequested());
+        verify(logService).saveLog(LogType.VALIDATION_DECLINED, tenant.getId());
+        verify(completedDossierService).switchToCompleted(tenant);
+        verify(tenantStatusService, never()).updateTenantStatus(any());
+        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
+        verifyNoInteractions(mailService);
+    }
+
+    @Test
+    void updateValidationRequest_optInFromQueue_goesThroughStatusRecomputation() {
+        // A TO_PROCESS dossier asking for a verification stays in the queue
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
+        when(completedEligibilityService.isEligibleForOptIn(tenant)).thenReturn(true);
+        when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
+
+        Tenant updated = tenantService.updateValidationRequest(tenant, true);
+
+        assertEquals(TenantFileStatus.TO_PROCESS, updated.getStatus());
+        verify(tenantStatusService).updateTenantStatus(tenant);
+        verify(completedDossierService, never()).switchToCompleted(any());
         verifyNoInteractions(mailService);
     }
 

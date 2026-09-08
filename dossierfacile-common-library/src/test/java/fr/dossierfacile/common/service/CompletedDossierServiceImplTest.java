@@ -66,19 +66,48 @@ class CompletedDossierServiceImplTest {
     class ToCompletedIfEligible {
 
         @Test
-        void should_switch_to_completed_when_eligible() {
+        void should_switch_to_completed_when_eligible_and_entering_the_queue() {
+            // Given - submission: the persisted status is not TO_PROCESS yet
+            tenant.setStatus(TenantFileStatus.INCOMPLETE);
             when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(true);
 
             assertThat(service.toCompletedIfEligible(tenant, TenantFileStatus.TO_PROCESS))
                     .isEqualTo(TenantFileStatus.COMPLETED);
         }
 
+        // A declined document replaced by the tenant sends the dossier straight back to
+        // TO_PROCESS (no new honor declaration): this is an entry into the queue too
+        @Test
+        void should_switch_to_completed_when_resubmitting_after_a_verdict() {
+            for (TenantFileStatus previous : new TenantFileStatus[]{TenantFileStatus.DECLINED, TenantFileStatus.VALIDATED}) {
+                tenant.setStatus(previous);
+                when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(true);
+
+                assertThat(service.toCompletedIfEligible(tenant, TenantFileStatus.TO_PROCESS))
+                        .as("re-entering the queue from %s", previous)
+                        .isEqualTo(TenantFileStatus.COMPLETED);
+            }
+        }
+
         @Test
         void should_keep_to_process_when_not_eligible() {
+            tenant.setStatus(TenantFileStatus.INCOMPLETE);
             when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(false);
 
             assertThat(service.toCompletedIfEligible(tenant, TenantFileStatus.TO_PROCESS))
                     .isEqualTo(TenantFileStatus.TO_PROCESS);
+        }
+
+        // Regression: a dossier that became eligible after its submission (rollout
+        // increase) must not leave the queue at the first recomputation, e.g. while
+        // an operator deletes a file in the BO
+        @Test
+        void should_never_take_a_dossier_already_in_the_queue_out_of_it() {
+            tenant.setStatus(TenantFileStatus.TO_PROCESS);
+
+            assertThat(service.toCompletedIfEligible(tenant, TenantFileStatus.TO_PROCESS))
+                    .isEqualTo(TenantFileStatus.TO_PROCESS);
+            verifyNoInteractions(completedEligibilityService);
         }
 
         @Test
@@ -88,6 +117,51 @@ class CompletedDossierServiceImplTest {
                 assertThat(service.toCompletedIfEligible(tenant, status)).isEqualTo(status);
             }
             verifyNoInteractions(completedEligibilityService);
+        }
+    }
+
+    @Nested
+    class SwitchToCompleted {
+
+        @Test
+        void should_take_an_eligible_dossier_out_of_the_queue() {
+            // Given - the tenant withdrew its verification request
+            tenant.setStatus(TenantFileStatus.TO_PROCESS);
+            tenant.setValidationRequested(false);
+            when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(true);
+
+            // When
+            boolean switched = service.switchToCompleted(tenant);
+
+            // Then
+            assertThat(switched).isTrue();
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+            verify(tenantCommonRepository).save(tenant);
+            assertThat(apartmentSharing.getLastUpdateDate()).isNotNull();
+            verify(apartmentSharingCommonService).save(apartmentSharing);
+        }
+
+        @Test
+        void should_do_nothing_when_not_eligible() {
+            tenant.setStatus(TenantFileStatus.TO_PROCESS);
+            when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(false);
+
+            assertThat(service.switchToCompleted(tenant)).isFalse();
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+            verify(tenantCommonRepository, never()).save(any(Tenant.class));
+        }
+
+        @Test
+        void should_do_nothing_when_dossier_is_not_in_the_queue() {
+            for (TenantFileStatus status : new TenantFileStatus[]{
+                    TenantFileStatus.INCOMPLETE, TenantFileStatus.COMPLETED, TenantFileStatus.VALIDATED, TenantFileStatus.DECLINED}) {
+                tenant.setStatus(status);
+
+                assertThat(service.switchToCompleted(tenant)).as("from %s", status).isFalse();
+                assertThat(tenant.getStatus()).isEqualTo(status);
+            }
+            verifyNoInteractions(completedEligibilityService);
+            verify(tenantCommonRepository, never()).save(any(Tenant.class));
         }
     }
 

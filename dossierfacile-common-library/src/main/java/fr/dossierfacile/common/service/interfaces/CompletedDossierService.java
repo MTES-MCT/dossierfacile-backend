@@ -12,9 +12,23 @@ public interface CompletedDossierService {
 
     /**
      * Returns COMPLETED instead of TO_PROCESS when the dossier is eligible to the
-     * opt-in. Any other computed status is returned unchanged.
+     * opt-in and is ENTERING the operator queue (its persisted status is not
+     * TO_PROCESS). Any other computed status is returned unchanged.
+     * <p>
+     * Invariant: a dossier already waiting in the queue never leaves it through a
+     * status recomputation (tenant edit, operator edit in the BO, rollout increase
+     * of the feature flag). Leaving the queue is always an explicit decision: the
+     * operator verdict, or the tenant's opt-out via {@link #switchToCompleted}.
      */
     TenantFileStatus toCompletedIfEligible(Tenant tenant, TenantFileStatus computedStatus);
+
+    /**
+     * Explicit opt-out: takes a TO_PROCESS dossier out of the operator queue and
+     * makes it COMPLETED. No-op (returns false) when the dossier is not TO_PROCESS
+     * or not eligible. The caller is responsible for having persisted the user's
+     * choice (validationRequested) beforehand, as eligibility depends on it.
+     */
+    boolean switchToCompleted(Tenant tenant);
 
     /**
      * Sends a COMPLETED dossier back to the operator queue: status TO_PROCESS,

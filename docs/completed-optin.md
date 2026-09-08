@@ -44,7 +44,11 @@ Périmètre MVP : dossiers **ALONE uniquement**, rollout progressif démarré à
 COMPLETED  ⟺  dossier complet + déclaration sur l'honneur signée
               + éligible (§3.2)
               + validation_requested ≠ true
+              + le dossier ENTRE en file (statut persisté ≠ TO_PROCESS)   — §3.3
 ```
+
+### 3.3 Invariant : un dossier en file n'en sort que sur décision explicite
+L'éligibilité peut changer **après** la soumission (hausse du `rollout_pct` : `ROLLOUT_INCREASED` rebascule d'un coup toutes les assignations `HASH` dont le bucket passe sous le nouveau seuil ; suppression d'une ligne `tenant_userapi` ; dissociation d'une coloc). Sans garde, un dossier `TO_PROCESS` devenu éligible quittait silencieusement la file au premier recalcul de statut — y compris lors d'une action opérateur dans le BO.
 
 ### 3.2 Éligibilité (`CompletedEligibilityService`, common-library)
 Toujours **calculée à la volée, jamais stockée** (elle dépend d'états qui changent à tout moment). Conditions, évaluées de la moins chère à la plus chère :
@@ -97,10 +101,10 @@ Deux méthodes publiques :
 ## 5. Transitions de statut
 
 ### 5.1 Entrée : passage en COMPLETED à la soumission (api-tenant)
-`TenantStatusServiceImpl.updateTenantStatus()` — appelé par tous les `SaveStep`, dont la déclaration sur l'honneur — applique `CompletedDossierService.toCompletedIfEligible()` : si `computeStatus()` retourne `TO_PROCESS` **et** `canBeCompleted(tenant)`, le statut persisté devient `COMPLETED`. `Tenant.computeStatus()` est inchangé. Aucun webhook partenaire n'est émis (un dossier passé en `COMPLETED` n'a par définition aucun partenaire lié).
+`TenantStatusServiceImpl.updateTenantStatus()` — appelé par tous les `SaveStep`, dont la déclaration sur l'honneur — applique `CompletedDossierService.toCompletedIfEligible()` : si `computeStatus()` retourne `TO_PROCESS`, que le statut persisté n'est **pas** déjà `TO_PROCESS` (§3.3) **et** `canBeCompleted(tenant)`, le statut persisté devient `COMPLETED`. `Tenant.computeStatus()` est inchangé. Aucun webhook partenaire n'est émis (un dossier passé en `COMPLETED` n'a par définition aucun partenaire lié).
 
 ### 5.2 Même règle côté BO
-`fr.gouv.bo.service.TenantService.updateTenantStatus()` (re-synchronisation après suppression/modification de document par un opérateur) applique la même règle via `CompletedDossierService.toCompletedIfEligible()` — la logique n'existe qu'à un seul endroit.
+`fr.gouv.bo.service.TenantService.updateTenantStatus()` (re-synchronisation après suppression/modification de document par un opérateur) applique la même règle via `CompletedDossierService.toCompletedIfEligible()` — la logique n'existe qu'à un seul endroit. Grâce à l'invariant §3.3, une action opérateur sur un dossier `TO_PROCESS` ne peut jamais le sortir de la file ; seul un dossier `COMPLETED` consulté par recherche peut être recalculé vers `INCOMPLETE`/`COMPLETED`.
 
 ### 5.3 Agrégat coloc
 `ApartmentSharing.getStatus()` gère `COMPLETED` explicitement (entre `TO_PROCESS` et `VALIDATED`), la structure existante de la méthode restant inchangée. Sans ce cas, un dossier ALONE `COMPLETED` serait tombé dans le `return VALIDATED` final — exposant tokens de partage, full PDF et mails propriétaire « dossier validé ».
@@ -109,6 +113,7 @@ Deux méthodes publiques :
 | Cause | Mécanisme | `validation_requested` |
 |---|---|---|
 | Le locataire demande une vérification | endpoint §6 → `TO_PROCESS`, `last_update_date = now` (position en file = moment du choix) | `true` (son choix) |
+| Le locataire annule sa demande (sens inverse : `TO_PROCESS → COMPLETED`) | endpoint §6 → `switchToCompleted()` (§3.3), seule sortie de file à l'initiative du locataire | `false` (son choix) |
 | Connexion à un partenaire ou candidature propriétaire | bascule automatique §7.1 | inchangé |
 | Rollback | action BO §9 | inchangé |
 | Modification du dossier | `computeStatus()` → `INCOMPLETE`, puis retour possible en `COMPLETED` à la re-signature | inchangé |
@@ -122,7 +127,7 @@ Toute sortie de `COMPLETED` invalide le full PDF (design « non vérifié », §
 
 - **`PUT /api/tenant/validation-request`** (scope `dossier`), body `{"validationRequested": true|false}` :
   - refuse (`409`) si `isEligibleForOptIn` est faux ;
-  - persiste le choix, positionne `last_update_date = now`, journalise (`VALIDATION_REQUESTED` / `VALIDATION_DECLINED`), recalcule le statut ;
+  - persiste le choix, positionne `last_update_date = now`, journalise (`VALIDATION_REQUESTED` / `VALIDATION_DECLINED`), puis recalcule le statut — sauf pour l'annulation d'un dossier `TO_PROCESS`, qui passe par `switchToCompleted()` (§3.3) ;
   - si le dossier passe effectivement `COMPLETED → TO_PROCESS` (réponse « oui »), envoie le **template Brevo 56 existant** (« dossier complet, en attente de vérification ») — même situation qu'une soumission classique, aucun nouveau template ;
   - accepté aussi sur un dossier `VALIDATED` ou `DECLINED` : le recalcul de statut est alors un no-op (`computeStatus()` retourne le même statut), le choix est simplement enregistré pour la prochaine re-soumission.
 - **`TenantModel`** (profil locataire) expose :
@@ -230,7 +235,7 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 | B3 | Partage B1 | ZIP OK ; création lien/mail et lien par défaut **OK** ; page publique au design « dossier complété, non vérifié » (badges info, documents consultables) ; full PDF généré paresseusement au design COMPLETED |
 | B3bis | Lien créé pendant B1 puis sortie de COMPLETED (opt-in « oui » ou liaison partenaire) | Le lien reste actif et la page publique bascule sur le rendu TO_PROCESS ; le full PDF est invalidé (409/417) puis régénéré au design du nouveau statut |
 | B4 | Encart : répondre « oui » | `validation_requested=true`, statut TO_PROCESS, entre en file (position = maintenant), badge « en cours », log `VALIDATION_REQUESTED`, mail template 56 reçu |
-| B5 | B4 puis annuler | Retour `COMPLETED`, `validation_requested=false`, sort de la file |
+| B5 | B4 puis annuler | Retour `COMPLETED`, `validation_requested=false`, sort de la file (`switchToCompleted`) |
 | B6 | B1 → connexion à un partenaire DFC | Bascule immédiate TO_PROCESS, `validation_requested` reste `null`, mail de bascule, webhook `CREATED_ACCOUNT` avec `status=TO_PROCESS` (payload + `callback_log` : jamais COMPLETED), encart disparu, dossier en file |
 | B7 | B1 → candidature propriétaire (`/candidater/:token`) | Même bascule que B6 ; écran de confirmation owner = wording TO_PROCESS standard ; mail owner « candidat non validé », **pas** le « validé » |
 | B8 | B1 → modification d'un document | INCOMPLETE → re-signature → re-COMPLETED (choix inchangé, pas de nouvelle question) |
@@ -239,11 +244,13 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 | B11 | Compte rollout mais connecté DFC avant soumission | Signature → TO_PROCESS direct, mail 56 classique, pas d'encart |
 | B12 | Vérif exposition B1 | Profil : `optInEligible=true`, `validationRequested` absent ; `apartmentSharing.status` ≠ VALIDATED (tokens de partage absents du JSON) |
 | B13 | BO : regroupement impliquant B1 | Bloqué avec message |
+| B14 | Dossier A1 (hors rollout, en file) → passage du rollout à 100 % → suppression d'un fichier par un opérateur dans le BO, ou ajout d'un document par le locataire | Reste `TO_PROCESS` et en file ; le verdict opérateur fonctionne (§3.3). Après refus puis correction : re-soumission directement en `COMPLETED` (B9) |
 
 ### C. Transverses / rollback
 
 | # | Scénario | Attendu |
 |---|---|---|
+| C0 | Rollout 25 → 50 % avec des dossiers ALONE en file | `ROLLOUT_INCREASED` sur les assignations, **aucun changement de statut** : les dossiers en file y restent (§3.3), pas d'encart (affiché seulement pour `COMPLETED` ou demande en cours) |
 | C1 | Rollout 100 → 0 % | Nouvelles soumissions → TO_PROCESS ; dossiers COMPLETED existants **inchangés** tant que l'action de rollback n'est pas lancée |
 | C2 | Action « Rebasculer les dossiers COMPLETED » | Tous → TO_PROCESS, `last_update_date=now` (fin de file), `validation_requested` intact, mail de bascule, logs `COMPLETED_SWITCHED_TO_PROCESS` |
 | C3 | Métriques | Répartition `validation_requested` sur la cohorte assignée ; comptage des logs |
