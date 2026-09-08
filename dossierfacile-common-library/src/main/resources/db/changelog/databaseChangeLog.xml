@@ -205,4 +205,5 @@
     <include file="db/migration/20260723160000-add-ready-for-auto-validation-to-tenant.xml"/>
     <include file="db/migration/20260731140000-update-ranked-tenant-exclude-auto-validation.xml"/>
     <include file="db/migration/20260806000000-add-completed-optin.xml"/>
+    <include file="db/migration/202607221630-add-fc-hash-to-user-account.xml"/>
 </databaseChangeLog>
