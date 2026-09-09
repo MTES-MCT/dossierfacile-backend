@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.register.guarantor.natural_person;
 
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
+import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentFinancialGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -13,6 +13,7 @@ import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
@@ -37,7 +38,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class DocumentTaxGuarantorNaturalPersonTest {
+class DocumentFinancialGuarantorNaturalPersonTest {
 
     private static final Long GUARANTOR_ID = 10L;
 
@@ -57,7 +58,7 @@ class DocumentTaxGuarantorNaturalPersonTest {
     private ApartmentSharingService apartmentSharingService;
 
     @InjectMocks
-    private DocumentTaxGuarantorNaturalPerson documentTaxGuarantor;
+    private DocumentFinancialGuarantorNaturalPerson documentFinancialGuarantor;
 
     private Tenant tenant;
     private Guarantor guarantor;
@@ -89,23 +90,26 @@ class DocumentTaxGuarantorNaturalPersonTest {
     }
 
     @Test
-    @DisplayName("Case 1: Creating a new tax document for guarantor should set status to TO_PROCESS and reset associated categories")
+    @DisplayName("Case 1: Creating a new guarantor financial document should set status to TO_PROCESS and reset categories")
     void saveDocument_case1_createNewDocument_shouldSetToProcessAndResetCategories() {
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findByDocumentCategoryAndGuarantorAndId(eq(DocumentCategory.FINANCIAL), eq(guarantor), any()))
                 .thenReturn(Optional.empty());
 
-        DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
+        DocumentFinancialGuarantorNaturalPersonForm form = new DocumentFinancialGuarantorNaturalPersonForm();
         form.setGuarantorId(GUARANTOR_ID);
-        form.setTypeDocumentTax(DocumentSubCategory.MY_NAME);
+        form.setTypeDocumentFinancial(DocumentSubCategory.SALARY);
+        form.setCategoryStep(DocumentCategoryStep.SALARY_EMPLOYED_MORE_3_MONTHS);
+        form.setMonthlySum(3000);
         form.setNoDocument(false);
         form.setDocuments(Collections.emptyList());
 
-        var result = documentTaxGuarantor.saveDocument(tenant, form);
+        var result = documentFinancialGuarantor.saveDocument(tenant, form);
 
         Document savedDoc = result.document();
         assertThat(result.created()).isTrue();
         assertThat(savedDoc.getDocumentStatus()).isEqualTo(DocumentStatus.TO_PROCESS);
         assertThat(savedDoc.getDocumentDeniedReasons()).isNull();
+        assertThat(savedDoc.getMonthlySum()).isEqualTo(3000);
         assertThat(savedDoc.getNoDocument()).isFalse();
 
         verify(documentService, times(1))
@@ -118,23 +122,25 @@ class DocumentTaxGuarantorNaturalPersonTest {
     void saveDocument_case2_transitionFromFilesToNoDocument_shouldDeleteFilesSetToProcessAndResetCategories() {
         Document existingDoc = Document.builder()
                 .id(200L)
-                .documentCategory(DocumentCategory.TAX)
+                .documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.SALARY)
                 .guarantor(guarantor)
                 .noDocument(false)
                 .documentStatus(DocumentStatus.VALIDATED)
                 .documentDeniedReasons(DocumentDeniedReasons.builder().build())
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findByDocumentCategoryAndGuarantorAndId(eq(DocumentCategory.FINANCIAL), eq(guarantor), any()))
                 .thenReturn(Optional.of(existingDoc));
 
-        DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
+        DocumentFinancialGuarantorNaturalPersonForm form = new DocumentFinancialGuarantorNaturalPersonForm();
         form.setGuarantorId(GUARANTOR_ID);
-        form.setTypeDocumentTax(DocumentSubCategory.MY_NAME);
+        form.setDocumentId(200L);
+        form.setTypeDocumentFinancial(DocumentSubCategory.SALARY);
         form.setNoDocument(true);
         form.setDocuments(Collections.emptyList());
 
-        var result = documentTaxGuarantor.saveDocument(tenant, form);
+        var result = documentFinancialGuarantor.saveDocument(tenant, form);
 
         Document savedDoc = result.document();
         assertThat(result.created()).isFalse();
@@ -148,27 +154,29 @@ class DocumentTaxGuarantorNaturalPersonTest {
     }
 
     @Test
-    @DisplayName("Case 3: Re-submitting noDocument=true on an existing noDocument=true guarantor document should keep status unchanged and NOT reset categories")
+    @DisplayName("Case 3: Re-submitting noDocument=true on an existing noDocument=true guarantor document without changes should keep status unchanged and NOT reset categories")
     void saveDocument_case3_stayingNoDocument_shouldNotChangeStatusNorResetCategories() {
         Document existingDoc = Document.builder()
                 .id(200L)
-                .documentCategory(DocumentCategory.TAX)
-                .documentSubCategory(DocumentSubCategory.MY_NAME)
+                .documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.SALARY)
+                .monthlySum(0)
                 .guarantor(guarantor)
                 .noDocument(true)
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findByDocumentCategoryAndGuarantorAndId(eq(DocumentCategory.FINANCIAL), eq(guarantor), any()))
                 .thenReturn(Optional.of(existingDoc));
 
-        DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
+        DocumentFinancialGuarantorNaturalPersonForm form = new DocumentFinancialGuarantorNaturalPersonForm();
         form.setGuarantorId(GUARANTOR_ID);
-        form.setTypeDocumentTax(DocumentSubCategory.MY_NAME);
+        form.setDocumentId(200L);
+        form.setTypeDocumentFinancial(DocumentSubCategory.SALARY);
         form.setNoDocument(true);
         form.setDocuments(Collections.emptyList());
 
-        var result = documentTaxGuarantor.saveDocument(tenant, form);
+        var result = documentFinancialGuarantor.saveDocument(tenant, form);
 
         Document savedDoc = result.document();
         assertThat(result.created()).isFalse();
@@ -187,22 +195,25 @@ class DocumentTaxGuarantorNaturalPersonTest {
     void saveDocument_case4_existingDocumentAddingFiles_shouldSetToProcessAndResetCategories() {
         Document existingDoc = Document.builder()
                 .id(200L)
-                .documentCategory(DocumentCategory.TAX)
+                .documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.SALARY)
                 .guarantor(guarantor)
                 .noDocument(true)
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findByDocumentCategoryAndGuarantorAndId(eq(DocumentCategory.FINANCIAL), eq(guarantor), any()))
                 .thenReturn(Optional.of(existingDoc));
 
-        DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
+        DocumentFinancialGuarantorNaturalPersonForm form = new DocumentFinancialGuarantorNaturalPersonForm();
         form.setGuarantorId(GUARANTOR_ID);
-        form.setTypeDocumentTax(DocumentSubCategory.MY_NAME);
+        form.setDocumentId(200L);
+        form.setTypeDocumentFinancial(DocumentSubCategory.SALARY);
+        form.setMonthlySum(3000);
         form.setNoDocument(false);
         form.setDocuments(Collections.emptyList());
 
-        var result = documentTaxGuarantor.saveDocument(tenant, form);
+        var result = documentFinancialGuarantor.saveDocument(tenant, form);
 
         Document savedDoc = result.document();
         assertThat(result.created()).isFalse();
