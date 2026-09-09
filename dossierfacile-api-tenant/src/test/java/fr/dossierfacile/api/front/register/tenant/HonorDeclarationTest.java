@@ -115,7 +115,7 @@ class HonorDeclarationTest {
 
         saveStepAndCommit(tenant);
 
-        verify(mailService, times(1)).sendEmailToGuarantor(eq("guarantor@dossierfacile.fr"), eq("John Doe"), eq(tenant));
+        verify(mailService, times(1)).sendEmailToGuarantor("guarantor@dossierfacile.fr", "John Doe", tenant);
         verify(logService, times(1)).saveGuarantorNotifiedLog(guarantor);
     }
 
@@ -164,8 +164,8 @@ class HonorDeclarationTest {
 
         saveStepAndCommit(tenant);
 
-        verify(mailService, times(1)).sendEmailToGuarantor(eq("guarantor@dossierfacile.fr"), eq("John Doe"), eq(tenant));
-        verify(mailService, times(1)).sendEmailToGuarantor(eq("partner-guarantor@dossierfacile.fr"), eq("John Doe"), eq(partner));
+        verify(mailService, times(1)).sendEmailToGuarantor("guarantor@dossierfacile.fr", "John Doe", tenant);
+        verify(mailService, times(1)).sendEmailToGuarantor("partner-guarantor@dossierfacile.fr", "John Doe", partner);
         verify(logService, times(1)).saveGuarantorNotifiedLog(guarantor);
         verify(logService, times(1)).saveGuarantorNotifiedLog(partnerGuarantor);
     }
