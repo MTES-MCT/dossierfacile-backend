@@ -21,8 +21,9 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
-import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
+import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -99,9 +100,11 @@ class DfcTenantsControllerIntegrationTest {
     @MockitoBean
     private DfcDocumentService dfcDocumentService;
     @MockitoBean
-    private CompletedEligibilityService completedEligibilityService;
+    private OperatorReviewPolicy operatorReviewPolicy;
     @MockitoBean
-    private CompletedDossierService completedDossierService;
+    private LotteryTicketService lotteryTicketService;
+    @MockitoBean
+    private FeatureFlagService featureFlagService;
     @MockitoBean
     private TenantStatusService tenantStatusService;
     @MockitoBean

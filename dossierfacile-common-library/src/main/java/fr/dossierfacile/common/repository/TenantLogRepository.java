@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TenantLogRepository extends JpaRepository<TenantLog, Long> {
@@ -19,6 +20,16 @@ public interface TenantLogRepository extends JpaRepository<TenantLog, Long> {
                 AND t.creation_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 1
             """, nativeQuery = true)
     long countProcessedDossiersFromToday();
+
+    /** Queue entries bypassing the lottery. TODO(lottery-bypass): drop once every dossier goes through the lottery. */
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM tenant_log
+            WHERE log_type = 'QUEUE_ENTERED'
+                AND creation_date >= :from AND creation_date < :to
+                AND log_details ->> 'bypass' = 'true'
+            """, nativeQuery = true)
+    long countBypassQueueEntries(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query(value = """
             WITH logs_window AS (

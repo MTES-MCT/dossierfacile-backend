@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.model.tenant;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import fr.dossierfacile.common.enums.LotteryPublicStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.enums.TenantType;
@@ -9,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,6 +35,10 @@ public class TenantModel {
     private Boolean validationRequested;
     // Whether the opt-in question must be displayed (primitive: always serialized)
     private boolean optInEligible;
+    // Verification lottery state;
+    private LotteryPublicStatus lotteryStatus;
+    // Only set with lotteryStatus COOLDOWN: date from which a new application is allowed
+    private LocalDate nextEligibleDate;
     private boolean honorDeclaration;
     private LocalDateTime lastUpdateDate;
     private String clarification;

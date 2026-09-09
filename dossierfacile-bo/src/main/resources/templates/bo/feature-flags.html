@@ -10,6 +10,7 @@
 <div layout:fragment="content" th:remove="tag">
     <div class="container-lg">
         <h1 class="margin-bottom">Liste des features flags</h1>
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
         <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover">
                 <thead>
@@ -24,11 +25,15 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="feature : ${featureFlags}">
+                <tr th:each="feature : ${featureFlags}" th:with="isGlobal=${globalFlagKeys.contains(feature.key)}">
                     <td th:text="${feature.key}" class="align-middle"></td>
                     <td th:text="${feature.description}" class="align-middle"></td>
                     <td th:text="${#temporals.format(feature.deploymentDate, 'dd/MM/yyyy HH:mm')}" class="align-middle"></td>
-                    <td class="text-center align-middle">
+                    <!-- Global on/off flags ignore only_for_new_user and rollout_pct: show it instead of misleading values -->
+                    <td th:if="${isGlobal}" class="text-center align-middle">
+                        <span class="badge bg-dark" title="Flag global : s'applique à tous les utilisateurs">Global</span>
+                    </td>
+                    <td th:unless="${isGlobal}" class="text-center align-middle">
                         <span th:if="${feature.onlyForNewUser}" class="badge bg-info text-dark">Oui</span>
                         <span th:unless="${feature.onlyForNewUser}" class="badge bg-secondary">Non</span>
                     </td>
@@ -36,7 +41,10 @@
                         <span th:if="${feature.active}" class="badge bg-success">Oui</span>
                         <span th:unless="${feature.active}" class="badge bg-danger">Non</span>
                     </td>
-                    <td class="text-center align-middle">
+                    <td th:if="${isGlobal}" class="text-center align-middle">
+                        <span class="badge bg-dark" title="Flag global : on/off, sans pourcentage de rollout">Global</span>
+                    </td>
+                    <td th:unless="${isGlobal}" class="text-center align-middle">
                         <span th:text="${feature.rolloutPct} + '%'" class="fw-bold"></span>
                     </td>
                     <td class="align-middle">
@@ -52,13 +60,13 @@
                                 </button>
                             </form>
 
-                            <!-- Edit Rollout Button (Triggers Modal) -->
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" th:data-bs-target="'#rolloutModal-' + ${feature.key}">
+                            <!-- Edit Rollout Button (Triggers Modal) — not for global on/off flags -->
+                            <button th:unless="${isGlobal}" type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" th:data-bs-target="'#rolloutModal-' + ${feature.key}">
                                 <span class="fa fa-edit"></span> %
                             </button>
 
                             <!-- Modal for Editing Rollout -->
-                            <div class="modal fade" th:id="'rolloutModal-' + ${feature.key}" tabindex="-1" aria-hidden="true">
+                            <div th:unless="${isGlobal}" class="modal fade" th:id="'rolloutModal-' + ${feature.key}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <form th:action="@{/bo/feature-flags/rollout}" method="post">
