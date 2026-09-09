@@ -10,7 +10,7 @@ Le mécanisme de Rate Limiting repose sur :
 - **Redis** (`StringRedisTemplate`) pour stocker les compteurs de requêtes de façon distribuée (compatible multi-instances).
 - **Spring AOP** (`RateLimitAspect`) pour intercepter les appels aux méthodes annotées.
 - **Une annotation personnalisée** (`@RateLimit`) déclarative et simple à utiliser sur n'importe quel contrôleur Spring MVC.
-- **Gestionnaire HTTP 429** (`RateLimitExceptionHandler`) renvoyant une réponse `429 Too Many Requests` lorsque le quota est dépassé.
+- **Gestionnaire d'exceptions HTTP 429** (`CustomRestExceptionHandler`) interceptant l'exception `RateLimitExceededException` et renvoyant une réponse `429 Too Many Requests` lorsque le quota est dépassé.
 
 Le code du Rate Limiting est situé dans la librairie commune `dossierfacile-common-library` (package `fr.dossierfacile.common.config.ratelimit`), ce qui le rend **immédiatement disponible** pour tous les modules (`dossierfacile-bo`, `dossierfacile-api-tenant`, `dossierfacile-api-watermark`, etc.).
 
@@ -88,8 +88,8 @@ Le nom du bucket (`name`) détermine le compteur Redis utilisé :
 
 ## 🛡️ 5. Résilience & Mode Fail-Open
 
-- **Sécurité et Haute Disponibilité** : Si Redis est indisponible, hors-ligne ou rencontre une erreur réseau, le service `RedisRateLimiterService` attrape l'exception, écrit un log d'avertissement et autorise la requête (**Fail-Open**). Cela garantit que le rate-limiting ne fait jamais tomber les services métiers.
-- **Compatibilité multi-modules** : L'injection de Redis est optionnelle (`@Autowired(required = false)`). Si un module ou un test d'intégration n'a pas Redis configuré, le rate-limiting est automatiquement ignoré sans perturber le démarrage du contexte Spring.
+- **Sécurité et Haute Disponibilité** : Si Redis est indisponible, hors-ligne ou rencontre une erreur réseau, le service `RedisRateLimiterService` attrape l'exception, écrit un log d'erreur (`log.error`) et autorise la requête (**Fail-Open**). Cela garantit que le rate-limiting ne fait jamais tomber les services métiers.
+- **Compatibilité multi-modules** : L'injection de Redis est optionnelle (`@Autowired(required = false)`). Si un module ou un test d'intégration n'a pas Redis configuré, le rate-limiting est automatiquement ignoré (`log.trace`) sans perturber le démarrage du contexte Spring.
 
 ---
 
@@ -97,6 +97,8 @@ Le nom du bucket (`name`) détermine le compteur Redis utilisé :
 
 Chaque incrémentation génère une clé temporaire dans Redis sous la forme :
 ```
-ratelimit:<name>:<IP>:<windowSeconds>:<timestampWindow>
+ratelimit:<bucketName>:<IP>:<windowSeconds>:<currentWindow>
 ```
+Le `<bucketName>` correspond à l'attribut `name` s'il est renseigné, ou par défaut à `NomDeClasse.nomDeMethode`.
+Le `<currentWindow>` correspond à l'horodatage en secondes divise par la taille de la fenêtre temporelle.
 Une durée de vie (**TTL**) égale au double de la fenêtre temporelle est automatiquement associée à la clé afin d'assurer le nettoyage automatique de Redis.
