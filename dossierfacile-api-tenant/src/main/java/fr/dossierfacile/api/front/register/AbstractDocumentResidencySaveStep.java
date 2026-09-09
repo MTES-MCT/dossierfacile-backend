@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -16,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
 
 @Slf4j
@@ -30,17 +32,24 @@ public abstract class AbstractDocumentResidencySaveStep<T extends DocumentForm &
 
     protected DocumentSaveResult processResidencyDocument(Tenant tenant, Document document, T documentResidencyForm) {
         DocumentSubCategory documentSubCategory = documentResidencyForm.getTypeDocumentResidency();
-        boolean targetNoDocument = (documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY);
         boolean created = document.getId() == null;
+
+        boolean newFilesPresent = hasNewFiles(documentResidencyForm);
+        boolean existingFilesPresent = hasExistingFiles(created, document);
+
+        boolean isOtherResidency = (documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY);
+        boolean targetNoDocument = computeTargetNoDocument(documentSubCategory, newFilesPresent, existingFilesPresent, document.getDocumentSubCategory());
+
+        // Indique si le document était déjà sans fichier et le reste après la sauvegarde
         boolean isStayingNoDocument = !created
                 && Boolean.TRUE.equals(document.getNoDocument())
                 && targetNoDocument;
 
-        boolean hasResidencyInfoChanged = documentSubCategory != document.getDocumentSubCategory()
-                || documentResidencyForm.getCategoryStep() != document.getDocumentCategoryStep()
-                || !Objects.equals(document.getCustomText(), documentResidencyForm.getCustomText());
+        // Détecte si des informations du formulaire ont changé (sous-catégorie, étape ou texte d'explication)
+        boolean infoChanged = hasResidencyInfoChanged(document, documentSubCategory, documentResidencyForm.getCategoryStep(), documentResidencyForm.getCustomText());
 
-        boolean isUnchangedNoDocument = isStayingNoDocument && !hasResidencyInfoChanged;
+        // Si le document reste sans fichier ET qu'aucune info n'a changé, pas besoin de réinitialiser le statut
+        boolean isUnchangedNoDocument = isStayingNoDocument && !infoChanged;
         boolean edited = !isUnchangedNoDocument;
 
         if (!isUnchangedNoDocument) {
@@ -55,24 +64,13 @@ public abstract class AbstractDocumentResidencySaveStep<T extends DocumentForm &
             deleteFilesIfExistedBefore(document);
         }
 
-        if (targetNoDocument) {
-            document.setCustomText(documentResidencyForm.getCustomText());
-            document.setNoDocument(true);
-        } else {
-            document.setCustomText(null);
-            document.setNoDocument(false);
-        }
+        document.setNoDocument(targetNoDocument);
+        document.setCustomText(isOtherResidency ? documentResidencyForm.getCustomText() : null);
         documentRepository.save(document);
 
-        if (!targetNoDocument) {
-            if (documentResidencyForm.getDocuments() != null && !documentResidencyForm.getDocuments().isEmpty()) {
-                saveFiles(documentResidencyForm, document);
-            } else {
-                log.info("Refreshing info in [RESIDENCY] document with ID [" + document.getId() + "]");
-            }
-        }
+        saveFilesOrLogInfo(documentResidencyForm, document);
 
-        tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.RESIDENCY);
+        tenant.lastUpdateDateProfile(LocalDateTime.now(ZoneId.systemDefault()), DocumentCategory.RESIDENCY);
         if (edited) {
             apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         }
@@ -81,7 +79,41 @@ public abstract class AbstractDocumentResidencySaveStep<T extends DocumentForm &
         return new DocumentSaveResult(document, created, edited);
     }
 
+    private boolean hasNewFiles(IDocumentResidencyForm form) {
+        return form.getDocuments() != null
+                && form.getDocuments().stream().anyMatch(f -> f != null && !f.isEmpty());
+    }
+
+    private boolean hasExistingFiles(boolean created, Document document) {
+        return !created
+                && Boolean.FALSE.equals(document.getNoDocument())
+                && document.getFiles() != null
+                && !document.getFiles().isEmpty();
+    }
+
+    private boolean computeTargetNoDocument(DocumentSubCategory subCategory, boolean hasNewFiles, boolean hasExistingFiles, DocumentSubCategory previousSubCategory) {
+        if (subCategory != DocumentSubCategory.OTHER_RESIDENCY) {
+            return false;
+        }
+        return !hasNewFiles && (!hasExistingFiles || previousSubCategory != DocumentSubCategory.OTHER_RESIDENCY);
+    }
+
+    private boolean hasResidencyInfoChanged(Document document, DocumentSubCategory subCategory, DocumentCategoryStep step, String customText) {
+        return subCategory != document.getDocumentSubCategory()
+                || step != document.getDocumentCategoryStep()
+                || !Objects.equals(document.getCustomText(), customText);
+    }
+
+    private void saveFilesOrLogInfo(T form, Document document) {
+        if (form.getDocuments() != null && !form.getDocuments().isEmpty()) {
+            saveFiles(form, document);
+        } else {
+            log.info("Refreshing info in [RESIDENCY] document with ID [" + document.getId() + "]");
+        }
+    }
+
     private void deleteFilesIfExistedBefore(Document document) {
         documentHelperService.deleteFiles(document);
     }
 }
+

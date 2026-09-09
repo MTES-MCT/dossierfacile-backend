@@ -4,18 +4,12 @@ import fr.dossierfacile.api.front.register.form.guarantor.natural_person.Documen
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
+import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentDeniedReasons;
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.TypeGuarantor;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.FileUploadPreprocessor;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +29,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,6 +48,10 @@ class DocumentResidencyGuarantorNaturalPersonTest {
     private TenantStatusService tenantStatusService;
     @Mock
     private ApartmentSharingService apartmentSharingService;
+    @Mock
+    private FileUploadPreprocessor fileUploadPreprocessor;
+    @Mock
+    private DocumentService documentService;
 
     @InjectMocks
     private DocumentResidencyGuarantorNaturalPerson documentResidencyGuarantor;
@@ -79,16 +79,19 @@ class DocumentResidencyGuarantorNaturalPersonTest {
                 .documents(new ArrayList<>())
                 .build();
 
-        when(guarantorRepository.findByTenantAndTypeGuarantorAndId(eq(tenant), eq(TypeGuarantor.NATURAL_PERSON), eq(GUARANTOR_ID)))
+        when(guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, GUARANTOR_ID))
                 .thenReturn(Optional.of(guarantor));
         when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(tenantRepository.save(any())).thenReturn(tenant);
+
+        ReflectionTestUtils.setField(documentResidencyGuarantor, "fileUploadPreprocessor", fileUploadPreprocessor);
+        ReflectionTestUtils.setField(documentResidencyGuarantor, "documentService", documentService);
     }
 
     @Test
     @DisplayName("Case 1: Creating a new guarantor residency document should set status to TO_PROCESS")
     void saveDocument_case1_createNewDocument_shouldSetToProcess() {
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.RESIDENCY), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.RESIDENCY, guarantor))
                 .thenReturn(Optional.empty());
 
         DocumentResidencyGuarantorNaturalPersonForm form = new DocumentResidencyGuarantorNaturalPersonForm();
@@ -121,7 +124,7 @@ class DocumentResidencyGuarantorNaturalPersonTest {
                 .documentDeniedReasons(DocumentDeniedReasons.builder().build())
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.RESIDENCY), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.RESIDENCY, guarantor))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentResidencyGuarantorNaturalPersonForm form = new DocumentResidencyGuarantorNaturalPersonForm();
@@ -145,6 +148,37 @@ class DocumentResidencyGuarantorNaturalPersonTest {
     }
 
     @Test
+    @DisplayName("Case 2b: Guarantor submitting OTHER_RESIDENCY with files attached should save files and set noDocument=false")
+    void saveDocument_case2b_otherResidencyWithFiles_shouldSaveFilesAndSetNoDocumentFalse() {
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.RESIDENCY, guarantor))
+                .thenReturn(Optional.empty());
+
+        MockMultipartFile mockFile = new MockMultipartFile("documents", "attestation.pdf", "application/pdf", "content".getBytes());
+        try {
+            when(fileUploadPreprocessor.prepareValidatedFiles(any())).thenReturn(List.of(new fr.dossierfacile.common.model.ValidatedFile(mockFile, "application/pdf")));
+        } catch (IOException ignored) {
+            // Empty catch for this test
+        }
+
+        DocumentResidencyGuarantorNaturalPersonForm form = new DocumentResidencyGuarantorNaturalPersonForm();
+        form.setGuarantorId(GUARANTOR_ID);
+        form.setTypeDocumentResidency(DocumentSubCategory.OTHER_RESIDENCY);
+        form.setCustomText("Attestation d'hébergement");
+        form.setDocuments(List.of(mockFile));
+
+        var result = documentResidencyGuarantor.saveDocument(tenant, form);
+
+        Document savedDoc = result.document();
+        assertThat(result.created()).isTrue();
+        assertThat(savedDoc.getDocumentStatus()).isEqualTo(DocumentStatus.TO_PROCESS);
+        assertThat(savedDoc.getNoDocument()).isFalse();
+        assertThat(savedDoc.getCustomText()).isEqualTo("Attestation d'hébergement");
+
+        verify(documentHelperService, never()).deleteFiles(any());
+        verify(apartmentSharingService, times(1)).resetDossierPdfGenerated(tenant.getApartmentSharing());
+    }
+
+    @Test
     @DisplayName("Case 3: Re-submitting OTHER_RESIDENCY with unchanged customText on an existing noDocument guarantor doc should keep status unchanged and NOT reset dossier PDF")
     void saveDocument_case3_stayingNoDocumentUnchanged_shouldNotChangeStatusNorResetDossierPdf() {
         Document existingDoc = Document.builder()
@@ -157,7 +191,7 @@ class DocumentResidencyGuarantorNaturalPersonTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.RESIDENCY), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.RESIDENCY, guarantor))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentResidencyGuarantorNaturalPersonForm form = new DocumentResidencyGuarantorNaturalPersonForm();
@@ -191,7 +225,7 @@ class DocumentResidencyGuarantorNaturalPersonTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.RESIDENCY), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.RESIDENCY, guarantor))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentResidencyGuarantorNaturalPersonForm form = new DocumentResidencyGuarantorNaturalPersonForm();
@@ -225,7 +259,7 @@ class DocumentResidencyGuarantorNaturalPersonTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.RESIDENCY), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.RESIDENCY, guarantor))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentResidencyGuarantorNaturalPersonForm form = new DocumentResidencyGuarantorNaturalPersonForm();

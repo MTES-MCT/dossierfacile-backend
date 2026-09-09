@@ -83,7 +83,7 @@ class DocumentFinancialGuarantorNaturalPersonTest {
                 .documents(new ArrayList<>())
                 .build();
 
-        when(guarantorRepository.findByTenantAndTypeGuarantorAndId(eq(tenant), eq(TypeGuarantor.NATURAL_PERSON), eq(GUARANTOR_ID)))
+        when(guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, GUARANTOR_ID))
                 .thenReturn(Optional.of(guarantor));
         when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(tenantRepository.save(any())).thenReturn(tenant);

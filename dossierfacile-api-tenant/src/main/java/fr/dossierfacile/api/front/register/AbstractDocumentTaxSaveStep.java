@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,15 +38,22 @@ public abstract class AbstractDocumentTaxSaveStep<T extends DocumentForm & IDocu
     protected DocumentSaveResult processTaxDocument(Tenant tenant, Document document, T documentTaxForm, List<Document> documentsToReset) {
         DocumentSubCategory documentSubCategory = documentTaxForm.getTypeDocumentTax();
         boolean created = document.getId() == null;
+
+        // Indique si le document était déjà sans fichier d'imposition et le demeure
         boolean isStayingNoDocument = !created
                 && Boolean.TRUE.equals(document.getNoDocument())
                 && Boolean.TRUE.equals(documentTaxForm.getNoDocument());
 
-        boolean hasTaxInfoChanged = documentSubCategory != document.getDocumentSubCategory()
-                || documentTaxForm.getCategoryStep() != document.getDocumentCategoryStep()
-                || !Objects.equals(documentTaxForm.getCustomText(), document.getCustomText());
+        // Détecte si des informations du formulaire d'imposition ont changé (sous-catégorie, étape ou texte personnalisé)
+        boolean infoChanged = hasTaxInfoChanged(
+                document,
+                documentSubCategory,
+                documentTaxForm.getCategoryStep(),
+                documentTaxForm.getCustomText()
+        );
 
-        boolean isUnchangedNoDocument = isStayingNoDocument && !hasTaxInfoChanged;
+        // Si le document reste sans fichier ET qu'aucune info n'a été modifiée, pas de réinitialisation du statut
+        boolean isUnchangedNoDocument = isStayingNoDocument && !infoChanged;
         boolean edited = !isUnchangedNoDocument;
         boolean needToBeReValidated = false;
 
@@ -74,16 +82,9 @@ public abstract class AbstractDocumentTaxSaveStep<T extends DocumentForm & IDocu
         }
         documentRepository.save(document);
 
-        if (documentSubCategory == MY_NAME
-                || (documentSubCategory == OTHER_TAX && !documentTaxForm.getNoDocument())) {
-            if (documentTaxForm.getDocuments().size() > 0) {
-                saveFiles(documentTaxForm, document);
-            } else {
-                log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
-            }
-        }
+        saveTaxFilesIfRequired(documentTaxForm, document);
 
-        tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.TAX);
+        tenant.lastUpdateDateProfile(LocalDateTime.now(ZoneId.systemDefault()), DocumentCategory.TAX);
         if (needToBeReValidated) {
             documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToReset, List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
         }
@@ -94,6 +95,26 @@ public abstract class AbstractDocumentTaxSaveStep<T extends DocumentForm & IDocu
         tenantStatusService.updateTenantStatus(tenant);
         tenantRepository.save(tenant);
         return new DocumentSaveResult(document, created, edited);
+    }
+
+    private boolean hasTaxInfoChanged(Document document, DocumentSubCategory subCategory, fr.dossierfacile.common.enums.DocumentCategoryStep step, String customText) {
+        return subCategory != document.getDocumentSubCategory()
+                || step != document.getDocumentCategoryStep()
+                || !Objects.equals(customText, document.getCustomText());
+    }
+
+    private void saveTaxFilesIfRequired(T documentTaxForm, Document document) {
+        DocumentSubCategory subCategory = documentTaxForm.getTypeDocumentTax();
+        boolean isMyName = (subCategory == MY_NAME);
+        boolean isOtherTaxWithFiles = (subCategory == OTHER_TAX && Boolean.FALSE.equals(documentTaxForm.getNoDocument()));
+
+        if (isMyName || isOtherTaxWithFiles) {
+            if (documentTaxForm.getDocuments() != null && !documentTaxForm.getDocuments().isEmpty()) {
+                saveFiles(documentTaxForm, document);
+            } else {
+                log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
+            }
+        }
     }
 
     private void deleteFilesIfExistedBefore(Document document) {

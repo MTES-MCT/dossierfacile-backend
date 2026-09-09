@@ -82,7 +82,7 @@ class DocumentTaxGuarantorNaturalPersonTest {
                 .documents(new ArrayList<>())
                 .build();
 
-        when(guarantorRepository.findByTenantAndTypeGuarantorAndId(eq(tenant), eq(TypeGuarantor.NATURAL_PERSON), eq(GUARANTOR_ID)))
+        when(guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, GUARANTOR_ID))
                 .thenReturn(Optional.of(guarantor));
         when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(tenantRepository.save(any())).thenReturn(tenant);
@@ -91,7 +91,7 @@ class DocumentTaxGuarantorNaturalPersonTest {
     @Test
     @DisplayName("Case 1: Creating a new tax document for guarantor should set status to TO_PROCESS and reset associated categories")
     void saveDocument_case1_createNewDocument_shouldSetToProcessAndResetCategories() {
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.TAX, guarantor))
                 .thenReturn(Optional.empty());
 
         DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
@@ -125,7 +125,7 @@ class DocumentTaxGuarantorNaturalPersonTest {
                 .documentDeniedReasons(DocumentDeniedReasons.builder().build())
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.TAX, guarantor))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
@@ -159,7 +159,7 @@ class DocumentTaxGuarantorNaturalPersonTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.TAX, guarantor))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
@@ -195,7 +195,7 @@ class DocumentTaxGuarantorNaturalPersonTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.TAX, guarantor))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
@@ -230,7 +230,7 @@ class DocumentTaxGuarantorNaturalPersonTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.TAX, guarantor))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();

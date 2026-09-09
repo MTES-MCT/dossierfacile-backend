@@ -72,7 +72,7 @@ class DocumentResidencyTest {
     @Test
     @DisplayName("Case 1: Creating a new residency document should set status to TO_PROCESS")
     void saveDocument_case1_createNewDocument_shouldSetToProcess() {
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.RESIDENCY), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.RESIDENCY, tenant))
                 .thenReturn(Optional.empty());
 
         DocumentResidencyForm form = new DocumentResidencyForm();
@@ -104,7 +104,7 @@ class DocumentResidencyTest {
                 .documentDeniedReasons(DocumentDeniedReasons.builder().build())
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.RESIDENCY), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.RESIDENCY, tenant))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentResidencyForm form = new DocumentResidencyForm();
@@ -139,7 +139,7 @@ class DocumentResidencyTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.RESIDENCY), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.RESIDENCY, tenant))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentResidencyForm form = new DocumentResidencyForm();
@@ -172,7 +172,7 @@ class DocumentResidencyTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.RESIDENCY), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.RESIDENCY, tenant))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentResidencyForm form = new DocumentResidencyForm();
@@ -205,7 +205,7 @@ class DocumentResidencyTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.RESIDENCY), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.RESIDENCY, tenant))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentResidencyForm form = new DocumentResidencyForm();

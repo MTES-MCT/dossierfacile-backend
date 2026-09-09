@@ -75,7 +75,7 @@ class DocumentTaxTest {
     @Test
     @DisplayName("Case 1: Creating a new tax document should set status to TO_PROCESS and reset associated categories")
     void saveDocument_case1_createNewDocument_shouldSetToProcessAndResetCategories() {
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.TAX), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.TAX, tenant))
                 .thenReturn(Optional.empty());
 
         DocumentTaxForm form = new DocumentTaxForm();
@@ -108,7 +108,7 @@ class DocumentTaxTest {
                 .documentDeniedReasons(DocumentDeniedReasons.builder().build())
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.TAX), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.TAX, tenant))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentTaxForm form = new DocumentTaxForm();
@@ -141,7 +141,7 @@ class DocumentTaxTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.TAX), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.TAX, tenant))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentTaxForm form = new DocumentTaxForm();
@@ -175,7 +175,7 @@ class DocumentTaxTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.TAX), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.TAX, tenant))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentTaxForm form = new DocumentTaxForm();
@@ -209,7 +209,7 @@ class DocumentTaxTest {
                 .documentStatus(DocumentStatus.VALIDATED)
                 .build();
 
-        when(documentRepository.findFirstByDocumentCategoryAndTenant(eq(DocumentCategory.TAX), eq(tenant)))
+        when(documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.TAX, tenant))
                 .thenReturn(Optional.of(existingDoc));
 
         DocumentTaxForm form = new DocumentTaxForm();
