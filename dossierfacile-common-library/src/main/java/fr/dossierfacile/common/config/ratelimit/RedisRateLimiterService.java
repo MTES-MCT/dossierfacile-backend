@@ -2,6 +2,7 @@ package fr.dossierfacile.common.config.ratelimit;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -10,11 +11,14 @@ import java.time.Instant;
 
 @Service
 @Slf4j
+@ConditionalOnClass(name = "org.springframework.data.redis.core.StringRedisTemplate")
 public class RedisRateLimiterService {
 
     private final StringRedisTemplate redisTemplate;
 
-    public RedisRateLimiterService(@Autowired(required = false) StringRedisTemplate redisTemplate) {
+    public RedisRateLimiterService(
+            @Autowired(required = false) StringRedisTemplate redisTemplate
+    ) {
         this.redisTemplate = redisTemplate;
     }
 

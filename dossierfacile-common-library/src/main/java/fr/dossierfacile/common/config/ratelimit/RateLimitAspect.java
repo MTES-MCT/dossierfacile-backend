@@ -2,13 +2,13 @@ package fr.dossierfacile.common.config.ratelimit;
 
 import fr.dossierfacile.logging.util.LoggerUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringValueResolver;
@@ -21,11 +21,16 @@ import java.time.Duration;
 @Aspect
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class RateLimitAspect implements EmbeddedValueResolverAware {
 
     private final RedisRateLimiterService redisRateLimiterService;
     private StringValueResolver valueResolver;
+
+    public RateLimitAspect(
+            @Autowired(required = false) RedisRateLimiterService redisRateLimiterService
+    ) {
+        this.redisRateLimiterService = redisRateLimiterService;
+    }
 
     @Override
     public void setEmbeddedValueResolver(@NonNull StringValueResolver resolver) {
@@ -34,6 +39,11 @@ public class RateLimitAspect implements EmbeddedValueResolverAware {
 
     @Around("@annotation(rateLimit)")
     public Object checkRateLimit(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
+        if (redisRateLimiterService == null) {
+            log.trace("RedisRateLimiterService is not configured or present. Rate limiting bypassed.");
+            return joinPoint.proceed();
+        }
+
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
             return joinPoint.proceed();

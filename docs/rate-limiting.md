@@ -89,7 +89,7 @@ Le nom du bucket (`name`) détermine le compteur Redis utilisé :
 ## 🛡️ 5. Résilience & Mode Fail-Open
 
 - **Sécurité et Haute Disponibilité** : Si Redis est indisponible, hors-ligne ou rencontre une erreur réseau, le service `RedisRateLimiterService` attrape l'exception, écrit un log d'erreur (`log.error`) et autorise la requête (**Fail-Open**). Cela garantit que le rate-limiting ne fait jamais tomber les services métiers.
-- **Compatibilité multi-modules** : L'injection de Redis est optionnelle (`@Autowired(required = false)`). Si un module ou un test d'intégration n'a pas Redis configuré, le rate-limiting est automatiquement ignoré (`log.trace`) sans perturber le démarrage du contexte Spring.
+- **Compatibilité multi-modules** : La dépendance Redis (`spring-boot-starter-data-redis`) est marquée comme optionnelle (`<optional>true</optional>`) dans `dossierfacile-common-library`. Seuls les modules déclarant explicitement Redis dans leur `pom.xml` (ex: `dossierfacile-bo`) activent le support Redis et son Health Check Actuator. Pour les autres modules, le rate-limiting est automatiquement ignoré (`log.trace`) sans déclencher d'auto-configuration Redis Actuator.
 
 ---
 
