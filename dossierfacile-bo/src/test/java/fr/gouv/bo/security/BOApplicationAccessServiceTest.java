@@ -259,6 +259,81 @@ class BOApplicationAccessServiceTest {
     }
 
     // -------------------------------------------------------------------------
+    // checkDocumentAccess
+    // -------------------------------------------------------------------------
+
+    @Nested
+    class CheckDocumentAccess {
+
+        @Test
+        void operator_withAssignmentToTenantDocument_isAuthorized() {
+            UserPrincipal principal = operatorPrincipal();
+            Document document = documentForTenant(TENANT_ID);
+            when(tenantResolver.resolveTenantFromDocument(document))
+                    .thenReturn(buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID));
+            when(operatorLogRepository
+                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                            eq(OPERATOR_ID), eq(TENANT_ID), anyList(), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            service.checkDocumentAccess(principal, document);
+        }
+
+        @Test
+        void operator_withAssignmentToGuarantorDocument_isAuthorized() {
+            UserPrincipal principal = operatorPrincipal();
+            Document document = documentForGuarantor(TENANT_ID);
+            when(tenantResolver.resolveTenantFromDocument(document))
+                    .thenReturn(buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID));
+            when(operatorLogRepository
+                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                            eq(OPERATOR_ID), eq(TENANT_ID), anyList(), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            service.checkDocumentAccess(principal, document);
+        }
+
+        @Test
+        void operator_withNoAssignment_throwsAccessDenied() {
+            UserPrincipal principal = operatorPrincipal();
+            Document document = documentForTenant(TENANT_ID);
+            when(tenantResolver.resolveTenantFromDocument(document))
+                    .thenReturn(buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID));
+            when(operatorLogRepository
+                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                            anyLong(), anyLong(), anyList(), any(LocalDateTime.class)))
+                    .thenReturn(false);
+
+            assertThatThrownBy(() -> service.checkDocumentAccess(principal, document))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+
+        @Test
+        void support_isAlwaysAuthorized() {
+            Document document = documentForTenant(TENANT_ID);
+            when(tenantResolver.resolveTenantFromDocument(document))
+                    .thenReturn(buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID));
+
+            service.checkDocumentAccess(supportPrincipal(), document);
+
+            verify(operatorLogRepository, never())
+                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                            anyLong(), anyLong(), anyList(), any());
+        }
+
+        @Test
+        void documentWithoutTenant_throwsAccessDenied() {
+            Document document = Document.builder().id(1L).build();
+            when(tenantResolver.resolveTenantFromDocument(document)).thenThrow(BOAccessDenied.generic());
+
+            assertThatThrownBy(() -> service.checkDocumentAccess(operatorPrincipal(), document))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // checkAndLogApartmentSharingAccess
     // -------------------------------------------------------------------------
 
@@ -476,5 +551,16 @@ class BOApplicationAccessServiceTest {
         Guarantor guarantor = Guarantor.builder().id(3L).tenant(tenant).build();
         Document document = Document.builder().id(2L).guarantor(guarantor).build();
         return File.builder().id(8L).document(document).build();
+    }
+
+    private Document documentForTenant(Long tenantId) {
+        Tenant tenant = buildTenant(tenantId, TenantType.CREATE, APARTMENT_SHARING_ID);
+        return Document.builder().id(1L).tenant(tenant).build();
+    }
+
+    private Document documentForGuarantor(Long tenantId) {
+        Tenant tenant = buildTenant(tenantId, TenantType.CREATE, APARTMENT_SHARING_ID);
+        Guarantor guarantor = Guarantor.builder().id(3L).tenant(tenant).build();
+        return Document.builder().id(2L).guarantor(guarantor).build();
     }
 }

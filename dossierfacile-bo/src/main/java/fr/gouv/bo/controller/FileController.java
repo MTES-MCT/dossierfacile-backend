@@ -63,9 +63,16 @@ public class FileController {
 
     @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/documents/{name:.+}")
-    public void getDocumentAsByteArray(HttpServletResponse response, @PathVariable String name) {
+    public void getDocumentAsByteArray(
+            HttpServletResponse response,
+            @PathVariable String name,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         documentRepository.findByName(name).ifPresentOrElse(
-                document -> streamStorageFile(document.getWatermarkFile(), response),
+                document -> {
+                    applicationAccessService.checkDocumentAccess(principal, document);
+                    streamStorageFile(document.getWatermarkFile(), response);
+                },
                 () -> handleFileNotFound(response)
         );
     }
