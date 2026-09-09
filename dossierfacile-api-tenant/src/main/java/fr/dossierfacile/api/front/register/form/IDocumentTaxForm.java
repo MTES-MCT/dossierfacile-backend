@@ -6,18 +6,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-public interface IDocumentFinancialForm {
-    DocumentSubCategory getTypeDocumentFinancial();
-
-    Integer getMonthlySum();
+public interface IDocumentTaxForm {
+    DocumentSubCategory getTypeDocumentTax();
 
     DocumentCategoryStep getCategoryStep();
-
-    void setCategoryStep(DocumentCategoryStep categoryStep);
 
     Boolean getNoDocument();
 
     String getCustomText();
+
+    Boolean getAvisDetected();
 
     List<MultipartFile> getDocuments();
 }

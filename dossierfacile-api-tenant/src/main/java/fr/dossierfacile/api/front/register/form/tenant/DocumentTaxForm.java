@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
 import fr.dossierfacile.api.front.register.form.DocumentForm;
+import fr.dossierfacile.api.front.register.form.IDocumentTaxForm;
 import fr.dossierfacile.api.front.validator.annotation.DocumentCategoryStepSubset;
 import fr.dossierfacile.api.front.validator.annotation.DocumentSubcategorySubset;
 import fr.dossierfacile.api.front.validator.annotation.LengthOfText;
@@ -16,16 +17,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import static fr.dossierfacile.common.enums.DocumentCategoryStep.TAX_FOREIGN_NOTICE;
-import static fr.dossierfacile.common.enums.DocumentCategoryStep.TAX_FRENCH_NOTICE;
-import static fr.dossierfacile.common.enums.DocumentCategoryStep.TAX_NOT_RECEIVED;
-import static fr.dossierfacile.common.enums.DocumentCategoryStep.TAX_NO_DECLARATION;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.LESS_THAN_YEAR;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_PARENTS;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
-
 import javax.annotation.Nullable;
+
+import static fr.dossierfacile.common.enums.DocumentCategoryStep.*;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -34,7 +29,7 @@ import javax.annotation.Nullable;
 @NumberOfDocumentTax
 @OtherTaxCustomText
 @NumberOfPages(category = DocumentCategory.TAX, max = 10)
-public class DocumentTaxForm extends DocumentForm {
+public class DocumentTaxForm extends DocumentForm implements IDocumentTaxForm {
 
     @NotNull
     @DocumentSubcategorySubset(anyOf =

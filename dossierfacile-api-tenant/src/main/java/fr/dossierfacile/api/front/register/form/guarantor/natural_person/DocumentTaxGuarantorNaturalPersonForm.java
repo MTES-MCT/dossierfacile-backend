@@ -27,6 +27,8 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
 
 import javax.annotation.Nullable;
 
+import fr.dossierfacile.api.front.register.form.IDocumentTaxForm;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
@@ -34,7 +36,7 @@ import javax.annotation.Nullable;
 @NumberOfDocumentTaxGuarantorNaturalPerson
 @OtherTaxCustomTextGuarantorNaturalPerson
 @NumberOfPages(category = DocumentCategory.TAX, max = 10)
-public class DocumentTaxGuarantorNaturalPersonForm extends DocumentGuarantorFormAbstract {
+public class DocumentTaxGuarantorNaturalPersonForm extends DocumentGuarantorFormAbstract implements IDocumentTaxForm {
 
     @NotNull
     @DocumentSubcategorySubset(anyOf =

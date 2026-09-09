@@ -64,8 +64,10 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
         if (result.created()) {
             logService.saveDocumentAddedLog(document, tenant);
         }
-        documentService.markDocumentAsEdited(document);
-        producer.sendDocumentForPdfGeneration(document);
+        if (result.edited()) {
+            documentService.markDocumentAsEdited(document);
+            producer.sendDocumentForPdfGeneration(document);
+        }
 
         Tenant tenantToUpdate = document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant();
         boolean isReadyForAutoValidation = tenantAutoValidationService.isTenantReadyForAutoValidation(tenantToUpdate);

@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.register.guarantor.natural_person;
 
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
-import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
+import fr.dossierfacile.api.front.register.AbstractDocumentFinancialSaveStep;
 import fr.dossierfacile.api.front.register.DocumentSaveResult;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentFinancialGuarantorNaturalPersonForm;
@@ -14,82 +14,42 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Slf4j
 @Service
-@AllArgsConstructor
-public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentSaveStep<DocumentFinancialGuarantorNaturalPersonForm> implements SaveStep<DocumentFinancialGuarantorNaturalPersonForm> {
+public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentFinancialSaveStep<DocumentFinancialGuarantorNaturalPersonForm> implements SaveStep<DocumentFinancialGuarantorNaturalPersonForm> {
 
-    private final DocumentHelperService documentHelperService;
-    private final TenantCommonRepository tenantRepository;
-    private final DocumentRepository documentRepository;
     private final GuarantorRepository guarantorRepository;
-    private final DocumentService documentService;
-    private final TenantStatusService tenantStatusService;
-    private final ApartmentSharingService apartmentSharingService;
+
+    public DocumentFinancialGuarantorNaturalPerson(
+            DocumentHelperService documentHelperService,
+            TenantCommonRepository tenantRepository,
+            DocumentRepository documentRepository,
+            GuarantorRepository guarantorRepository,
+            DocumentService documentService,
+            TenantStatusService tenantStatusService,
+            ApartmentSharingService apartmentSharingService) {
+        super(documentHelperService, tenantRepository, documentRepository, documentService, tenantStatusService, apartmentSharingService);
+        this.guarantorRepository = guarantorRepository;
+    }
 
     @Override
     protected DocumentSaveResult saveDocument(Tenant tenant, DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentFinancialGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentFinancialGuarantorNaturalPersonForm.getGuarantorId()));
 
-        DocumentSubCategory documentSubCategory = documentFinancialGuarantorNaturalPersonForm.getTypeDocumentFinancial();
         Document document = documentRepository.findByDocumentCategoryAndGuarantorAndId(DocumentCategory.FINANCIAL, guarantor, documentFinancialGuarantorNaturalPersonForm.getDocumentId())
                 .orElse(Document.builder()
                         .documentCategory(DocumentCategory.FINANCIAL)
                         .documentCategoryStep(documentFinancialGuarantorNaturalPersonForm.getCategoryStep())
                         .guarantor(guarantor)
                         .build());
-        boolean created = document.getId() == null;
-        document.setDocumentStatus(DocumentStatus.TO_PROCESS);
-        document.setDocumentDeniedReasons(null);
-        document.setDocumentSubCategory(documentSubCategory);
-        if (documentFinancialGuarantorNaturalPersonForm.getMonthlySum() != null && documentFinancialGuarantorNaturalPersonForm.getMonthlySum() > 0
-                && documentFinancialGuarantorNaturalPersonForm.getTypeDocumentFinancial() != DocumentSubCategory.NO_INCOME) {
-            document.setMonthlySum(documentFinancialGuarantorNaturalPersonForm.getMonthlySum());
-        } else {
-            document.setMonthlySum(0);
-        }
 
-        if (document.getNoDocument() != null && !document.getNoDocument() && documentFinancialGuarantorNaturalPersonForm.getNoDocument()) {
-            deleteFilesIfExistedBefore(document);
-        }
-        document.setNoDocument(documentFinancialGuarantorNaturalPersonForm.getNoDocument());
-        documentRepository.save(document);
-
-        if (Boolean.FALSE.equals(documentFinancialGuarantorNaturalPersonForm.getNoDocument())) {
-            if (!documentFinancialGuarantorNaturalPersonForm.getDocuments().isEmpty()) {
-                saveFiles(documentFinancialGuarantorNaturalPersonForm, document);
-                document.setCustomText(null);
-            } else {
-                log.info("Refreshing info in [FINANCIAL] document with ID [" + documentFinancialGuarantorNaturalPersonForm.getDocumentId() + "]");
-            }
-        } else {
-            document.setCustomText(documentFinancialGuarantorNaturalPersonForm.getCustomText());
-        }
-        documentRepository.save(document);
-        tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.FINANCIAL);
-        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(guarantor.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
-
-        tenantStatusService.updateTenantStatus(tenant);
-        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        tenantRepository.save(tenant);
-        return new DocumentSaveResult(document, created);
-    }
-
-    private void deleteFilesIfExistedBefore(Document document) {
-        documentHelperService.deleteFiles(document);
+        return processFinancialDocument(tenant, document, documentFinancialGuarantorNaturalPersonForm, guarantor.getDocuments());
     }
 }
