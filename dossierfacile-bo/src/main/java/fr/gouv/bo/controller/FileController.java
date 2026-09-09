@@ -1,5 +1,6 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.config.ratelimit.RateLimit;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.SharedFileService;
@@ -34,6 +35,7 @@ public class FileController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/files/{id}")
+    @RateLimit(name = "bo-admin-files", perMinuteString = "${ratelimit.bo.admin.files.per.minute:30}", perDayString = "${ratelimit.bo.admin.files.per.day:100}")
     public void getOriginalFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
         fileService.findById(id).ifPresentOrElse(
                 file -> streamStorageFile(file.getStorageFile(), response),
@@ -43,6 +45,7 @@ public class FileController {
 
     @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/files/{id}/preview")
+    @RateLimit(name = "bo-admin-files", perMinuteString = "${ratelimit.bo.admin.files.per.minute:30}", perDayString = "${ratelimit.bo.admin.files.per.day:100}")
     public void getPreviewFileAsByteArray(
             HttpServletResponse response,
             @PathVariable Long id,
@@ -63,6 +66,7 @@ public class FileController {
 
     @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/documents/{name:.+}")
+    @RateLimit(name = "bo-documents", perMinuteString = "${ratelimit.bo.documents.per.minute:100}", perDayString = "${ratelimit.bo.documents.per.day:2500}")
     public void getDocumentAsByteArray(HttpServletResponse response, @PathVariable String name) {
         documentRepository.findByName(name).ifPresentOrElse(
                 document -> streamStorageFile(document.getWatermarkFile(), response),
