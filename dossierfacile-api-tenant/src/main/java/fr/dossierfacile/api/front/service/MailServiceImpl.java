@@ -188,6 +188,7 @@ public class MailServiceImpl implements MailService {
         variables.put(PRENOM_KEY, tenant.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_ID_KEY, tenant.getId().toString());
         sendEmailToTenant(tenant, variables, templateIdAccountCompletedOptin);
     }
 
