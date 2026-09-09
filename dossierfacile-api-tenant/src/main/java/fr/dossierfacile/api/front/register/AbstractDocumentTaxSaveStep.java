@@ -45,13 +45,16 @@ public abstract class AbstractDocumentTaxSaveStep<T extends DocumentForm & IDocu
                 || documentTaxForm.getCategoryStep() != document.getDocumentCategoryStep()
                 || !Objects.equals(documentTaxForm.getCustomText(), document.getCustomText());
 
-        boolean edited = !isStayingNoDocument || hasTaxInfoChanged;
+        boolean isUnchangedNoDocument = isStayingNoDocument && !hasTaxInfoChanged;
+        boolean edited = !isUnchangedNoDocument;
         boolean needToBeReValidated = false;
 
-        if (!isStayingNoDocument) {
+        if (!isUnchangedNoDocument) {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
             document.setDocumentDeniedReasons(null);
-            document.setCustomText(null);
+            if (!isStayingNoDocument) {
+                document.setCustomText(null);
+            }
             needToBeReValidated = true;
         }
 

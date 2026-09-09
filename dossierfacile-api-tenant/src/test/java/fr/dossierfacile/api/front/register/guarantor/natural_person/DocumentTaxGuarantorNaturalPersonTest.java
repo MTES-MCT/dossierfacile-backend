@@ -183,6 +183,43 @@ class DocumentTaxGuarantorNaturalPersonTest {
     }
 
     @Test
+    @DisplayName("Case 3b: Staying in noDocument=true BUT changing customText SHOULD mark as edited, set status to TO_PROCESS and reset categories")
+    void saveDocument_case3b_stayingNoDocument_whenCustomTextChanged_shouldSetToProcessAndResetCategories() {
+        Document existingDoc = Document.builder()
+                .id(200L)
+                .documentCategory(DocumentCategory.TAX)
+                .documentSubCategory(DocumentSubCategory.OTHER_TAX)
+                .guarantor(guarantor)
+                .noDocument(true)
+                .customText("Explication A")
+                .documentStatus(DocumentStatus.VALIDATED)
+                .build();
+
+        when(documentRepository.findFirstByDocumentCategoryAndGuarantor(eq(DocumentCategory.TAX), eq(guarantor)))
+                .thenReturn(Optional.of(existingDoc));
+
+        DocumentTaxGuarantorNaturalPersonForm form = new DocumentTaxGuarantorNaturalPersonForm();
+        form.setGuarantorId(GUARANTOR_ID);
+        form.setTypeDocumentTax(DocumentSubCategory.OTHER_TAX);
+        form.setNoDocument(true);
+        form.setCustomText("Explication B");
+        form.setDocuments(Collections.emptyList());
+
+        var result = documentTaxGuarantor.saveDocument(tenant, form);
+
+        Document savedDoc = result.document();
+        assertThat(result.created()).isFalse();
+        assertThat(result.edited()).isTrue();
+        assertThat(savedDoc.getDocumentStatus()).isEqualTo(DocumentStatus.TO_PROCESS);
+        assertThat(savedDoc.getNoDocument()).isTrue();
+        assertThat(savedDoc.getCustomText()).isEqualTo("Explication B");
+
+        verify(documentService, times(1))
+                .resetValidatedOrInProgressDocumentsAccordingCategories(eq(guarantor.getDocuments()), anyList());
+        verify(apartmentSharingService, times(1)).resetDossierPdfGenerated(any());
+    }
+
+    @Test
     @DisplayName("Case 4: Adding files to an existing guarantor document (noDocument=false) should set status to TO_PROCESS and reset categories")
     void saveDocument_case4_existingDocumentAddingFiles_shouldSetToProcessAndResetCategories() {
         Document existingDoc = Document.builder()

@@ -205,7 +205,7 @@ class DocumentResidencyGuarantorNaturalPersonTest {
         Document savedDoc = result.document();
         assertThat(result.created()).isFalse();
         assertThat(result.edited()).isTrue();
-        assertThat(savedDoc.getDocumentStatus()).isEqualTo(DocumentStatus.VALIDATED);
+        assertThat(savedDoc.getDocumentStatus()).isEqualTo(DocumentStatus.TO_PROCESS);
         assertThat(savedDoc.getNoDocument()).isTrue();
         assertThat(savedDoc.getCustomText()).isEqualTo("Propriétaire");
 

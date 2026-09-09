@@ -199,9 +199,11 @@ class DocumentFinancialTest {
         Document savedDoc = result.document();
         assertThat(result.created()).isFalse();
         assertThat(result.edited()).isTrue();
-        assertThat(savedDoc.getDocumentStatus()).isEqualTo(DocumentStatus.VALIDATED);
+        assertThat(savedDoc.getDocumentStatus()).isEqualTo(DocumentStatus.TO_PROCESS);
         assertThat(savedDoc.getMonthlySum()).isEqualTo(2500);
 
+        verify(documentService, times(1))
+                .resetValidatedOrInProgressDocumentsAccordingCategories(eq(tenant.getDocuments()), anyList());
         verify(apartmentSharingService, times(1)).resetDossierPdfGenerated(any());
     }
 

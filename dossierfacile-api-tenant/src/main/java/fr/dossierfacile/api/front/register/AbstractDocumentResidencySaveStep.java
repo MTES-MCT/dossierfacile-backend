@@ -40,9 +40,10 @@ public abstract class AbstractDocumentResidencySaveStep<T extends DocumentForm &
                 || documentResidencyForm.getCategoryStep() != document.getDocumentCategoryStep()
                 || !Objects.equals(document.getCustomText(), documentResidencyForm.getCustomText());
 
-        boolean edited = !isStayingNoDocument || hasResidencyInfoChanged;
+        boolean isUnchangedNoDocument = isStayingNoDocument && !hasResidencyInfoChanged;
+        boolean edited = !isUnchangedNoDocument;
 
-        if (!isStayingNoDocument) {
+        if (!isUnchangedNoDocument) {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
             document.setDocumentDeniedReasons(null);
         }

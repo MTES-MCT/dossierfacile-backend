@@ -191,6 +191,44 @@ class DocumentFinancialGuarantorNaturalPersonTest {
     }
 
     @Test
+    @DisplayName("Case 3b: Staying in noDocument=true BUT changing customText or monthlySum SHOULD mark as edited, set status to TO_PROCESS and reset categories")
+    void saveDocument_case3b_stayingNoDocument_whenCustomTextChanged_shouldSetToProcessAndResetCategories() {
+        Document existingDoc = Document.builder()
+                .id(200L)
+                .documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.NO_INCOME)
+                .guarantor(guarantor)
+                .noDocument(true)
+                .customText("Explication A")
+                .documentStatus(DocumentStatus.VALIDATED)
+                .build();
+
+        when(documentRepository.findByDocumentCategoryAndGuarantorAndId(eq(DocumentCategory.FINANCIAL), eq(guarantor), any()))
+                .thenReturn(Optional.of(existingDoc));
+
+        DocumentFinancialGuarantorNaturalPersonForm form = new DocumentFinancialGuarantorNaturalPersonForm();
+        form.setDocumentId(200L);
+        form.setGuarantorId(GUARANTOR_ID);
+        form.setTypeDocumentFinancial(DocumentSubCategory.NO_INCOME);
+        form.setNoDocument(true);
+        form.setCustomText("Explication B");
+        form.setDocuments(Collections.emptyList());
+
+        var result = documentFinancialGuarantor.saveDocument(tenant, form);
+
+        Document savedDoc = result.document();
+        assertThat(result.created()).isFalse();
+        assertThat(result.edited()).isTrue();
+        assertThat(savedDoc.getDocumentStatus()).isEqualTo(DocumentStatus.TO_PROCESS);
+        assertThat(savedDoc.getNoDocument()).isTrue();
+        assertThat(savedDoc.getCustomText()).isEqualTo("Explication B");
+
+        verify(documentService, times(1))
+                .resetValidatedOrInProgressDocumentsAccordingCategories(eq(guarantor.getDocuments()), anyList());
+        verify(apartmentSharingService, times(1)).resetDossierPdfGenerated(any());
+    }
+
+    @Test
     @DisplayName("Case 4: Adding files to an existing guarantor document (noDocument=false) should set status to TO_PROCESS and reset categories")
     void saveDocument_case4_existingDocumentAddingFiles_shouldSetToProcessAndResetCategories() {
         Document existingDoc = Document.builder()

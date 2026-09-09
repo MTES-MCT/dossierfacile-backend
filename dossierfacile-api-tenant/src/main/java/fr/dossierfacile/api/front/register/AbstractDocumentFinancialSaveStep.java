@@ -47,13 +47,16 @@ public abstract class AbstractDocumentFinancialSaveStep<T extends DocumentForm &
                 || !Objects.equals(document.getMonthlySum(), effectiveMonthlySum)
                 || !Objects.equals(document.getCustomText(), documentFinancialForm.getCustomText());
 
-        boolean edited = !isStayingNoDocument || hasFinancialInfoChanged;
+        boolean isUnchangedNoDocument = isStayingNoDocument && !hasFinancialInfoChanged;
+        boolean edited = !isUnchangedNoDocument;
         boolean needToBeReValidated = false;
 
-        if (!isStayingNoDocument) {
+        if (!isUnchangedNoDocument) {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
             document.setDocumentDeniedReasons(null);
-            document.setCustomText(null);
+            if (!isStayingNoDocument) {
+                document.setCustomText(null);
+            }
             needToBeReValidated = true;
         }
 
