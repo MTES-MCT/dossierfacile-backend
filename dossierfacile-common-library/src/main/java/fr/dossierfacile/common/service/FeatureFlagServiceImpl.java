@@ -50,6 +50,12 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
         return checkAndAssign(userId, featureFlag);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isFeatureEnabled(String key) {
+        return featureFlagRepository.findById(key).map(FeatureFlag::isActive).orElse(false);
+    }
+
     private boolean checkAndAssign(Long userId, FeatureFlag featureFlag) {
         if (featureFlag == null || featureFlag.getKey() == null) {
             return false;

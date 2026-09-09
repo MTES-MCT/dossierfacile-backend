@@ -20,7 +20,8 @@ import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,7 +64,9 @@ class TenantControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CompletedEligibilityService completedEligibilityService;
+    private OperatorReviewPolicy operatorReviewPolicy;
+    @MockitoBean
+    private LotteryTicketService lotteryTicketService;
 
     @MockitoBean
     private TenantService tenantService;
