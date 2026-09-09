@@ -56,7 +56,6 @@ public class RegisterController {
     public ResponseEntity<TenantModel> application(@Validated(Dossier.class) @RequestBody ApplicationFormV2 applicationForm) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         applicationRegistrationValidator.validate(tenant, applicationForm);
-
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantMapper.toTenantModel(tenant, null));
