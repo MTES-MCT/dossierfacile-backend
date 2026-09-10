@@ -23,9 +23,9 @@ class Professional2DDocIssueDateRuleTest {
     private final Professional2DDocIssueDateRule rule = new Professional2DDocIssueDateRule(fixedClock);
 
     @Test
-    void should_pass_when_issue_date_is_within_2_months() {
-        // Given - 1 month ago (within 2 months limit)
-        LocalDate recentDate = LocalDate.now(fixedClock).minusMonths(1);
+    void should_pass_when_issue_date_is_within_1_month() {
+        // Given - 15 days ago (within 1 month limit)
+        LocalDate recentDate = LocalDate.now(fixedClock).minusDays(15);
         BarcodeModel barcode = BarcodeModel.builder()
                 .docType("29")
                 .issueDate(recentDate)
@@ -58,9 +58,9 @@ class Professional2DDocIssueDateRuleTest {
     }
 
     @Test
-    void should_pass_when_issue_date_is_exactly_2_months_ago() {
-        // Given - exactly 2 months ago (boundary case)
-        LocalDate boundaryDate = LocalDate.now(fixedClock).minusMonths(2);
+    void should_pass_when_issue_date_is_exactly_1_month_ago() {
+        // Given - exactly 1 month ago (boundary case)
+        LocalDate boundaryDate = LocalDate.now(fixedClock).minusMonths(1);
         BarcodeModel barcode = BarcodeModel.builder()
                 .docType("29")
                 .issueDate(boundaryDate)
@@ -76,9 +76,9 @@ class Professional2DDocIssueDateRuleTest {
     }
 
     @Test
-    void should_be_failed_when_issue_date_is_older_than_2_months() {
-        // Given - 3 months ago (exceeds 2 months limit)
-        LocalDate oldDate = LocalDate.now(fixedClock).minusMonths(3);
+    void should_be_failed_when_issue_date_is_older_than_1_month() {
+        // Given - 2 months ago (exceeds 1 month limit)
+        LocalDate oldDate = LocalDate.now(fixedClock).minusMonths(2);
         BarcodeModel barcode = BarcodeModel.builder()
                 .docType("29")
                 .issueDate(oldDate)
@@ -121,7 +121,7 @@ class Professional2DDocIssueDateRuleTest {
 
         BarcodeModel type29Barcode = BarcodeModel.builder()
                 .docType("29")
-                .issueDate(LocalDate.now(fixedClock).minusMonths(1))
+                .issueDate(LocalDate.now(fixedClock).minusDays(15))
                 .build();
 
         Document document = buildDocumentWithBarcodes(List.of(nonType29Barcode, type29Barcode));
