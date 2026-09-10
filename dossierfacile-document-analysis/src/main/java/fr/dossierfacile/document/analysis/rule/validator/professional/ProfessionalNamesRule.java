@@ -149,12 +149,14 @@ public class ProfessionalNamesRule extends BaseDocumentIAValidator {
 
         var listePrenoms = barcodeModel.getTypedData().stream()
                 .filter(data -> data != null && "liste_prenoms".equals(data.getName()))
+                .filter(data -> data.getValue() != null)
                 .map(GenericProperty::getStringValue)
                 .filter(Objects::nonNull)
                 .findFirst();
 
         var nomPatronymique = barcodeModel.getTypedData().stream()
                 .filter(data -> data != null && "nom_patronymique".equals(data.getName()))
+                .filter(data -> data.getValue() != null)
                 .map(GenericProperty::getStringValue)
                 .filter(Objects::nonNull)
                 .findFirst();

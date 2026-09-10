@@ -255,6 +255,12 @@ class TaxNamesRuleTest {
                         tenant("OMAR D'SOU KONATE", "Aïcha"),
                         List.of(fakeAvisImposition("DSOU AICHA")),
                         RuleValidatorOutput.RuleLevel.PASSED
+                ),
+                Arguments.of(
+                        "Should pass when declarant_2 has null value and non-string type",
+                        tenant("SAGON", "Nicolas Patrick"),
+                        List.of(fakeAvisImpositionWithObjectDeclarant2("SAGON NICOLAS PATRICK")),
+                        RuleValidatorOutput.RuleLevel.PASSED
                 )
         );
     }
@@ -308,6 +314,33 @@ class TaxNamesRuleTest {
                 GenericProperty.builder().name("doc_type").value("28").type("string").build(),
                 GenericProperty.builder().name("declarant_1").value(declarant1Name).type("string").build(),
                 GenericProperty.builder().name("declarant_2").value(declarant2Name).type("string").build()
+        );
+
+        BarcodeModel barcode = BarcodeModel.builder()
+                .pageNumber(1)
+                .type("2D_DOC")
+                .isValid(true)
+                .rawData(null)
+                .typedData(typedData)
+                .antsType("avis_imposition")
+                .build();
+
+        ResultModel result = ResultModel.builder()
+                .barcodes(List.of(barcode))
+                .build();
+
+        return DocumentIAFileAnalysis.builder()
+                .documentIaExecutionId("exec-id")
+                .analysisStatus(DocumentIAFileAnalysisStatus.SUCCESS)
+                .result(result)
+                .build();
+    }
+
+    private static DocumentIAFileAnalysis fakeAvisImpositionWithObjectDeclarant2(String declarant1Name) {
+        List<GenericProperty> typedData = List.of(
+                GenericProperty.builder().name("doc_type").value("28").type("string").build(),
+                GenericProperty.builder().name("declarant_1").value(declarant1Name).type("string").build(),
+                GenericProperty.builder().name("declarant_2").value(null).type("object").build()
         );
 
         BarcodeModel barcode = BarcodeModel.builder()
