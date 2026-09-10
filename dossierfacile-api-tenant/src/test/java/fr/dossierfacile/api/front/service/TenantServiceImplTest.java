@@ -24,7 +24,6 @@ import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
@@ -37,7 +36,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -82,8 +80,6 @@ class TenantServiceImplTest {
     private OperatorReviewPolicy operatorReviewPolicy;
     @Mock
     private TenantStatusService tenantStatusService;
-    @Mock
-    private ApartmentSharingCommonService apartmentSharingCommonService;
     @Mock
     private FeatureFlagService featureFlagService;
     @Mock
@@ -247,9 +243,20 @@ class TenantServiceImplTest {
     }
 
     @Test
-    void createSharingLink_isRefusedForNonCompletedOrValidatedDossier() {
+    void createSharingLink_isAllowedForToProcessDossier() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
+        ShareFileByLinkForm form = ShareFileByLinkForm.builder().title("Agence").fullData(true).daysValid(30).build();
+
+        String url = tenantService.createSharingLink(tenant, form);
+
+        assertTrue(url.startsWith("/file/"));
+        verify(apartmentSharingLinkRepository).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
+    void createSharingLink_isRefusedForNonSubmittedDossier() {
         for (TenantFileStatus status : new TenantFileStatus[]{
-                TenantFileStatus.TO_PROCESS, TenantFileStatus.INCOMPLETE, TenantFileStatus.DECLINED}) {
+                TenantFileStatus.INCOMPLETE, TenantFileStatus.DECLINED, TenantFileStatus.ARCHIVED}) {
             Tenant tenant = aloneTenantWithStatus(status);
             ShareFileByLinkForm form = ShareFileByLinkForm.builder().title("Agence").daysValid(30).build();
 
@@ -273,8 +280,8 @@ class TenantServiceImplTest {
     }
 
     @Test
-    void sendFileByMail_isRefusedForNonCompletedOrValidatedDossier() {
-        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
+    void sendFileByMail_isRefusedForNonSubmittedDossier() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.INCOMPLETE);
         ShareFileByMailForm form = ShareFileByMailForm.builder()
                 .email("owner@example.com").title("Agence").message("Bonjour").daysValid(7).build();
 
@@ -282,41 +289,10 @@ class TenantServiceImplTest {
         verifyNoInteractions(mailService);
     }
 
-    @Test
-    void updateValidationRequest_resetsFullPdf_whenDossierLeavesCompleted() {
-        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
-        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
-        when(tenantStatusService.updateTenantStatus(tenant)).thenAnswer(invocation -> {
-            tenant.setStatus(TenantFileStatus.TO_PROCESS);
-            return tenant;
-        });
-        TransactionSynchronizationManager.initSynchronization();
-
-        try {
-            tenantService.updateValidationRequest(tenant, true);
-        } finally {
-            TransactionSynchronizationManager.clearSynchronization();
-        }
-
-        // The full PDF was rendered with the "non verified" design and must be dropped
-        verify(apartmentSharingCommonService).resetDossierPdfGenerated(tenant.getApartmentSharing());
-    }
-
-    @Test
-    void updateValidationRequest_keepsFullPdf_whenDossierStaysCompleted() {
-        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.COMPLETED);
-        when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
-        when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
-
-        tenantService.updateValidationRequest(tenant, false);
-
-        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
-    }
-
     // On a reviewed dossier the choice is recorded without any immediate effect:
     // it only applies to the next re-submission
     @Test
-    void updateValidationRequest_onValidatedDossier_persistsChoiceWithoutTouchingStatusOrPdf() {
+    void updateValidationRequest_onValidatedDossier_persistsChoiceWithoutTouchingStatus() {
         Tenant tenant = aloneTenantWithStatus(TenantFileStatus.VALIDATED);
         when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
         when(tenantStatusService.updateTenantStatus(tenant)).thenReturn(tenant);
@@ -326,7 +302,6 @@ class TenantServiceImplTest {
         assertEquals(TenantFileStatus.VALIDATED, updated.getStatus());
         assertEquals(Boolean.FALSE, updated.getValidationRequested());
         verify(logService).saveLog(LogType.VALIDATION_DECLINED, tenant.getId());
-        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
         verifyNoInteractions(mailService);
     }
 
@@ -346,7 +321,6 @@ class TenantServiceImplTest {
         assertEquals(Boolean.FALSE, updated.getValidationRequested());
         verify(logService).saveLog(LogType.VALIDATION_DECLINED, tenant.getId());
         verify(tenantStatusService).updateTenantStatus(tenant);
-        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
         verifyNoInteractions(mailService);
     }
 
@@ -375,7 +349,6 @@ class TenantServiceImplTest {
         assertEquals(TenantFileStatus.DECLINED, updated.getStatus());
         assertEquals(Boolean.TRUE, updated.getValidationRequested());
         verify(logService).saveLog(LogType.VALIDATION_REQUESTED, tenant.getId());
-        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
         verifyNoInteractions(mailService);
     }
 
@@ -395,7 +368,6 @@ class TenantServiceImplTest {
         verify(logService).saveLog(LogType.VALIDATION_REQUESTED, tenant.getId());
         // No queue entry, no queue position, no mail: everything happens at draw time
         verifyNoInteractions(tenantStatusService, mailService);
-        verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
     }
 
     @Test

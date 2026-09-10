@@ -62,6 +62,9 @@ public class TenantStatusServiceImpl implements TenantStatusService {
                     if (previousStatus == TenantFileStatus.INCOMPLETE) {
                         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
                     }
+                } else if (newTenantStatus == TenantFileStatus.COMPLETED && previousStatus == TenantFileStatus.INCOMPLETE) {
+                    // Submission only: moves between TO_PROCESS and COMPLETED are silent for partners
+                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.COMPLETED_ACCOUNT);
                 }
             }
             apartmentSharingService.refreshUpdateDate(tenant.getApartmentSharing());

@@ -5,7 +5,6 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.model.apartment_sharing.DocumentModel;
 import fr.dossierfacile.common.model.apartment_sharing.GuarantorModel;
@@ -24,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class ApplicationFullMapper implements ApartmentSharingMapper, MasksCompletedStatusForPartner {
+public abstract class ApplicationFullMapper extends MasksCompletedStatusForPartner implements ApartmentSharingMapper {
     protected static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
     protected static final String DOCUMENT_LINK_PATH = "api/application/links";
     protected static final String DOSSIER_PDF_PATH = "api/application/fullPdf";
@@ -52,8 +51,9 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper, M
         var tokenOpt = resolvePartnerToken(apartmentSharing, userApi);
         if (tokenOpt.isPresent()) {
             String token = tokenOpt.get();
-            // Only expose dossierPdfUrl / dossierUrl when the global application is validated
-            if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
+            // Only expose dossierPdfUrl / dossierUrl once the global application is submitted
+            // (TO_PROCESS, COMPLETED or VALIDATED)
+            if (apartmentSharing.getStatus().isCompletedOrBetter()) {
                 model.setDossierPdfUrl(applicationBaseUrl + "/" + DOSSIER_PDF_PATH + "/" + token);
                 model.setDossierUrl(tenantBaseUrl + "/" + DOSSIER_PATH + "/" + token);
             }

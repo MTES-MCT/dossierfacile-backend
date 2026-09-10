@@ -56,8 +56,21 @@ class OperatorReviewPolicyImplTest {
         return buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
     }
 
+    private fr.dossierfacile.common.entity.TenantUserApi linkTo(String partnerName) {
+        return fr.dossierfacile.common.entity.TenantUserApi.builder()
+                .userApi(fr.dossierfacile.common.entity.UserApi.builder().id((long) partnerName.hashCode()).name(partnerName).build())
+                .build();
+    }
+
+    private void mockPartnerOptIn(String partnerName, boolean optedIn) {
+        when(featureFlagService.isPartnerOptedIn(
+                org.mockito.ArgumentMatchers.eq(OperatorReviewPolicy.PARTNER_COMPLETED_OPTIN_FEATURE_FLAG),
+                org.mockito.ArgumentMatchers.argThat(userApi -> userApi != null && partnerName.equals(userApi.getName()))))
+                .thenReturn(optedIn);
+    }
+
     private void mockNoPartner(Tenant tenant, boolean flagEnabled) {
-        when(tenantUserApiRepository.existsByTenant(tenant)).thenReturn(false);
+        when(tenantUserApiRepository.findAllByTenant(tenant)).thenReturn(java.util.List.of());
         when(featureFlagService.isFeatureEnabledForUser(tenant.getId(), OperatorReviewPolicy.COMPLETED_OPTIN_FEATURE_FLAG))
                 .thenReturn(flagEnabled);
     }
@@ -99,13 +112,39 @@ class OperatorReviewPolicyImplTest {
         }
 
         @Test
-        void should_not_support_when_linked_to_a_partner() {
+        void should_not_support_when_linked_to_a_partner_that_did_not_opt_in() {
             Tenant tenant = buildAloneTenant();
-            when(tenantUserApiRepository.existsByTenant(tenant)).thenReturn(true);
+            when(tenantUserApiRepository.findAllByTenant(tenant)).thenReturn(java.util.List.of(linkTo("closed-partner")));
+            mockPartnerOptIn("closed-partner", false);
 
             assertThat(operatorReviewPolicy.supportsCompletedStatus(tenant)).isFalse();
-            // The flag must not be checked (nor assign a bucket) for non-candidates
-            verifyNoInteractions(featureFlagService);
+            // The opt-in flag must not be checked (nor assign a bucket) for non-candidates
+            org.mockito.Mockito.verify(featureFlagService, org.mockito.Mockito.never())
+                    .isFeatureEnabledForUser(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyString());
+        }
+
+        @Test
+        void should_support_when_every_linked_partner_opted_in() {
+            Tenant tenant = buildAloneTenant();
+            when(tenantUserApiRepository.findAllByTenant(tenant)).thenReturn(java.util.List.of(linkTo("open-a"), linkTo("open-b")));
+            mockPartnerOptIn("open-a", true);
+            mockPartnerOptIn("open-b", true);
+            when(featureFlagService.isFeatureEnabledForUser(tenant.getId(), OperatorReviewPolicy.COMPLETED_OPTIN_FEATURE_FLAG))
+                    .thenReturn(true);
+
+            assertThat(operatorReviewPolicy.supportsCompletedStatus(tenant)).isTrue();
+        }
+
+        @Test
+        void should_not_support_when_one_linked_partner_did_not_opt_in() {
+            Tenant tenant = buildAloneTenant();
+            when(tenantUserApiRepository.findAllByTenant(tenant)).thenReturn(java.util.List.of(linkTo("open-a"), linkTo("closed-partner")));
+            mockPartnerOptIn("open-a", true);
+            mockPartnerOptIn("closed-partner", false);
+
+            assertThat(operatorReviewPolicy.supportsCompletedStatus(tenant)).isFalse();
+            org.mockito.Mockito.verify(featureFlagService, org.mockito.Mockito.never())
+                    .isFeatureEnabledForUser(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyString());
         }
 
         @Test
@@ -282,6 +321,18 @@ class OperatorReviewPolicyImplTest {
                 assertThat(operatorReviewPolicy.resolveStatus(tenant, TenantFileStatus.TO_PROCESS)).isEqualTo(TenantFileStatus.TO_PROCESS);
                 verifyNoInteractions(tenantUserApiRepository);
             }
+        }
+    }
+
+    @Nested
+    class IsPartnerOptedIn {
+
+        @Test
+        void should_delegate_to_the_partner_completed_optin_flag() {
+            fr.dossierfacile.common.entity.UserApi partner = fr.dossierfacile.common.entity.UserApi.builder().id(1L).name("dfconnect-ics").build();
+            when(featureFlagService.isPartnerOptedIn(OperatorReviewPolicy.PARTNER_COMPLETED_OPTIN_FEATURE_FLAG, partner)).thenReturn(true);
+
+            assertThat(operatorReviewPolicy.isPartnerOptedIn(partner)).isTrue();
         }
     }
 }

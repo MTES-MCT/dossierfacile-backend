@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 class TenantMapperTest {
 
     private TenantMapperImpl mapper;
+    private OperatorReviewPolicy operatorReviewPolicy;
 
     @BeforeEach
     void setUp() {
@@ -51,7 +52,8 @@ class TenantMapperTest {
         mapper.applicationBaseUrl = "https://api.example.com";
         mapper.tenantBaseUrl = "https://example.com";
         mapper.minBrokenRulesLevel = DocumentRuleLevel.WARN;
-        mapper.operatorReviewPolicy = mock(OperatorReviewPolicy.class);
+        operatorReviewPolicy = mock(OperatorReviewPolicy.class);
+        mapper.setOperatorReviewPolicy(operatorReviewPolicy);
         LotteryTicketService lotteryTicketService = mock(LotteryTicketService.class);
         when(lotteryTicketService.getPublicStatus(any())).thenReturn(Optional.empty());
         mapper.lotteryTicketService = lotteryTicketService;
@@ -195,6 +197,23 @@ class TenantMapperTest {
 
             String docUrl = model.getDocuments().getFirst().getName();
             assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
+            assertThat(model.getApartmentSharing().getToken()).isEqualTo(fullLinkToken.toString());
+            assertThat(model.getApartmentSharing().getDossierPdfUrl()).isEqualTo("https://api.example.com/api/application/fullPdf/" + fullLinkToken);
+            assertThat(model.getApartmentSharing().getDossierUrl()).isEqualTo("https://example.com/file/" + fullLinkToken);
+        }
+
+        /*
+            A submitted but not yet verified dossier (TO_PROCESS) can be shared:
+            token, dossierPdfUrl and dossierUrl must be set as for a VALIDATED dossier.
+        */
+        @Test
+        void shouldExposeTokensWhenNoUserApiAndTenantIsToProcess() {
+            UUID fullLinkToken = UUID.randomUUID();
+            Tenant tenant = buildTenantWithDocument(TenantFileStatus.TO_PROCESS);
+            setupApartmentSharing(tenant, List.of(buildFullLink(fullLinkToken)));
+
+            TenantModel model = mapper.toTenantModel(tenant, null);
+
             assertThat(model.getApartmentSharing().getToken()).isEqualTo(fullLinkToken.toString());
             assertThat(model.getApartmentSharing().getDossierPdfUrl()).isEqualTo("https://api.example.com/api/application/fullPdf/" + fullLinkToken);
             assertThat(model.getApartmentSharing().getDossierUrl()).isEqualTo("https://example.com/file/" + fullLinkToken);
@@ -779,8 +798,8 @@ class TenantMapperTest {
             return tenant;
         }
 
-        // The COMPLETED status must never reach a partner facing DTO: this test
-        // protects the defensive masking from being removed as dead code
+        // The COMPLETED status must never reach a DTO served to a partner that did not
+        // opt in: this test protects the defensive masking from being removed as dead code
         @Test
         void shouldMaskCompletedStatusForPartnerContext() {
             UserApi userApi = new UserApi();
@@ -798,6 +817,55 @@ class TenantMapperTest {
 
             assertThat(model.getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
             assertThat(model.getApartmentSharing().getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+        }
+
+        @Test
+        void shouldKeepCompletedStatusForAnOptedInPartner() {
+            UserApi userApi = new UserApi();
+            userApi.setId(200L);
+            when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(true);
+
+            TenantModel model = mapper.toTenantModel(completedTenant(), userApi);
+
+            assertThat(model.getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+            assertThat(model.getApartmentSharing().getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+        }
+    }
+
+    @Nested
+    class OptInStateExposure {
+
+        private Tenant tenantWithChoice() {
+            Tenant tenant = buildTenantWithDocument(TenantFileStatus.COMPLETED);
+            tenant.setValidationRequested(true);
+            setupApartmentSharing(tenant, new ArrayList<>());
+            return tenant;
+        }
+
+        @Test
+        void shouldExposeOptInStateOnTenantOwnProfile() {
+            Tenant tenant = tenantWithChoice();
+            when(operatorReviewPolicy.canRequestOperatorReview(tenant)).thenReturn(true);
+
+            TenantModel model = mapper.toTenantModel(tenant, null);
+
+            assertThat(model.isOptInEligible()).isTrue();
+            assertThat(model.getValidationRequested()).isTrue();
+        }
+
+        // The opt-in state is the tenant's business, never a partner's
+        @Test
+        void shouldHideOptInStateFromPartners() {
+            Tenant tenant = tenantWithChoice();
+            UserApi userApi = new UserApi();
+            userApi.setId(200L);
+            when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(true);
+
+            TenantModel model = mapper.toTenantModel(tenant, userApi);
+
+            assertThat(model.isOptInEligible()).isFalse();
+            assertThat(model.getValidationRequested()).isNull();
+            org.mockito.Mockito.verify(operatorReviewPolicy, org.mockito.Mockito.never()).canRequestOperatorReview(any());
         }
     }
 }

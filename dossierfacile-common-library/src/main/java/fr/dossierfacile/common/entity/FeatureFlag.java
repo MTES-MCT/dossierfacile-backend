@@ -19,9 +19,13 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "feature_flag")
@@ -57,6 +61,13 @@ public class FeatureFlag implements Serializable {
     @Column(name = "deployment_date")
     private LocalDateTime deploymentDate;
 
+    /**
+     * Partner-scoped flags: comma-separated list of {@code user_api.name} (Keycloak client
+     * ids) the flag applies to. Null or blank means no partner.
+     */
+    @Column(name = "opted_in_partners", columnDefinition = "TEXT")
+    private String optedInPartners;
+
     @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -75,6 +86,29 @@ public class FeatureFlag implements Serializable {
     @OneToMany(mappedBy = "featureFlag", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @ToString.Exclude
     private Set<UserFeatureAssignmentHistory> assignmentHistory = new HashSet<>();
+
+    /**
+     * Partner names of {@link #optedInPartners}, trimmed, without blanks nor duplicates,
+     * in declaration order.
+     */
+    public Set<String> getOptedInPartnerNames() {
+        if (optedInPartners == null || optedInPartners.isBlank()) {
+            return new LinkedHashSet<>();
+        }
+        return Arrays.stream(optedInPartners.split(","))
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    public static String joinPartnerNames(Collection<String> names) {
+        return names == null ? null : names.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .distinct()
+                .collect(Collectors.joining(","));
+    }
 
     @Override
     public boolean equals(Object o) {

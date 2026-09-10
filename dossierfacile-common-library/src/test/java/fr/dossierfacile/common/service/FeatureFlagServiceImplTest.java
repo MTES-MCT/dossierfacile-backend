@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -368,6 +369,93 @@ class FeatureFlagServiceImplTest {
             assertThat(featureFlag.isActive()).isTrue();
             assertThat(featureFlag.getDeploymentDate()).isNotNull();
             verify(featureFlagRepository).save(featureFlag);
+        }
+    }
+
+    @Nested
+    class IsPartnerOptedIn {
+
+        private static final String KEY = "partner_completed_optin";
+
+        private UserApi partner(String name) {
+            return UserApi.builder().id(1L).name(name).build();
+        }
+
+        @Test
+        void should_return_false_when_partner_is_null_or_has_no_name() {
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, null)).isFalse();
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, partner(" "))).isFalse();
+            verifyNoInteractions(featureFlagRepository);
+        }
+
+        @Test
+        void should_return_false_when_flag_is_missing() {
+            when(featureFlagRepository.findById(KEY)).thenReturn(Optional.empty());
+
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, partner("dfconnect-ics"))).isFalse();
+        }
+
+        @Test
+        void should_return_false_when_flag_is_inactive_even_if_listed() {
+            when(featureFlagRepository.findById(KEY)).thenReturn(Optional.of(
+                    FeatureFlag.builder().key(KEY).active(false).optedInPartners("dfconnect-ics").build()));
+
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, partner("dfconnect-ics"))).isFalse();
+        }
+
+        @Test
+        void should_return_true_only_for_listed_partners_when_active() {
+            when(featureFlagRepository.findById(KEY)).thenReturn(Optional.of(
+                    FeatureFlag.builder().key(KEY).active(true).optedInPartners(" dfconnect-ics , other-partner,").build()));
+
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, partner("dfconnect-ics"))).isTrue();
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, partner("other-partner "))).isTrue();
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, partner("Dfconnect-Ics"))).isFalse();
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, partner("unknown"))).isFalse();
+        }
+
+        @Test
+        void should_return_false_when_list_is_empty() {
+            when(featureFlagRepository.findById(KEY)).thenReturn(Optional.of(
+                    FeatureFlag.builder().key(KEY).active(true).optedInPartners(null).build()));
+
+            assertThat(featureFlagService.isPartnerOptedIn(KEY, partner("dfconnect-ics"))).isFalse();
+        }
+    }
+
+    @Nested
+    class UpdateOptedInPartners {
+
+        @Test
+        void should_normalize_and_save_the_list() {
+            FeatureFlag featureFlag = FeatureFlag.builder().key("partner_completed_optin").optedInPartners("old").build();
+
+            featureFlagService.updateOptedInPartners(featureFlag, java.util.List.of(" a ", "b", "a", "", "c"));
+
+            assertThat(featureFlag.getOptedInPartners()).isEqualTo("a,b,c");
+            verify(featureFlagRepository).save(featureFlag);
+        }
+
+        @Test
+        void should_clear_the_list_when_empty() {
+            FeatureFlag featureFlag = FeatureFlag.builder().key("partner_completed_optin").optedInPartners("a").build();
+
+            featureFlagService.updateOptedInPartners(featureFlag, java.util.List.of());
+
+            assertThat(featureFlag.getOptedInPartners()).isEmpty();
+            assertThat(featureFlag.getOptedInPartnerNames()).isEmpty();
+            verify(featureFlagRepository).save(featureFlag);
+        }
+
+        @Test
+        void should_refuse_the_owner_partner() {
+            FeatureFlag featureFlag = FeatureFlag.builder().key("partner_completed_optin").optedInPartners("a").build();
+
+            assertThatThrownBy(() -> featureFlagService.updateOptedInPartners(featureFlag, java.util.List.of("a", "dfconnect-proprietaire")))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            assertThat(featureFlag.getOptedInPartners()).isEqualTo("a");
+            verify(featureFlagRepository, never()).save(any());
         }
     }
 }

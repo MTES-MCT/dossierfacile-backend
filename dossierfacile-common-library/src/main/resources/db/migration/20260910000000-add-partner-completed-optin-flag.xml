@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Partner-scoped feature flags: a comma-separated list of user_api.name (Keycloak
+         client ids). Used by partner_completed_optin to open the COMPLETED status partner
+         by partner. Null or empty means no partner. -->
+    <changeSet id="20260910000000-1" author="dossierfacile">
+        <addColumn tableName="feature_flag">
+            <column name="opted_in_partners" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="feature_flag" columnName="opted_in_partners"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Global on/off flag (rollout_pct and only_for_new_user are ignored): when active, the
+         partners listed in opted_in_partners see the COMPLETED status, receive the
+         COMPLETED_ACCOUNT webhook and no longer send a COMPLETED dossier back to the queue. -->
+    <changeSet id="20260910000000-2" author="dossierfacile">
+        <insert tableName="feature_flag">
+            <column name="key" value="partner_completed_optin"/>
+            <column name="description" value="Partners listed in opted_in_partners (user_api.name) accept the COMPLETED status: no switch back to TO_PROCESS on link, COMPLETED visible in their payloads, COMPLETED_ACCOUNT webhook"/>
+            <column name="active" valueBoolean="false"/>
+            <column name="only_for_new_user" valueBoolean="false"/>
+            <column name="rollout_pct" valueNumeric="100"/>
+        </insert>
+        <rollback>
+            <delete tableName="feature_flag">
+                <where>key = 'partner_completed_optin'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

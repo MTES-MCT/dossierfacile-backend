@@ -32,6 +32,7 @@ class PartnerCallBackServiceImplTest {
     private ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private ObjectMapper objectMapper;
     private CompletedDossierService completedDossierService;
+    private fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy operatorReviewPolicy;
 
     private PartnerCallBackServiceImpl service;
 
@@ -49,6 +50,7 @@ class PartnerCallBackServiceImplTest {
         apartmentSharingLinkRepository = mock(ApartmentSharingLinkRepository.class);
         objectMapper = new ObjectMapper();
         completedDossierService = mock(CompletedDossierService.class);
+        operatorReviewPolicy = mock(fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy.class);
 
         service = new PartnerCallBackServiceImpl(
                 tenantUserApiRepository,
@@ -58,7 +60,8 @@ class PartnerCallBackServiceImplTest {
                 apartmentSharingRepository,
                 apartmentSharingLinkRepository,
                 objectMapper,
-                completedDossierService
+                completedDossierService,
+                operatorReviewPolicy
         );
 
         apartmentSharing = ApartmentSharing.builder()
@@ -170,8 +173,9 @@ class PartnerCallBackServiceImplTest {
     }
 
     @Test
-    void should_delegate_completed_switch_when_linking_tenant_to_partner() {
+    void should_delegate_completed_switch_when_linking_tenant_to_a_partner_that_did_not_opt_in() {
         // Given
+        when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(false);
         when(tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi))
                 .thenReturn(Optional.empty());
         when(apartmentSharingLinkRepository.findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
@@ -188,6 +192,24 @@ class PartnerCallBackServiceImplTest {
     }
 
     @Test
+    void should_not_switch_when_linking_tenant_to_an_opted_in_partner() {
+        // Given
+        when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(true);
+        when(tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi))
+                .thenReturn(Optional.empty());
+        when(apartmentSharingLinkRepository.findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
+                apartmentSharing, userApi.getId(), ApartmentSharingLinkType.PARTNER
+        )).thenReturn(Collections.emptyList());
+
+        // When
+        service.registerTenant(tenant, userApi);
+
+        // Then - the dossier keeps its status, the partner links are still created
+        verify(completedDossierService, never()).switchBackToProcessing(any(Tenant.class), any(UserApi.class));
+        verify(apartmentSharingLinkRepository, times(2)).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
     void should_not_switch_when_tenant_is_already_linked_to_partner() {
         // Given - the tenant_userapi link already exists
         when(tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi))
@@ -199,5 +221,41 @@ class PartnerCallBackServiceImplTest {
         // Then
         verify(completedDossierService, never()).switchBackToProcessing(any(Tenant.class), any(UserApi.class));
         verify(tenantUserApiRepository, never()).save(any(TenantUserApi.class));
+    }
+
+    @Test
+    void should_send_completed_account_when_linking_a_completed_dossier_to_an_opted_in_partner() {
+        // Given
+        tenant.setStatus(TenantFileStatus.COMPLETED);
+        userApi.setUrlCallback("https://partner.example/callback");
+        when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(true);
+        when(tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi)).thenReturn(Optional.empty());
+        when(apartmentSharingLinkRepository.findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
+                apartmentSharing, userApi.getId(), ApartmentSharingLinkType.PARTNER)).thenReturn(Collections.emptyList());
+        when(applicationFullMapper.toApplicationModel(apartmentSharing, userApi))
+                .thenReturn(new fr.dossierfacile.common.model.apartment_sharing.ApplicationModel());
+
+        // When
+        service.registerTenant(tenant, userApi);
+
+        // Then
+        verify(completedDossierService, never()).switchBackToProcessing(any(Tenant.class), any(UserApi.class));
+        verify(requestService).send(
+                argThat(model -> model.getPartnerCallBackType() == fr.dossierfacile.common.enums.PartnerCallBackType.COMPLETED_ACCOUNT
+                        && model.getOnTenantId().equals(tenant.getId())),
+                eq("https://partner.example/callback"), any());
+    }
+
+    @Test
+    void should_downgrade_completed_account_for_a_partner_that_did_not_opt_in() {
+        tenant.setStatus(TenantFileStatus.COMPLETED);
+        when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(false);
+        when(applicationFullMapper.toApplicationModel(apartmentSharing, userApi))
+                .thenReturn(new fr.dossierfacile.common.model.apartment_sharing.ApplicationModel());
+
+        var model = service.getWebhookDTO(tenant, userApi, fr.dossierfacile.common.enums.PartnerCallBackType.COMPLETED_ACCOUNT);
+
+        org.assertj.core.api.Assertions.assertThat(model.getPartnerCallBackType())
+                .isEqualTo(fr.dossierfacile.common.enums.PartnerCallBackType.CREATED_ACCOUNT);
     }
 }
