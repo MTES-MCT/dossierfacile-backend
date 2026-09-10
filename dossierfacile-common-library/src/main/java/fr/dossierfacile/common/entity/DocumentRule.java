@@ -264,8 +264,8 @@ public enum DocumentRule {
     ),
     R_PROFESSIONAL_2DDOC_ISSUE_DATE(
             DocumentRuleLevel.CRITICAL,
-            "Le document d'activité professionnelle a été émis il y a plus de 2 mois",
-            "Le document d'activité professionnelle a été émis il y a moins de 2 mois",
+            "Le document d'activité professionnelle a été émis il y a plus de 1 mois",
+            "Le document d'activité professionnelle a été émis il y a moins de 1 mois",
             "Impossible de vérifier la date d'émission du document d'activité professionnelle"
     ),
     R_PROFESSIONAL_NAME_MATCH(
