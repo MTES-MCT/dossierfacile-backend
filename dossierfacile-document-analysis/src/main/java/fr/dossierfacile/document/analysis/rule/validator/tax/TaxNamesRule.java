@@ -126,8 +126,8 @@ public class TaxNamesRule extends BaseTaxRule {
     }
 
     private List<String> convertBarcodeModelToTaxIdentity(BarcodeModel barcodeModel) {
-        var declarant1Name = barcodeModel.getTypedData().stream().filter(data -> data.getName().equals("declarant_1")).findFirst();
-        var declarant2Name = barcodeModel.getTypedData().stream().filter(data -> data.getName().equals("declarant_2")).findFirst();
+        var declarant1Name = barcodeModel.getTypedData().stream().filter(data -> data != null && "declarant_1".equals(data.getName())).findFirst();
+        var declarant2Name = barcodeModel.getTypedData().stream().filter(data -> data != null && "declarant_2".equals(data.getName())).findFirst();
 
         if (declarant2Name.isEmpty() && declarant1Name.isEmpty()) {
             return List.of();
@@ -136,6 +136,7 @@ public class TaxNamesRule extends BaseTaxRule {
         return Stream.of(declarant1Name, declarant2Name)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
+                .filter(data -> data.getValue() != null)
                 .map(GenericProperty::getStringValue)
                 .filter(Objects::nonNull)
                 .toList();
