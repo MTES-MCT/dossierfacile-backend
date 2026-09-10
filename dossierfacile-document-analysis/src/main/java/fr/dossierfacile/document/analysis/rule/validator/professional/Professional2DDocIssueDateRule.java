@@ -26,14 +26,14 @@ import java.util.Optional;
  * Fonctionnement:
  * - Filtre et récupère la date d'émission (`issue_date`) du premier barcode 2D-Doc de type `29`.
  * - Si aucune analyse IA réussie, aucun 2D-Doc de type `29` ou aucune date d'émission n'est disponible -> retourne INCONCLUSIVE.
- * - Vérifie que la date d'émission est située entre il y a 2 mois et aujourd'hui (`LocalDate.now(clock)`).
+ * - Vérifie que la date d'émission est située entre il y a 1 mois et aujourd'hui (`LocalDate.now(clock)`).
  * - Si la date d'émission respecte cet intervalle -> retourne PASSED avec ExpirationRuleData.
- * - Si la date d'émission est antérieure à 2 mois ou située dans le futur -> retourne FAILED avec ExpirationRuleData.
- * - Le seuil de 2 mois est configurable via la variable statique `MAXIMUM_AGE_IN_MONTHS`.
+ * - Si la date d'émission est antérieure à 1 mois ou située dans le futur -> retourne FAILED avec ExpirationRuleData.
+ * - Le seuil de 1 mois est configurable via la variable statique `MAXIMUM_AGE_IN_MONTHS`.
  */
 public class Professional2DDocIssueDateRule extends BaseDocumentIAValidator {
 
-    public static final int MAXIMUM_AGE_IN_MONTHS = 2;
+    public static final int MAXIMUM_AGE_IN_MONTHS = 1;
     private static final String EXPECTED_DOC_TYPE = "29";
 
     private final Clock clock;
