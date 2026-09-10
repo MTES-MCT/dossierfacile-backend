@@ -14,7 +14,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,17 +30,11 @@ import static org.springframework.http.ResponseEntity.ok;
 @Slf4j
 public class DfcTenantController {
 
-    private final GroupedOpenApi allOpenApi;
     private final AuthenticationFacade authenticationFacade;
     private final TenantMapper tenantMapper;
     private final TenantService tenantService;
     private final UserService userService;
     private final UserApiService userApiService;
-
-
-    DfcTenantController(GroupedOpenApi allOpenApi) {
-        this.allOpenApi = allOpenApi;
-    }
 
 
     @ApiOperation(value = "Get tenant profile for partner", notes = "Retrieves the tenant profile associated with the authenticated partner.")

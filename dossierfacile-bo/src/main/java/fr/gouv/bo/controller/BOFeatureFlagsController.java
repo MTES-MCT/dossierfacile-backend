@@ -87,7 +87,7 @@ public class BOFeatureFlagsController {
                 .toList();
         if (!unknownNames.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "Client id(s) inconnu(s), liste non enregistrée : " + String.join(", ", unknownNames));
+                    "Partenaire(s) inconnu(s), liste non enregistrée : " + String.join(", ", unknownNames));
             return REDIRECT_FEATURE_FLAGS;
         }
         FeatureFlag featureFlag = featureFlagService.getFeatureFlag(key);
