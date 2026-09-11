@@ -287,7 +287,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             PDPage pageTemplate = doc.getPage(0);
 
             if (hideHeaderLogos) {
-                // A COMPLETED (non verified) dossier must not carry the République
+                // A non verified dossier (TO_PROCESS or COMPLETED) must not carry the République
                 // Française and DossierFacile logos: cover the top band of the template
                 // before drawing the text headers
                 try (PDPageContentStream cover = new PDPageContentStream(doc, pageTemplate, PDPageContentStream.AppendMode.APPEND, true)) {
@@ -1238,8 +1238,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     }
 
     // Fills the index pages (added by createFirstsPages) with the summary boxes and
-    // the clickable per-tenant document indexes. Not called for a COMPLETED dossier,
-    // which has no index pages.
+    // the clickable per-tenant document indexes. Not called for a non verified dossier
+    // (TO_PROCESS or COMPLETED), which has no index pages.
     private void fillIndexPages(PDDocument doc, ApartmentSharing apartmentSharing, List<Tenant> tenantList, List<Integer> indexPagesForDocuments) throws IOException {
         PDType0Font fontSpectralExtraBold = Fonts.SPECTRAL_EXTRA_BOLD.load(doc);
         PDType0Font fontMarianneRegular = Fonts.MARIANNE_REGULAR.load(doc);
@@ -1349,12 +1349,12 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         pdDocumentOutline.addLast(pdOutlineItem);
         //endregion
 
-        // A COMPLETED (non verified) dossier renders without the index pages and
-        // without the RF/DossierFacile logos in the header of the pages (clarification
+        // A non verified dossier (TO_PROCESS or COMPLETED) renders without the index pages
+        // and without the RF/DossierFacile logos in the header of the pages (clarification
         // page included). A VALIDATED dossier keeps the historical rendering.
-        boolean completedDossier = apartmentSharing.getStatus() == TenantFileStatus.COMPLETED;
+        boolean unverifiedDossier = apartmentSharing.getStatus() != TenantFileStatus.VALIDATED;
 
-        if (completedDossier) {
+        if (unverifiedDossier) {
             // No index pages: the content starts at page 0
             indexPagesForDocuments.add(0);
         } else {
@@ -1366,10 +1366,10 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 .findFirst()
                 .orElseThrow(() -> new TenantNotFoundException(TenantType.CREATE));
 
-        addDocumentOfClarification(ut, tenantList, mainTenant, indexPagesForDocuments, pdOutlineItem, completedDossier);
+        addDocumentOfClarification(ut, tenantList, mainTenant, indexPagesForDocuments, pdOutlineItem, unverifiedDossier);
 
         //region Add files of documents to Dossier PDF
-        addFilesOfDocumentsToDossierPDF(ut, tenantList, indexPagesForDocuments, pdOutlineItem, completedDossier);
+        addFilesOfDocumentsToDossierPDF(ut, tenantList, indexPagesForDocuments, pdOutlineItem, unverifiedDossier);
         //endregion
 
         ByteArrayOutputStream merge = new ByteArrayOutputStream();
@@ -1391,7 +1391,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
             addPaginate(doc);
 
-            if (!completedDossier) {
+            if (!unverifiedDossier) {
                 fillIndexPages(doc, apartmentSharing, tenantList, indexPagesForDocuments);
             }
             doc.save(result);

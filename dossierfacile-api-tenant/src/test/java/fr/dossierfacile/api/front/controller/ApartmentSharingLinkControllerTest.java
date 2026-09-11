@@ -137,13 +137,25 @@ public class ApartmentSharingLinkControllerTest {
                                     Collections.emptyList()
                             )
                     ),
-                    Pair.of("Should respond 409 when dossier is neither COMPLETED nor VALIDATED",
+                    Pair.of("Should respond 200 when dossier is TO_PROCESS",
+                            new ControllerParameter<>(
+                                    new UpdateDefaultLinkTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.TO_PROCESS));
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 409 when dossier is not submitted",
                             new ControllerParameter<>(
                                     new UpdateDefaultLinkTestParameter(),
                                     409,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.TO_PROCESS));
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.INCOMPLETE));
                                         return v;
                                     },
                                     Collections.emptyList()

@@ -147,6 +147,45 @@ class ApplicationFullMapperTest {
             assertThat(model.getDossierUrl()).isEqualTo("https://example.com/file/" + partnerToken);
         }
 
+        /*
+            A submitted but not yet verified dossier (TO_PROCESS) can be shared: the partner
+            gets dossierPdfUrl and dossierUrl as for a VALIDATED dossier.
+        */
+        @Test
+        void shouldExposeDossierUrlsForToProcessDossierWithPartnerLink() {
+            ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
+            mapper.applicationBaseUrl = "https://api.example.com";
+            mapper.tenantBaseUrl = "https://example.com";
+
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .status(TenantFileStatus.TO_PROCESS)
+                    .documents(new ArrayList<>())
+                    .guarantors(new ArrayList<>())
+                    .build();
+
+            UUID partnerToken = UUID.randomUUID();
+            UserApi userApi = UserApi.builder().id(42L).build();
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+            apartmentSharing.setTenants(List.of(tenant));
+            apartmentSharing.setApartmentSharingLinks(List.of(
+                    ApartmentSharingLink.builder()
+                            .linkType(ApartmentSharingLinkType.PARTNER)
+                            .partnerId(42L)
+                            .fullData(true)
+                            .token(partnerToken)
+                            .build()
+            ));
+            tenant.setApartmentSharing(apartmentSharing);
+
+            ApplicationModel model = mapper.toApplicationModel(apartmentSharing, userApi);
+
+            assertThat(model.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+            assertThat(model.getDossierPdfUrl()).isEqualTo("https://api.example.com/api/application/fullPdf/" + partnerToken);
+            assertThat(model.getDossierUrl()).isEqualTo("https://example.com/file/" + partnerToken);
+        }
+
         /* 
             When the tenant is not validated and userApi is not null,
             document url must follow link path format, but token, dossierPdfUrl and dossierUrl must be null.
@@ -356,11 +395,27 @@ class ApplicationFullMapperTest {
     @Nested
     class CompletedStatusMasking {
 
+        private final fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy operatorReviewPolicy =
+                org.mockito.Mockito.mock(fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy.class);
+
         private ApplicationFullMapperImpl buildMapper() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
+            mapper.setOperatorReviewPolicy(operatorReviewPolicy);
             return mapper;
+        }
+
+        // An opted-in partner sees the real COMPLETED status (webhooks, api-partner)
+        @Test
+        void shouldKeepCompletedStatusWhenMappingForAnOptedInPartner() {
+            UserApi userApi = UserApi.builder().id(200L).name("partner").build();
+            org.mockito.Mockito.when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(true);
+
+            ApplicationModel model = buildMapper().toApplicationModel(completedApartmentSharing(), userApi);
+
+            assertThat(model.getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+            assertThat(model.getTenants().getFirst().getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
         }
 
         private ApartmentSharing completedApartmentSharing() {
@@ -377,8 +432,8 @@ class ApplicationFullMapperTest {
             return apartmentSharing;
         }
 
-        // The COMPLETED status must never reach a partner facing DTO (webhooks,
-        // api-partner): this test protects the defensive masking
+        // The COMPLETED status must never reach a DTO served to a partner that did not
+        // opt in (webhooks, api-partner): this test protects the defensive masking
         @Test
         void shouldMaskCompletedStatusWhenMappingForAPartner() {
             UserApi userApi = UserApi.builder().id(200L).name("partner").build();

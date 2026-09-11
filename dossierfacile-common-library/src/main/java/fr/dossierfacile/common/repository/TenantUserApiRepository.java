@@ -14,7 +14,6 @@ import java.util.Optional;
 public interface TenantUserApiRepository extends JpaRepository<TenantUserApi, TenantUserApiKey> {
     Optional<TenantUserApi> findFirstByTenantAndUserApi(Tenant tenant, UserApi userApi);
 
-    boolean existsByTenant(Tenant tenant);
 
     List<TenantUserApi> findAllByTenant(Tenant tenant);
 

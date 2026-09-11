@@ -115,9 +115,7 @@ public class BOTenantController {
         Tenant tenant = requireTenant(id);
 
         UserApi userApi = userApiService.findById(partnerDTO.getPartner());
-        PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
-                PartnerCallBackType.VERIFIED_ACCOUNT :
-                PartnerCallBackType.CREATED_ACCOUNT;
+        PartnerCallBackType partnerCallBackType = PartnerCallBackType.forTenantStatus(tenant.getStatus());
         ApplicationModel webhookDTO = partnerCallBackService.getWebhookDTO(tenant, userApi, partnerCallBackType);
         partnerCallBackService.sendCallBack(tenant, userApi, webhookDTO);
 

@@ -10,7 +10,6 @@ import fr.dossierfacile.common.enums.QueueEntrySource;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
@@ -35,7 +34,6 @@ public class CompletedDossierServiceImpl implements CompletedDossierService {
     private final TenantLogCommonService tenantLogCommonService;
     private final TenantMapperForMail tenantMapperForMail;
     private final Optional<MailCommonService> mailCommonService;
-    private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final LotteryTicketService lotteryTicketService;
 
     // A COMPLETED dossier must never be exposed to partners: it goes back to the
@@ -54,9 +52,6 @@ public class CompletedDossierServiceImpl implements CompletedDossierService {
         tenantLogCommonService.logQueueEntered(tenant.getId(),
                 userApi != null ? QueueEntrySource.PARTNER_LINK : QueueEntrySource.COMPLETED_ROLLBACK);
         lotteryTicketService.cancelActiveTicket(tenant);
-        // The full PDF was rendered with the COMPLETED design: it must not
-        // survive the switch out of COMPLETED
-        apartmentSharingCommonService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         if (userApi == null) {
             return;
         }

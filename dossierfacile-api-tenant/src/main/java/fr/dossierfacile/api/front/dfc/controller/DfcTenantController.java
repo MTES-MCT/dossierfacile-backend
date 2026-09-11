@@ -61,6 +61,8 @@ public class DfcTenantController {
         } else {
             userService.linkTenantToPartner(tenant, partner, null);
         }
+        // Linking may have switched a COMPLETED dossier back to TO_PROCESS so re-fetch the tenant
+        tenant = tenantService.findById(tenant.getId());
         UserApi userApi = userApiService.findByName(authenticationFacade.getKeycloakClientId()).orElse(null);
         return ok(tenantMapper.toTenantModelDfc(tenant, userApi));
     }

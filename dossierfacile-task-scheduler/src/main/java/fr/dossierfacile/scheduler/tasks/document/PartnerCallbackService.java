@@ -2,7 +2,6 @@ package fr.dossierfacile.scheduler.tasks.document;
 
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import jakarta.transaction.Transactional;
@@ -24,9 +23,7 @@ public class PartnerCallbackService {
         log.debug("Send Callback to partners");
         Optional<Tenant> tenant = tenantCommonRepository.findById(tenantId);
         if (tenant.isPresent()) {
-            PartnerCallBackType partnerCallBackType = tenant.get().getStatus() == TenantFileStatus.VALIDATED ?
-                    PartnerCallBackType.VERIFIED_ACCOUNT :
-                    PartnerCallBackType.CREATED_ACCOUNT;
+            PartnerCallBackType partnerCallBackType = PartnerCallBackType.forTenantStatus(tenant.get().getStatus());
             partnerCallBackService.sendCallBack(tenant.get(), partnerCallBackType);
         }
     }

@@ -49,7 +49,7 @@ public class ApartmentSharingLinkController {
     public ResponseEntity<ApartmentSharingLinkModel> updateApartmentSharingLinksStatus( @RequestParam boolean isFullData) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        requireCompletedOrValidatedDossier(apartmentSharing);
+        requireShareableDossier(apartmentSharing);
         ApartmentSharingLinkModel defaultLink = apartmentSharingLinkService.getDefaultLink(apartmentSharing, tenant, isFullData);
         return ResponseEntity.ok(defaultLink);
     }
@@ -117,11 +117,10 @@ public class ApartmentSharingLinkController {
         return ResponseEntity.ok().build();
     }
 
-    // Sharing by link is reserved to complete, submitted dossiers:
-    // VALIDATED (operator-verified) or COMPLETED (non verified, opt-in flow)
-    private void requireCompletedOrValidatedDossier(ApartmentSharing apartmentSharing) {
-        if (apartmentSharing == null || !apartmentSharing.getStatus().isCompletedOrValidated()) {
-            throw new TenantIllegalStateException("Sharing a dossier by link requires a validated or completed dossier");
+    // Sharing by link is reserved to submitted dossiers (TO_PROCESS, COMPLETED or VALIDATED)
+    private void requireShareableDossier(ApartmentSharing apartmentSharing) {
+        if (apartmentSharing == null || !apartmentSharing.getStatus().isCompletedOrBetter()) {
+            throw new TenantIllegalStateException("Sharing a dossier by link requires a submitted dossier");
         }
     }
 

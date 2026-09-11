@@ -192,8 +192,24 @@ class DfcTenantsControllerIntegrationTest {
         expectedDossierPdfUrl = "https://api.test.com/api/application/fullPdf/" + fullLinkToken;
     }
 
+    // A submitted dossier (TO_PROCESS) is shareable: tokens and dossier URLs are exposed
     @Test
-    void shouldDisplayLinkPathToDocumentsWhenDossierIsNotValidated() throws Exception {
+    void shouldDisplayTokensAndLinkPathToDocumentsWhenDossierIsToProcess() throws Exception {
+        mockMvc.perform(get("/dfc/api/v1/tenants/{id}", tenantId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.apartmentSharing.token", is(expectedToken)))
+                .andExpect(jsonPath("$.apartmentSharing.tokenPublic", is(expectedPublicToken)))
+                .andExpect(jsonPath("$.apartmentSharing.dossierUrl", is(expectedDossierUrl)))
+                .andExpect(jsonPath("$.apartmentSharing.dossierPdfUrl", is(expectedDossierPdfUrl)))
+                .andExpect(jsonPath("$.apartmentSharing.tenants[0].documents[0].name",
+                        is(expectedDocumentUrl)));
+    }
+
+    @Test
+    void shouldNotDisplayTokensWhenDossierIsIncomplete() throws Exception {
+        Tenant tenant = em.find(Tenant.class, tenantId);
+        tenant.setStatus(TenantFileStatus.INCOMPLETE);
+
         mockMvc.perform(get("/dfc/api/v1/tenants/{id}", tenantId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.apartmentSharing.token").doesNotExist())

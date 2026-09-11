@@ -1,6 +1,8 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.constants.PartnerConstants;
 import fr.dossierfacile.common.entity.FeatureFlag;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.entity.UserFeatureAssignment;
 import fr.dossierfacile.common.entity.UserFeatureAssignmentHistory;
 import fr.dossierfacile.common.entity.UserFeatureAssignmentId;
@@ -14,6 +16,7 @@ import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.UserFeatureAssignmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -54,6 +59,39 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
     @Transactional(readOnly = true)
     public boolean isFeatureEnabled(String key) {
         return featureFlagRepository.findById(key).map(FeatureFlag::isActive).orElse(false);
+    }
+
+    // TODO(partner-completed-optin-100): the partner-scoped flag machinery (isPartnerOptedIn, updateOptedInPartners,
+    // FeatureFlag.optedInPartners, the BO modal) can be removed once every partner has
+    // integrated COMPLETED and the partner_completed_optin flag is dropped
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isPartnerOptedIn(String key, UserApi userApi) {
+        if (userApi == null || StringUtils.isBlank(userApi.getName())
+                || PartnerConstants.DF_OWNER_NAME.equals(userApi.getName())) {
+            return false;
+        }
+        var featureFlag = featureFlagRepository.findById(key);
+        if (featureFlag.isEmpty()) {
+            log.warn("Feature flag with key {} not found", key);
+            return false;
+        }
+        // Exact match after trim: the name is the Keycloak client id, case-sensitive
+        return featureFlag.get().isActive()
+                && featureFlag.get().getOptedInPartnerNames().contains(userApi.getName().trim());
+    }
+
+    @Override
+    @Transactional
+    public void updateOptedInPartners(FeatureFlag featureFlag, Collection<String> partnerNames) {
+        String newValue = FeatureFlag.joinPartnerNames(partnerNames);
+        if (newValue != null && Arrays.asList(newValue.split(",")).contains(PartnerConstants.DF_OWNER_NAME)) {
+            throw new IllegalArgumentException("The owner partner " + PartnerConstants.DF_OWNER_NAME + " cannot opt in");
+        }
+        log.info("Feature flag {}: opted-in partners changed from [{}] to [{}]",
+                featureFlag.getKey(), featureFlag.getOptedInPartners(), newValue);
+        featureFlag.setOptedInPartners(newValue);
+        featureFlagRepository.save(featureFlag);
     }
 
     private boolean checkAndAssign(Long userId, FeatureFlag featureFlag) {

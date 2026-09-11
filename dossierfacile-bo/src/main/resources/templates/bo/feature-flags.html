@@ -11,6 +11,7 @@
     <div class="container-lg">
         <h1 class="margin-bottom">Liste des features flags</h1>
         <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
         <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover">
                 <thead>
@@ -25,9 +26,17 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="feature : ${featureFlags}" th:with="isGlobal=${globalFlagKeys.contains(feature.key)}">
+                <tr th:each="feature : ${featureFlags}" th:with="isGlobal=${globalFlagKeys.contains(feature.key)},isPartnerScoped=${partnerScopedFlagKeys.contains(feature.key)}">
                     <td th:text="${feature.key}" class="align-middle"></td>
-                    <td th:text="${feature.description}" class="align-middle"></td>
+                    <td class="align-middle">
+                        <span th:text="${feature.description}"></span>
+                        <!-- Partner-scoped flags: the opted-in partners (user_api.name) -->
+                        <div th:if="${isPartnerScoped}" class="mt-2">
+                            <span class="text-muted small">Partenaires ayant intégré COMPLETED :</span>
+                            <span th:if="${#sets.isEmpty(feature.optedInPartnerNames)}" class="badge bg-secondary">aucun</span>
+                            <span th:each="partnerName : ${feature.optedInPartnerNames}" th:text="${partnerName}" class="badge bg-primary"></span>
+                        </div>
+                    </td>
                     <td th:text="${#temporals.format(feature.deploymentDate, 'dd/MM/yyyy HH:mm')}" class="align-middle"></td>
                     <!-- Global on/off flags ignore only_for_new_user and rollout_pct: show it instead of misleading values -->
                     <td th:if="${isGlobal}" class="text-center align-middle">
@@ -59,6 +68,56 @@
                                     <span class="fa fa-toggle-off"></span> Start
                                 </button>
                             </form>
+
+                            <!-- Edit opted-in partners (Triggers Modal) — partner-scoped flags only -->
+                            <button th:if="${isPartnerScoped}" type="button" class="btn btn-sm btn-primary text-nowrap" data-bs-toggle="modal" th:data-bs-target="'#partnersModal-' + ${feature.key}">
+                                <span class="fa fa-handshake-o"></span> Partenaires
+                            </button>
+
+                            <!-- Modal for Editing the opted-in partners -->
+                            <div th:if="${isPartnerScoped}" class="modal fade" th:id="'partnersModal-' + ${feature.key}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form th:action="@{/bo/feature-flags/opted-in-partners}" method="post">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" th:text="'Partenaires ayant intégré le statut COMPLETED - ' + ${feature.key}">Partenaires ayant intégré le statut COMPLETED</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <div class="alert alert-warning" role="alert">
+                                                    <i class="fa fa-exclamation-triangle"></i>
+                                                    <strong>Attention :</strong> un partenaire listé ici verra le statut <strong>COMPLETED</strong>
+                                                    et recevra le webhook <strong>COMPLETED_ACCOUNT</strong>. Ne l'ajouter qu'après recette de son intégration.
+                                                    Le retirer n'agit que sur les nouvelles soumissions et liaisons.
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label th:for="'partnersValue-' + ${feature.key}" class="form-label">
+                                                        Client ids Keycloak des partenaires (<code>dfconnect-xxx</code>, champ « clientId » de la fiche partenaire), séparés par des virgules
+                                                    </label>
+                                                    <textarea class="form-control" rows="3" th:id="'partnersValue-' + ${feature.key}" name="value"
+                                                              th:text="${feature.optedInPartners}"></textarea>
+                                                    <div class="form-text">
+                                                        Liste vide = aucun partenaire. <code th:text="${T(fr.dossierfacile.common.constants.PartnerConstants).DF_OWNER_NAME}"></code> est interdit.
+                                                    </div>
+                                                </div>
+                                                <details>
+                                                    <summary class="small text-muted">Client ids des partenaires connus</summary>
+                                                    <ul class="small mb-0">
+                                                        <li th:each="partner : ${partners}" th:unless="${partner.disabled}">
+                                                            <code th:text="${partner.name}"></code> — <span th:text="${partner.name2}"></span>
+                                                        </li>
+                                                    </ul>
+                                                </details>
+                                                <input type="hidden" name="key" th:value="${feature.key}"/>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-primary">Valider</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Edit Rollout Button (Triggers Modal) — not for global on/off flags -->
                             <button th:unless="${isGlobal}" type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" th:data-bs-target="'#rolloutModal-' + ${feature.key}">
