@@ -93,12 +93,12 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final String TENANT_IDENTIFICATION_TEXT_HEADER = "La pièce d'identité de ";
     private static final String TENANT_RESIDENCY_TEXT_HEADER = "Le justificatif de situation d'hébergement de ";
     private static final String TENANT_PROFESSIONAL_TEXT_HEADER = "Le justificatif de situation professionnelle de ";
-    private static final String TENANT_FINANCIAL_TEXT_HEADER = "Le justificatif de ressources n°";
+    private static final String TENANT_FINANCIAL_TEXT_HEADER = "Le justificatif de ressources n° ";
     private static final String TENANT_TAX_TEXT_HEADER = "L'avis d'imposition de ";
     private static final String NATURAL_GUARANTOR_IDENTIFICATION_TEXT_HEADER = "La pièce d'identité du garant ";
     private static final String NATURAL_GUARANTOR_RESIDENCY_TEXT_HEADER = "Le justificatif de situation d'hébergement du garant ";
     private static final String NATURAL_GUARANTOR_PROFESSIONAL_TEXT_HEADER = "Le justificatif de situation professionnelle du garant ";
-    private static final String NATURAL_GUARANTOR_FINANCIAL_TEXT_HEADER = "Le justificatif de ressources n°";
+    private static final String NATURAL_GUARANTOR_FINANCIAL_TEXT_HEADER = "Le justificatif de ressources n° ";
     private static final String NATURAL_GUARANTOR_TAX_TEXT_HEADER = "L'avis d'imposition du garant ";
     private static final String LEGAL_GUARANTOR_IDENTIFICATION_TEXT_HEADER = "Identité de la personne morale qui se porte garant pour ";
     private static final String LEGAL_GUARANTOR_LEGAL_IDENTIFICATION_TEXT_HEADER = "Justificatif d'identité du représentant de la personne morale qui se porte garant pour ";
@@ -409,7 +409,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private String getSentenceForGuarantorFromDocumentCategory(int numberOfGuarantor, TypeGuarantor typeGuarantor, DocumentCategory documentCategory, String tenantFirstName, int count) {
         switch (typeGuarantor) {
             case NATURAL_PERSON -> {
-                String followingPartOfSentence = (numberOfGuarantor > 0 ? "n°" + numberOfGuarantor : "") + " de " + tenantFirstName;
+                String followingPartOfSentence = (numberOfGuarantor > 0 ? "n° " + numberOfGuarantor + " " : "") + "de " + tenantFirstName;
 
                 switch (documentCategory) {
                     case IDENTIFICATION -> {
@@ -766,19 +766,19 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 contentStream2.setLeading(leading);
 
                 contentStream2.newLineAtOffset(tx, ty + 2 * leading);
-                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( " + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
+                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " (" + totalIncomingOfAllGuarantorsNaturalPerson.get() + " €)");
                 contentStream2.newLine();
                 contentStream2.showText(countOrganismGuarantors.get() + (countOrganismGuarantors.get() > 1 ? ORGANISMES_GARANTS : ORGANISME_GARANT));
                 contentStream2.newLine();
                 contentStream2.showText(countLegalGuarantors.get() + (countLegalGuarantors.get() > 1 ? GARANTS_MORAUX : GARANT_MORAL));
             } else if (countNaturalGuarantors.get() > 0 && countOrganismGuarantors.get() > 0 && countLegalGuarantors.get() == 0) {
                 contentStream2.newLineAtOffset(tx, ty + leading);
-                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( " + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
+                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " (" + totalIncomingOfAllGuarantorsNaturalPerson.get() + " €)");
                 contentStream2.newLine();
                 contentStream2.showText(countOrganismGuarantors.get() + (countOrganismGuarantors.get() > 1 ? ORGANISMES_GARANTS : ORGANISME_GARANT));
             } else if (countNaturalGuarantors.get() > 0 && countOrganismGuarantors.get() == 0 && countLegalGuarantors.get() > 0) {
                 contentStream2.newLineAtOffset(tx, ty + leading);
-                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( " + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
+                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " (" + totalIncomingOfAllGuarantorsNaturalPerson.get() + " €)");
                 contentStream2.newLine();
                 contentStream2.showText(countLegalGuarantors.get() + (countLegalGuarantors.get() > 1 ? GARANTS_MORAUX : GARANT_MORAL));
             } else if (countNaturalGuarantors.get() == 0 && countOrganismGuarantors.get() > 0 && countLegalGuarantors.get() > 0) {
@@ -787,7 +787,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 contentStream2.newLine();
                 contentStream2.showText(countLegalGuarantors.get() + (countLegalGuarantors.get() > 1 ? GARANTS_MORAUX : GARANT_MORAL));
             } else if (countNaturalGuarantors.get() > 0) {
-                String text = countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( " + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )";
+                String text = countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " (" + totalIncomingOfAllGuarantorsNaturalPerson.get() + " €)";
                 textSize = fontSize * fontTitle.getStringWidth(text) / 1000;
                 offset = X_LOCATION_BEGIN_OF_THIRD_RECTANGULE + (WIDTH_OF_ALL_THREE_RECTANGULES - textSize) / 2;
 
