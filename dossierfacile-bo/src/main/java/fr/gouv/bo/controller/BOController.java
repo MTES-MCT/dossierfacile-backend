@@ -188,6 +188,7 @@ public class BOController {
         if (principal == null) {
             return "redirect:/error";
         }
+        applicationAccessService.checkNextApplicationAccess(principal, tenantId);
         return tenantService.redirectToApplication(principal, tenantId);
     }
 
