@@ -10,6 +10,9 @@ public class XssSanitizer {
         // Private constructor for utility class
     }
 
+    private static final Safelist HTML_SAFELIST = Safelist.basic()
+            .preserveRelativeLinks(true);
+
     public static String sanitize(String value) {
         if (value == null) {
             return null;
@@ -20,5 +23,12 @@ public class XssSanitizer {
                     .replace("&#39;", "'")
                     .replace("&quot;", "\"")
                     .replace("&apos;", "'");
+    }
+
+    public static String cleanHtml(String value) {
+        if (value == null) {
+            return null;
+        }
+        return Jsoup.clean(value, HTML_SAFELIST);
     }
 }

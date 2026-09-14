@@ -421,6 +421,41 @@ class BOApplicationAccessServiceTest {
     }
 
     // -------------------------------------------------------------------------
+    // checkNextApplicationAccess
+    // -------------------------------------------------------------------------
+
+    @Nested
+    class CheckNextApplicationAccess {
+
+        @Test
+        void operatorWithExplicitTenantId_throwsAccessDenied() {
+            assertThatThrownBy(() -> service.checkNextApplicationAccess(operatorPrincipal(), TENANT_ID))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+
+        @Test
+        void operatorWithNullTenantId_isPermitted() {
+            service.checkNextApplicationAccess(operatorPrincipal(), null);
+        }
+
+        @Test
+        void supportWithExplicitTenantId_isPermitted() {
+            service.checkNextApplicationAccess(supportPrincipal(), TENANT_ID);
+        }
+
+        @Test
+        void managerWithExplicitTenantId_isPermitted() {
+            service.checkNextApplicationAccess(managerPrincipal(), TENANT_ID);
+        }
+
+        @Test
+        void adminWithExplicitTenantId_isPermitted() {
+            service.checkNextApplicationAccess(adminPrincipal(), TENANT_ID);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

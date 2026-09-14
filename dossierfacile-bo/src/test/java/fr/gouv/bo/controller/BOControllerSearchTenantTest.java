@@ -69,6 +69,24 @@ class BOControllerSearchTenantTest {
         verify(applicationAccessService).checkAndLogSearchTenant(principal, "nobody@example.com", 0L);
     }
 
+    @Test
+    void nextApplication_checksNextApplicationAccessAndRedirects() {
+        UserPrincipal principal = supportPrincipal();
+        when(tenantService.redirectToApplication(principal, 42L)).thenReturn("redirect:/bo/tenant/42/processFile");
+
+        String view = controller.nextApplication(principal, 42L);
+
+        assertThat(view).isEqualTo("redirect:/bo/tenant/42/processFile");
+        verify(applicationAccessService).checkNextApplicationAccess(principal, 42L);
+        verify(tenantService).redirectToApplication(principal, 42L);
+    }
+
+    @Test
+    void nextApplication_whenNullPrincipal_redirectsToError() {
+        String view = controller.nextApplication(null, 42L);
+        assertThat(view).isEqualTo("redirect:/error");
+    }
+
     private Tenant tenant(Long tenantId, Long apartmentSharingId) {
         Tenant tenant = new Tenant();
         tenant.setId(tenantId);
