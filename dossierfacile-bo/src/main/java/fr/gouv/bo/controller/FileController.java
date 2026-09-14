@@ -4,9 +4,11 @@ import fr.dossierfacile.common.config.ratelimit.RateLimit;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.SharedFileService;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.gouv.bo.repository.DocumentRepository;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
+import fr.gouv.bo.service.BOTenantResolver;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ public class FileController {
     private final FileStorageService fileStorageService;
     private final SharedFileService fileService;
     private final BOApplicationAccessService applicationAccessService;
+    private final BOTenantResolver tenantResolver;
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/files/{id}")
@@ -67,9 +70,21 @@ public class FileController {
     @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/documents/{name:.+}")
     @RateLimit(name = "bo-documents", perMinuteString = "${ratelimit.bo.documents.per.minute:100}", perDayString = "${ratelimit.bo.documents.per.day:2500}")
-    public void getDocumentAsByteArray(HttpServletResponse response, @PathVariable String name) {
+    public void getDocumentAsByteArray(
+            HttpServletResponse response,
+            @PathVariable String name,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         documentRepository.findByName(name).ifPresentOrElse(
-                document -> streamStorageFile(document.getWatermarkFile(), response),
+                document -> {
+                    Tenant tenant = tenantResolver.resolveTenantFromDocument(document);
+                    applicationAccessService.checkTenantAccess(principal, tenant.getId());
+                    if (document.getWatermarkFile() == null) {
+                        handleFileNotFound(response);
+                        return;
+                    }
+                    streamStorageFile(document.getWatermarkFile(), response);
+                },
                 () -> handleFileNotFound(response)
         );
     }
