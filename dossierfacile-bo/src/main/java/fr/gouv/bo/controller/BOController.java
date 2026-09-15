@@ -14,6 +14,7 @@ import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.ReGroupDTO;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
+import fr.gouv.bo.service.BOTenantResolver;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
@@ -49,6 +50,7 @@ public class BOController {
 
     private static final String EMAIL = "email";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
+    private static final String REDIRECT_BO_ERROR = "redirect:/error";
     private static final String SHOW_ALERT = "showAlert";
     private static final String MAX_PAGE_SIZE = "20";
     private static final int MAX_PAGE_NUMBER = 5;
@@ -59,6 +61,7 @@ public class BOController {
     private final PartnerCallBackService partnerCallBackService;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final BOApplicationAccessService applicationAccessService;
+    private final BOTenantResolver tenantResolver;
 
     @GetMapping("/")
     public String index(@AuthenticationPrincipal UserPrincipal principal) {
@@ -99,7 +102,7 @@ public class BOController {
         }
 
         // Pas de fallback vers une page de login multiple : redirige vers une page d'erreur
-        return "redirect:/error";
+        return REDIRECT_BO_ERROR;
     }
 
     @GetMapping("/bo")
@@ -186,17 +189,24 @@ public class BOController {
     @GetMapping("/bo/nextApplication")
     public String nextApplication(@AuthenticationPrincipal UserPrincipal principal, @RequestParam(value = "tenant_id", required = false) Long tenantId) {
         if (principal == null) {
-            return "redirect:/error";
+            return REDIRECT_BO_ERROR;
         }
+        applicationAccessService.checkNextApplicationAccess(principal, tenantId);
         return tenantService.redirectToApplication(principal, tenantId);
     }
 
     @GetMapping("/bo/regeneratePdfDocument/{id}")
     @RateLimit(name = "bo-regenerate-pdf", capacity = 10, period = 1, unit = java.util.concurrent.TimeUnit.MINUTES)
-    public String regeneratePdfDocument(@PathVariable Long id) {
+    public String regeneratePdfDocument(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
+        if (principal == null) {
+            return REDIRECT_BO_ERROR;
+        }
+        Tenant tenant = tenantResolver.resolveTenantFromDocument(id);
+        applicationAccessService.checkTenantAccess(principal, tenant.getId());
+
         Document document = documentService.findDocumentById(id);
         documentService.regeneratePdf(document);
-        Tenant tenant = document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant();
+
         long apartmentSharingId = tenant.getApartmentSharing().getId();
         return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenant.getId();
     }

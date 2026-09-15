@@ -30,6 +30,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fr.gouv.bo.service.BOTenantResolver;
+
 @ExtendWith(MockitoExtension.class)
 class FileControllerTest {
 
@@ -44,6 +46,8 @@ class FileControllerTest {
     private SharedFileService fileService;
     @Mock
     private BOApplicationAccessService applicationAccessService;
+    @Mock
+    private BOTenantResolver tenantResolver;
 
     private FileController controller;
 
@@ -53,7 +57,8 @@ class FileControllerTest {
                 documentRepository,
                 fileStorageService,
                 fileService,
-                applicationAccessService
+                applicationAccessService,
+                tenantResolver
         );
     }
 
@@ -112,6 +117,81 @@ class FileControllerTest {
             controller.getPreviewFileAsByteArray(response, FILE_ID, principal);
 
             verify(applicationAccessService).checkFileAccess(principal, file);
+            assertThat(response.getStatus()).isEqualTo(404);
+        }
+    }
+
+    @Nested
+    class GetDocumentAsByteArray {
+
+        private static final String DOC_NAME = "test-doc.pdf";
+
+        @Test
+        void whenDocumentNotFound_returns404() {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            when(documentRepository.findByName(DOC_NAME)).thenReturn(Optional.empty());
+
+            controller.getDocumentAsByteArray(response, DOC_NAME, operatorPrincipal());
+
+            assertThat(response.getStatus()).isEqualTo(404);
+        }
+
+        @Test
+        void whenOperatorNotAssigned_throwsAccessDenied() {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            UserPrincipal principal = operatorPrincipal();
+            Tenant tenant = new Tenant();
+            tenant.setId(TENANT_ID);
+            Document document = Document.builder().id(1L).tenant(tenant).build();
+
+            when(documentRepository.findByName(DOC_NAME)).thenReturn(Optional.of(document));
+            when(tenantResolver.resolveTenantFromDocument(document)).thenReturn(tenant);
+            doThrow(BOAccessDenied.generic())
+                    .when(applicationAccessService)
+                    .checkTenantAccess(principal, TENANT_ID);
+
+            assertThatThrownBy(() -> controller.getDocumentAsByteArray(response, DOC_NAME, principal))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+
+        @Test
+        void whenOperatorAssignedAndWatermarkExists_streamsWatermark() throws Exception {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            UserPrincipal principal = operatorPrincipal();
+            Tenant tenant = new Tenant();
+            tenant.setId(TENANT_ID);
+            StorageFile watermark = new StorageFile();
+            watermark.setContentType("application/pdf");
+            Document document = Document.builder().id(1L).tenant(tenant).watermarkFile(watermark).build();
+
+            when(documentRepository.findByName(DOC_NAME)).thenReturn(Optional.of(document));
+            when(tenantResolver.resolveTenantFromDocument(document)).thenReturn(tenant);
+            when(fileStorageService.download(watermark))
+                    .thenReturn(new ByteArrayInputStream("pdf-content".getBytes()));
+
+            controller.getDocumentAsByteArray(response, DOC_NAME, principal);
+
+            verify(applicationAccessService).checkTenantAccess(principal, TENANT_ID);
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.getContentType()).isEqualTo("application/pdf");
+            assertThat(response.getContentAsByteArray()).isEqualTo("pdf-content".getBytes());
+        }
+
+        @Test
+        void whenOperatorAssignedButWatermarkMissing_returns404() {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            UserPrincipal principal = operatorPrincipal();
+            Tenant tenant = new Tenant();
+            tenant.setId(TENANT_ID);
+            Document document = Document.builder().id(1L).tenant(tenant).build();
+
+            when(documentRepository.findByName(DOC_NAME)).thenReturn(Optional.of(document));
+            when(tenantResolver.resolveTenantFromDocument(document)).thenReturn(tenant);
+
+            controller.getDocumentAsByteArray(response, DOC_NAME, principal);
+
+            verify(applicationAccessService).checkTenantAccess(principal, TENANT_ID);
             assertThat(response.getStatus()).isEqualTo(404);
         }
     }

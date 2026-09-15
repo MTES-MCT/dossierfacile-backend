@@ -46,4 +46,11 @@ public interface BOApplicationAccessService {
      * Throws AccessDeniedException if the file/document/tenant chain is broken or operator is not assigned.
      */
     void checkFileAccess(UserPrincipal principal, File file);
+
+    /**
+     * Checks that the principal is authorised to access /bo/nextApplication with an explicit tenantId.
+     * Pure OPERATOR is forbidden from specifying a tenantId directly (must use automatic assignment).
+     * Throws AccessDeniedException if an OPERATOR provides a tenantId.
+     */
+    void checkNextApplicationAccess(UserPrincipal principal, Long tenantId);
 }

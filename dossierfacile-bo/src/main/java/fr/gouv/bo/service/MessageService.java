@@ -12,19 +12,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import fr.dossierfacile.common.config.xss.XssSanitizer;
+
 @Service
 @RequiredArgsConstructor
 public class MessageService {
     private final MessageRepository messageRepository;
 
     public List<Message> findTenantMessages(User tenant) {
-        return messageRepository.findByFromUserOrToUserOrderByCreationDateTimeDesc(tenant, tenant);
+        List<Message> messages = messageRepository.findByFromUserOrToUserOrderByCreationDateTimeDesc(tenant, tenant);
+        messages.forEach(message -> message.setMessageBody(XssSanitizer.cleanHtml(message.getMessageBody())));
+        return messages;
     }
 
     public Message create(MessageDTO messageDTO, Tenant tenant, boolean isUser, boolean isCustomsMessage) {
+        String cleanMessage = XssSanitizer.cleanHtml(messageDTO.getMessage());
+        String cleanEmailHtml = XssSanitizer.cleanHtml(messageDTO.getEmailHtml());
         Message message = Message.builder()
-                .messageBody(messageDTO.getMessage())
-                .emailHtml(messageDTO.getEmailHtml())
+                .messageBody(cleanMessage)
+                .emailHtml(cleanEmailHtml)
                 .customMessage(isCustomsMessage)
                 .messageStatus(MessageStatus.UNREAD)
                 .creationDateTime(LocalDateTime.now())

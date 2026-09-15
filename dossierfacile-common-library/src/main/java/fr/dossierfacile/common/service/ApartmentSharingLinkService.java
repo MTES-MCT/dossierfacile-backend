@@ -207,8 +207,8 @@ public class ApartmentSharingLinkService {
     }
 
     private void deleteLinkStandard(ApartmentSharingLink link) {
-        log.info("Delete token: " + link.getToken() + " by " + link.getLinkType()
-                + " on apartmentSharing" + link.getApartmentSharing().getId());
+        log.info("Delete link id: {} by {} on apartmentSharing {}", link.getId(), link.getLinkType(),
+                link.getApartmentSharing().getId());
         linkLogService.createNewLog(link, DELETED_LINK_TOKEN);
         link.setExpirationDate(LocalDateTime.now());
         link.setDeleted(true);
