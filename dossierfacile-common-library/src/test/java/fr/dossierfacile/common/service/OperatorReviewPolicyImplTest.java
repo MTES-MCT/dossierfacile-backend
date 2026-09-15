@@ -1,8 +1,11 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.constants.PartnerConstants;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.LotteryTicket;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.TenantUserApi;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LotteryTicketStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -19,11 +22,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -56,8 +64,21 @@ class OperatorReviewPolicyImplTest {
         return buildTenant(TenantFileStatus.TO_PROCESS, ApplicationType.ALONE);
     }
 
+    private UserApi partner(String name, boolean completedStatusSupported) {
+        return UserApi.builder().id((long) name.hashCode()).name(name).completedStatusSupported(completedStatusSupported).build();
+    }
+
+    private TenantUserApi linkTo(UserApi partner) {
+        return TenantUserApi.builder().userApi(partner).build();
+    }
+
+    private void mockPartnerCompletedOptinFlag(boolean enabled) {
+        when(featureFlagService.isFeatureEnabled(OperatorReviewPolicy.PARTNER_COMPLETED_OPTIN_FEATURE_FLAG))
+                .thenReturn(enabled);
+    }
+
     private void mockNoPartner(Tenant tenant, boolean flagEnabled) {
-        when(tenantUserApiRepository.existsByTenant(tenant)).thenReturn(false);
+        when(tenantUserApiRepository.findAllByTenant(tenant)).thenReturn(List.of());
         when(featureFlagService.isFeatureEnabledForUser(tenant.getId(), OperatorReviewPolicy.COMPLETED_OPTIN_FEATURE_FLAG))
                 .thenReturn(flagEnabled);
     }
@@ -99,13 +120,48 @@ class OperatorReviewPolicyImplTest {
         }
 
         @Test
-        void should_not_support_when_linked_to_a_partner() {
+        void should_not_support_when_linked_to_a_partner_that_did_not_opt_in() {
             Tenant tenant = buildAloneTenant();
-            when(tenantUserApiRepository.existsByTenant(tenant)).thenReturn(true);
+            when(tenantUserApiRepository.findAllByTenant(tenant))
+                    .thenReturn(List.of(linkTo(partner("closed-partner", false))));
 
             assertThat(operatorReviewPolicy.supportsCompletedStatus(tenant)).isFalse();
-            // The flag must not be checked (nor assign a bucket) for non-candidates
-            verifyNoInteractions(featureFlagService);
+            // The opt-in flag must not be checked (nor assign a bucket) for non-candidates
+            verify(featureFlagService, never()).isFeatureEnabledForUser(anyLong(), anyString());
+        }
+
+        @Test
+        void should_support_when_every_linked_partner_opted_in() {
+            Tenant tenant = buildAloneTenant();
+            when(tenantUserApiRepository.findAllByTenant(tenant))
+                    .thenReturn(List.of(linkTo(partner("open-a", true)), linkTo(partner("open-b", true))));
+            mockPartnerCompletedOptinFlag(true);
+            when(featureFlagService.isFeatureEnabledForUser(tenant.getId(), OperatorReviewPolicy.COMPLETED_OPTIN_FEATURE_FLAG))
+                    .thenReturn(true);
+
+            assertThat(operatorReviewPolicy.supportsCompletedStatus(tenant)).isTrue();
+        }
+
+        @Test
+        void should_not_support_when_one_linked_partner_did_not_opt_in() {
+            Tenant tenant = buildAloneTenant();
+            when(tenantUserApiRepository.findAllByTenant(tenant))
+                    .thenReturn(List.of(linkTo(partner("open-a", true)), linkTo(partner("closed-partner", false))));
+            mockPartnerCompletedOptinFlag(true);
+
+            assertThat(operatorReviewPolicy.supportsCompletedStatus(tenant)).isFalse();
+            verify(featureFlagService, never()).isFeatureEnabledForUser(anyLong(), anyString());
+        }
+
+        @Test
+        void should_not_support_when_the_partner_kill_switch_is_off() {
+            Tenant tenant = buildAloneTenant();
+            when(tenantUserApiRepository.findAllByTenant(tenant))
+                    .thenReturn(List.of(linkTo(partner("open-a", true))));
+            mockPartnerCompletedOptinFlag(false);
+
+            assertThat(operatorReviewPolicy.supportsCompletedStatus(tenant)).isFalse();
+            verify(featureFlagService, never()).isFeatureEnabledForUser(anyLong(), anyString());
         }
 
         @Test
@@ -282,6 +338,37 @@ class OperatorReviewPolicyImplTest {
                 assertThat(operatorReviewPolicy.resolveStatus(tenant, TenantFileStatus.TO_PROCESS)).isEqualTo(TenantFileStatus.TO_PROCESS);
                 verifyNoInteractions(tenantUserApiRepository);
             }
+        }
+    }
+
+    @Nested
+    class IsPartnerOptedIn {
+
+        @Test
+        void should_be_opted_in_when_flagged_on_the_partner_and_kill_switch_on() {
+            mockPartnerCompletedOptinFlag(true);
+
+            assertThat(operatorReviewPolicy.isPartnerOptedIn(partner("dfconnect-ics", true))).isTrue();
+        }
+
+        @Test
+        void should_not_be_opted_in_when_kill_switch_off() {
+            mockPartnerCompletedOptinFlag(false);
+
+            assertThat(operatorReviewPolicy.isPartnerOptedIn(partner("dfconnect-ics", true))).isFalse();
+        }
+
+        @Test
+        void should_not_be_opted_in_when_not_flagged_on_the_partner_without_reading_the_flag() {
+            assertThat(operatorReviewPolicy.isPartnerOptedIn(partner("dfconnect-ics", false))).isFalse();
+            assertThat(operatorReviewPolicy.isPartnerOptedIn(null)).isFalse();
+            verifyNoInteractions(featureFlagService);
+        }
+
+        @Test
+        void should_never_opt_in_the_owner_partner() {
+            assertThat(operatorReviewPolicy.isPartnerOptedIn(partner(PartnerConstants.DF_OWNER_NAME, true))).isFalse();
+            verifyNoInteractions(featureFlagService);
         }
     }
 }

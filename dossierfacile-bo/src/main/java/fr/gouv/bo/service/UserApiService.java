@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -33,6 +34,10 @@ public class UserApiService {
 
     public List<UserApi> findPartnersLinkedToTenant(Long id) {
         return userApiRepository.findPartnersLinkedToTenant(id);
+    }
+
+    public Optional<UserApi> findByName(String name) {
+        return userApiRepository.findByName(name);
     }
 
     public List<UserApi> findAll() {

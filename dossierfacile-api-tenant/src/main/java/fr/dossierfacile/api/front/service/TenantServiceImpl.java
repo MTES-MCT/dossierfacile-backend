@@ -25,7 +25,6 @@ import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
@@ -40,6 +39,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
+import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -70,9 +72,9 @@ public class TenantServiceImpl implements TenantService {
     private final TenantMapperForMail tenantMapperForMail;
     private final OperatorReviewPolicy operatorReviewPolicy;
     private final TenantStatusService tenantStatusService;
-    private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final FeatureFlagService featureFlagService;
     private final LotteryTicketService lotteryTicketService;
+    private final ApartmentSharingLinkService apartmentSharingLinkService;
 
     // There is a dependency cycle between TenantServiceImpl and TenantStatusService
     // (TenantStatusService -> ApartmentSharingService -> TenantPermissionsService -> TenantService),
@@ -93,9 +95,9 @@ public class TenantServiceImpl implements TenantService {
                              TenantMapperForMail tenantMapperForMail,
                              OperatorReviewPolicy operatorReviewPolicy,
                              @Lazy TenantStatusService tenantStatusService,
-                             ApartmentSharingCommonService apartmentSharingCommonService,
                              FeatureFlagService featureFlagService,
-                             LotteryTicketService lotteryTicketService) {
+                             LotteryTicketService lotteryTicketService,
+                             ApartmentSharingLinkService apartmentSharingLinkService) {
         this.apartmentSharingRepository = apartmentSharingRepository;
         this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
         this.confirmationTokenService = confirmationTokenService;
@@ -112,9 +114,9 @@ public class TenantServiceImpl implements TenantService {
         this.tenantMapperForMail = tenantMapperForMail;
         this.operatorReviewPolicy = operatorReviewPolicy;
         this.tenantStatusService = tenantStatusService;
-        this.apartmentSharingCommonService = apartmentSharingCommonService;
         this.featureFlagService = featureFlagService;
         this.lotteryTicketService = lotteryTicketService;
+        this.apartmentSharingLinkService = apartmentSharingLinkService;
     }
 
     @Override
@@ -233,7 +235,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public void sendFileByMail(Tenant tenant, ShareFileByMailForm form) {
-        requireCompletedOrValidatedDossier(tenant);
+        requireShareableDossier(tenant);
         UUID token = UUID.randomUUID();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
         List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(tenant.getApartmentSharing(), date);
@@ -267,7 +269,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public String createSharingLink(Tenant tenant, ShareFileByLinkForm form) {
-        requireCompletedOrValidatedDossier(tenant);
+        requireShareableDossier(tenant);
         UUID token = UUID.randomUUID();
         ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
                 .apartmentSharing(tenant.getApartmentSharing())
@@ -285,10 +287,17 @@ public class TenantServiceImpl implements TenantService {
         return path + token;
     }
 
-    // Sharing by link or mail is reserved to VALIDATED or COMPLETED dossiers
-    private void requireCompletedOrValidatedDossier(Tenant tenant) {
-        if (!tenant.getApartmentSharing().getStatus().isCompletedOrValidated()) {
-            throw new TenantIllegalStateException("Sharing a dossier by link or mail requires a validated or completed dossier");
+    @Override
+    public ApartmentSharingLinkModel getDefaultSharingLink(Tenant tenant, boolean fullData) {
+        requireShareableDossier(tenant);
+        return apartmentSharingLinkService.getDefaultLink(tenant.getApartmentSharing(), tenant, fullData);
+    }
+
+    // Sharing (default link, named link or mail) is reserved to submitted dossiers (TO_PROCESS, COMPLETED or VALIDATED)
+    private void requireShareableDossier(Tenant tenant) {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (apartmentSharing == null || !apartmentSharing.getStatus().isCompletedOrBetter()) {
+            throw new TenantIllegalStateException("Sharing a dossier requires a submitted dossier");
         }
     }
 
@@ -310,11 +319,6 @@ public class TenantServiceImpl implements TenantService {
         tenantRepository.save(tenant);
         logService.saveLog(validationRequested ? LogType.VALIDATION_REQUESTED : LogType.VALIDATION_DECLINED, tenant.getId());
         Tenant updatedTenant = tenantStatusService.updateTenantStatus(tenant);
-        if (previousStatus == TenantFileStatus.COMPLETED && updatedTenant.getStatus() != TenantFileStatus.COMPLETED) {
-            // The full PDF was rendered with the COMPLETED design: it must not
-            // survive the switch out of COMPLETED
-            apartmentSharingCommonService.resetDossierPdfGenerated(updatedTenant.getApartmentSharing());
-        }
         // Entering the verification queue: reuse the standard "waiting for review" email
         if (validationRequested && previousStatus == TenantFileStatus.COMPLETED
                 && updatedTenant.getStatus() == TenantFileStatus.TO_PROCESS) {

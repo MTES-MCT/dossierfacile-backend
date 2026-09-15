@@ -31,7 +31,9 @@ public class BOFeatureFlagsController {
      * Global on/off flags, read through FeatureFlagService.isFeatureEnabled: rollout_pct and
      * only_for_new_user are ignored, so the rollout edition is hidden and refused for them.
      */
-    private static final Set<String> GLOBAL_FLAG_KEYS = Set.of(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG);
+    private static final Set<String> GLOBAL_FLAG_KEYS = Set.of(
+            LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG,
+            OperatorReviewPolicy.PARTNER_COMPLETED_OPTIN_FEATURE_FLAG);
 
     private final FeatureFlagService featureFlagService;
     private final TenantService tenantService;

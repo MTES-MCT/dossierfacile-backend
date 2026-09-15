@@ -24,4 +24,5 @@ public class UserApiDTO {
     private String partnerApiKeyCallback;
     private boolean disabled;
     private String logoUrl;
+    private boolean completedStatusSupported;
 }

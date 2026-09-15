@@ -11,6 +11,7 @@
     <div class="container-lg">
         <h1 class="margin-bottom">Liste des features flags</h1>
         <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
         <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover">
                 <thead>

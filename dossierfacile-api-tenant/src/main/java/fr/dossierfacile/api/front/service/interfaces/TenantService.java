@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.model.TenantUpdate;
 
 import java.time.LocalDateTime;
@@ -36,6 +37,11 @@ public interface TenantService {
     void sendFileByMail(Tenant tenant, ShareFileByMailForm form);
 
     String createSharingLink(Tenant tenant, ShareFileByLinkForm form);
+
+    /**
+     * The default sharing link of the dossier (reused or renewed), reserved to submitted dossiers
+     */
+    ApartmentSharingLinkModel getDefaultSharingLink(Tenant tenant, boolean fullData);
 
     Tenant updateValidationRequest(Tenant tenant, boolean validationRequested);
 

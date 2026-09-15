@@ -190,6 +190,7 @@ class DfcTenantControllerTest {
                                         when(self.authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
                                         when(self.tenantService.findByKeycloakId("keycloak_id")).thenReturn(tenant);
                                         when(self.userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
+                                        when(self.tenantService.findById(1L)).thenReturn(tenant);
                                         return v;
                                     },
                                     List.of(
@@ -214,6 +215,7 @@ class DfcTenantControllerTest {
                                         when(self.tenantService.findByEmail("test@test.fr")).thenReturn(Optional.of(tenant));
                                         when(self.authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
                                         when(self.userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
+                                        when(self.tenantService.findById(1L)).thenReturn(tenant);
                                         return v;
                                     },
                                     List.of(
@@ -241,6 +243,7 @@ class DfcTenantControllerTest {
                                         when(self.authenticationFacade.getKeycloakUser()).thenReturn(keycloakUser);
                                         when(self.tenantService.registerFromKeycloakUser(keycloakUser, "client_id", null)).thenReturn(tenant);
                                         when(self.userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
+                                        when(self.tenantService.findById(1L)).thenReturn(tenant);
                                         return v;
                                     },
                                     List.of(

@@ -29,6 +29,7 @@
                     <th>logoUrl</th>
                     <th>urlCallback</th>
                     <th>partnerApiKeyCallback</th>
+                    <th title="Statut COMPLETED intégré">COMPLETED</th>
                     <th>Edit</th>
                 </tr>
                 </thead>
@@ -46,6 +47,9 @@
                     <td><img height="20px" alt="" th:src="${userApi.logoUrl}"/></td>
                     <td th:text="${userApi.urlCallback}?: '-'"></td>
                     <td th:text="${userApi.partnerApiKeyCallback}?: '-'"></td>
+                    <td>
+                        <input type="checkbox" th:checked="${userApi.completedStatusSupported == true}" disabled />
+                    </td>
                     <td><a class="fa fa-pencil nounderline" th:href="@{/bo/userApi/} + ${userApi.id}"></a></td>
                 </tr>
                 </tbody>
