@@ -250,9 +250,10 @@ class BOApplicationAccessServiceTest {
         @Test
         void fileWithoutDocument_throwsAccessDenied() {
             File file = File.builder().id(1L).build();
+            UserPrincipal principal = operatorPrincipal();
             when(tenantResolver.resolveTenantFromFile(file)).thenThrow(BOAccessDenied.generic());
 
-            assertThatThrownBy(() -> service.checkFileAccess(operatorPrincipal(), file))
+            assertThatThrownBy(() -> service.checkFileAccess(principal, file))
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
         }
@@ -417,6 +418,43 @@ class BOApplicationAccessServiceTest {
             assertThat(log.getMetadata().get("searchType").asText()).isEqualTo("EMAIL");
             assertThat(log.getMetadata().get("query").asText()).isEqualTo("unknown@example.com");
             assertThat(log.getMetadata().get("resultCount").asLong()).isZero();
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // checkNextApplicationAccess
+    // -------------------------------------------------------------------------
+
+    @Nested
+    class CheckNextApplicationAccess {
+
+        @Test
+        void operatorWithExplicitTenantId_throwsAccessDenied() {
+            UserPrincipal principal = operatorPrincipal();
+
+            assertThatThrownBy(() -> service.checkNextApplicationAccess(principal, TENANT_ID))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+
+        @Test
+        void operatorWithNullTenantId_isPermitted() {
+            service.checkNextApplicationAccess(operatorPrincipal(), null);
+        }
+
+        @Test
+        void supportWithExplicitTenantId_isPermitted() {
+            service.checkNextApplicationAccess(supportPrincipal(), TENANT_ID);
+        }
+
+        @Test
+        void managerWithExplicitTenantId_isPermitted() {
+            service.checkNextApplicationAccess(managerPrincipal(), TENANT_ID);
+        }
+
+        @Test
+        void adminWithExplicitTenantId_isPermitted() {
+            service.checkNextApplicationAccess(adminPrincipal(), TENANT_ID);
         }
     }
 

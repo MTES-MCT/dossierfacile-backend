@@ -66,6 +66,14 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
         checkTenantAccess(principal, tenant.getId());
     }
 
+    @Override
+    public void checkNextApplicationAccess(UserPrincipal principal, Long tenantId) {
+        if (tenantId != null && isOperatorOnly(principal)) {
+            log.warn("OPERATOR id={} attempted to target explicit tenant id={}", principal.getId(), tenantId);
+            throw BOAccessDenied.generic();
+        }
+    }
+
     private void ensureOperatorAssignedToTenant(UserPrincipal principal, Long tenantId) {
         LocalDateTime since = LocalDateTime.now().minusDays(assignmentAccessWindowDays);
         boolean assigned = operatorLogRepository

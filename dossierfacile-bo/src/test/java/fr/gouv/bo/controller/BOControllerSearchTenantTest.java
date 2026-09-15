@@ -24,23 +24,38 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fr.gouv.bo.service.BOTenantResolver;
+import fr.gouv.bo.service.DocumentService;
+import fr.dossierfacile.common.entity.Document;
+import org.springframework.security.access.AccessDeniedException;
+import fr.gouv.bo.security.BOAccessDenied;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+
 class BOControllerSearchTenantTest {
 
     private TenantService tenantService;
+    private DocumentService documentService;
     private BOApplicationAccessService applicationAccessService;
+    private BOTenantResolver tenantResolver;
     private BOController controller;
 
     @BeforeEach
     void setUp() {
         tenantService = mock(TenantService.class);
+        documentService = mock(DocumentService.class);
         applicationAccessService = mock(BOApplicationAccessService.class);
+        tenantResolver = mock(BOTenantResolver.class);
         controller = new BOController(
                 tenantService,
                 null,
+                documentService,
                 null,
                 null,
-                null,
-                applicationAccessService
+                applicationAccessService,
+                tenantResolver
         );
     }
 
@@ -67,6 +82,63 @@ class BOControllerSearchTenantTest {
 
         assertThat(view).isEqualTo("bo/search");
         verify(applicationAccessService).checkAndLogSearchTenant(principal, "nobody@example.com", 0L);
+    }
+
+    @Test
+    void nextApplication_checksNextApplicationAccessAndRedirects() {
+        UserPrincipal principal = supportPrincipal();
+        when(tenantService.redirectToApplication(principal, 42L)).thenReturn("redirect:/bo/tenant/42/processFile");
+
+        String view = controller.nextApplication(principal, 42L);
+
+        assertThat(view).isEqualTo("redirect:/bo/tenant/42/processFile");
+        verify(applicationAccessService).checkNextApplicationAccess(principal, 42L);
+        verify(tenantService).redirectToApplication(principal, 42L);
+    }
+
+    @Test
+    void nextApplication_whenNullPrincipal_redirectsToError() {
+        String view = controller.nextApplication(null, 42L);
+        assertThat(view).isEqualTo("redirect:/error");
+    }
+
+    @Test
+    void regeneratePdfDocument_whenAuthorized_resolvesTenantChecksAccessAndRegenerates() {
+        UserPrincipal principal = supportPrincipal();
+        Tenant tenant = tenant(10L, 20L);
+        Document document = Document.builder().id(1L).tenant(tenant).build();
+
+        when(tenantResolver.resolveTenantFromDocument(1L)).thenReturn(tenant);
+        when(documentService.findDocumentById(1L)).thenReturn(document);
+
+        String view = controller.regeneratePdfDocument(1L, principal);
+
+        assertThat(view).isEqualTo("redirect:/bo/colocation/20#tenant10");
+        verify(tenantResolver).resolveTenantFromDocument(1L);
+        verify(applicationAccessService).checkTenantAccess(principal, 10L);
+        verify(documentService).regeneratePdf(document);
+    }
+
+    @Test
+    void regeneratePdfDocument_whenNullPrincipal_redirectsToError() {
+        String view = controller.regeneratePdfDocument(1L, null);
+        assertThat(view).isEqualTo("redirect:/error");
+        verify(documentService, never()).regeneratePdf(any());
+    }
+
+    @Test
+    void regeneratePdfDocument_whenAccessDenied_propagatesException() {
+        UserPrincipal principal = supportPrincipal();
+        Tenant tenant = tenant(10L, 20L);
+
+        when(tenantResolver.resolveTenantFromDocument(1L)).thenReturn(tenant);
+        doThrow(BOAccessDenied.generic()).when(applicationAccessService).checkTenantAccess(principal, 10L);
+
+        assertThatThrownBy(() -> controller.regeneratePdfDocument(1L, principal))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+
+        verify(documentService, never()).regeneratePdf(any());
     }
 
     private Tenant tenant(Long tenantId, Long apartmentSharingId) {
