@@ -1,6 +1,7 @@
 package fr.gouv.bo.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.dossierfacile.common.constants.PartnerConstants;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.gouv.bo.dto.UserApiDTO;
 import fr.gouv.bo.service.UserApiService;
@@ -33,6 +34,7 @@ public class BOUserApiController {
 
     @PostMapping("")
     public String create(@Validated @ModelAttribute("userApiDTO") UserApiDTO userApiDTO, BindingResult result) {
+        rejectCompletedStatusForOwner(userApiDTO, result);
         if (result.hasErrors()) {
             log.error("BOUserApiController create has errors: {}", result.getAllErrors());
             return REDIRECT_URL;
@@ -55,13 +57,32 @@ public class BOUserApiController {
     }
 
     @PostMapping("/{id}")
-    public String update(@PathVariable("id") int id, @Validated @ModelAttribute("userApiDTO") UserApiDTO userApiDTO, BindingResult result) {
+    public String update(@PathVariable("id") Long id, @Validated @ModelAttribute("userApiDTO") UserApiDTO userApiDTO, BindingResult result) {
+        keepCompletedStatusOnceIntegrated(id, userApiDTO);
+        rejectCompletedStatusForOwner(userApiDTO, result);
         if (result.hasErrors()) {
             log.error("BOUserApiController update has errors: {}", result.getAllErrors());
             return "bo/user-api-edit";
         }
         userApiService.save(userApiDTO);
         return REDIRECT_URL;
+    }
+
+    // No rollback per partner: the COMPLETED integration is final. The checkbox is disabled in the
+    // form once checked, and a disabled checkbox is not posted (bound to false), so the persisted
+    // value must win over the form here
+    private void keepCompletedStatusOnceIntegrated(Long id, UserApiDTO userApiDTO) {
+        if (userApiService.findById(id).isCompletedStatusSupported()) {
+            userApiDTO.setCompletedStatusSupported(true);
+        }
+    }
+
+    // The owner space is excluded from the COMPLETED status (owner mappers and mails are unconditional)
+    private void rejectCompletedStatusForOwner(UserApiDTO userApiDTO, BindingResult result) {
+        if (userApiDTO.isCompletedStatusSupported() && PartnerConstants.DF_OWNER_NAME.equals(userApiDTO.getName())) {
+            result.rejectValue("completedStatusSupported", "userApi.completedStatusSupported.owner",
+                    "Le partenaire " + PartnerConstants.DF_OWNER_NAME + " (espace propriétaire) ne peut pas intégrer le statut COMPLETED.");
+        }
     }
 
 }

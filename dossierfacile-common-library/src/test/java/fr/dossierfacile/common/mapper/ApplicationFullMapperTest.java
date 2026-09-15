@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ApplicationFullMapperTest {
 
@@ -395,8 +398,7 @@ class ApplicationFullMapperTest {
     @Nested
     class CompletedStatusMasking {
 
-        private final fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy operatorReviewPolicy =
-                org.mockito.Mockito.mock(fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy.class);
+        private final OperatorReviewPolicy operatorReviewPolicy = mock(OperatorReviewPolicy.class);
 
         private ApplicationFullMapperImpl buildMapper() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
@@ -410,7 +412,7 @@ class ApplicationFullMapperTest {
         @Test
         void shouldKeepCompletedStatusWhenMappingForAnOptedInPartner() {
             UserApi userApi = UserApi.builder().id(200L).name("partner").build();
-            org.mockito.Mockito.when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(true);
+            when(operatorReviewPolicy.isPartnerOptedIn(userApi)).thenReturn(true);
 
             ApplicationModel model = buildMapper().toApplicationModel(completedApartmentSharing(), userApi);
 

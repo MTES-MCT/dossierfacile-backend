@@ -40,6 +40,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
+import fr.dossierfacile.common.service.ApartmentSharingLinkService;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -71,6 +74,7 @@ public class TenantServiceImpl implements TenantService {
     private final TenantStatusService tenantStatusService;
     private final FeatureFlagService featureFlagService;
     private final LotteryTicketService lotteryTicketService;
+    private final ApartmentSharingLinkService apartmentSharingLinkService;
 
     // There is a dependency cycle between TenantServiceImpl and TenantStatusService
     // (TenantStatusService -> ApartmentSharingService -> TenantPermissionsService -> TenantService),
@@ -92,7 +96,8 @@ public class TenantServiceImpl implements TenantService {
                              OperatorReviewPolicy operatorReviewPolicy,
                              @Lazy TenantStatusService tenantStatusService,
                              FeatureFlagService featureFlagService,
-                             LotteryTicketService lotteryTicketService) {
+                             LotteryTicketService lotteryTicketService,
+                             ApartmentSharingLinkService apartmentSharingLinkService) {
         this.apartmentSharingRepository = apartmentSharingRepository;
         this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
         this.confirmationTokenService = confirmationTokenService;
@@ -111,6 +116,7 @@ public class TenantServiceImpl implements TenantService {
         this.tenantStatusService = tenantStatusService;
         this.featureFlagService = featureFlagService;
         this.lotteryTicketService = lotteryTicketService;
+        this.apartmentSharingLinkService = apartmentSharingLinkService;
     }
 
     @Override
@@ -281,10 +287,17 @@ public class TenantServiceImpl implements TenantService {
         return path + token;
     }
 
-    // Sharing by link or mail is reserved to submitted dossiers (TO_PROCESS, COMPLETED or VALIDATED)
+    @Override
+    public ApartmentSharingLinkModel getDefaultSharingLink(Tenant tenant, boolean fullData) {
+        requireShareableDossier(tenant);
+        return apartmentSharingLinkService.getDefaultLink(tenant.getApartmentSharing(), tenant, fullData);
+    }
+
+    // Sharing (default link, named link or mail) is reserved to submitted dossiers (TO_PROCESS, COMPLETED or VALIDATED)
     private void requireShareableDossier(Tenant tenant) {
-        if (!tenant.getApartmentSharing().getStatus().isCompletedOrBetter()) {
-            throw new TenantIllegalStateException("Sharing a dossier by link or mail requires a submitted dossier");
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (apartmentSharing == null || !apartmentSharing.getStatus().isCompletedOrBetter()) {
+            throw new TenantIllegalStateException("Sharing a dossier requires a submitted dossier");
         }
     }
 

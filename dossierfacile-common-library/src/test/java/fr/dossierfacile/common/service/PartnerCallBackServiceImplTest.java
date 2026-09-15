@@ -3,6 +3,7 @@ package fr.dossierfacile.common.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
@@ -10,6 +11,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.CallbackLogRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.RequestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,7 @@ class PartnerCallBackServiceImplTest {
     private ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private ObjectMapper objectMapper;
     private CompletedDossierService completedDossierService;
-    private fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy operatorReviewPolicy;
+    private OperatorReviewPolicy operatorReviewPolicy;
 
     private PartnerCallBackServiceImpl service;
 
@@ -50,7 +52,7 @@ class PartnerCallBackServiceImplTest {
         apartmentSharingLinkRepository = mock(ApartmentSharingLinkRepository.class);
         objectMapper = new ObjectMapper();
         completedDossierService = mock(CompletedDossierService.class);
-        operatorReviewPolicy = mock(fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy.class);
+        operatorReviewPolicy = mock(OperatorReviewPolicy.class);
 
         service = new PartnerCallBackServiceImpl(
                 tenantUserApiRepository,
@@ -241,7 +243,7 @@ class PartnerCallBackServiceImplTest {
         // Then
         verify(completedDossierService, never()).switchBackToProcessing(any(Tenant.class), any(UserApi.class));
         verify(requestService).send(
-                argThat(model -> model.getPartnerCallBackType() == fr.dossierfacile.common.enums.PartnerCallBackType.COMPLETED_ACCOUNT
+                argThat(model -> model.getPartnerCallBackType() == PartnerCallBackType.COMPLETED_ACCOUNT
                         && model.getOnTenantId().equals(tenant.getId())),
                 eq("https://partner.example/callback"), any());
     }
@@ -253,9 +255,9 @@ class PartnerCallBackServiceImplTest {
         when(applicationFullMapper.toApplicationModel(apartmentSharing, userApi))
                 .thenReturn(new fr.dossierfacile.common.model.apartment_sharing.ApplicationModel());
 
-        var model = service.getWebhookDTO(tenant, userApi, fr.dossierfacile.common.enums.PartnerCallBackType.COMPLETED_ACCOUNT);
+        var model = service.getWebhookDTO(tenant, userApi, PartnerCallBackType.COMPLETED_ACCOUNT);
 
         org.assertj.core.api.Assertions.assertThat(model.getPartnerCallBackType())
-                .isEqualTo(fr.dossierfacile.common.enums.PartnerCallBackType.CREATED_ACCOUNT);
+                .isEqualTo(PartnerCallBackType.CREATED_ACCOUNT);
     }
 }

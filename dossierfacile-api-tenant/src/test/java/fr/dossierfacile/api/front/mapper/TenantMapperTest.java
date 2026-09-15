@@ -39,6 +39,8 @@ import static fr.dossierfacile.api.front.mapper.TenantGraphBuilder.rule;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TenantMapperTest {
@@ -865,7 +867,7 @@ class TenantMapperTest {
 
             assertThat(model.isOptInEligible()).isFalse();
             assertThat(model.getValidationRequested()).isNull();
-            org.mockito.Mockito.verify(operatorReviewPolicy, org.mockito.Mockito.never()).canRequestOperatorReview(any());
+            verify(operatorReviewPolicy, never()).canRequestOperatorReview(any());
         }
     }
 }

@@ -5,6 +5,8 @@ import fr.dossierfacile.common.entity.LotteryTicket;
 import fr.dossierfacile.common.entity.LotteryDraw;
 import fr.dossierfacile.common.entity.ProcessingCapacity;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.TenantUserApi;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LotteryTicketStatus;
 import fr.dossierfacile.common.enums.QueueEntrySource;
@@ -316,8 +318,8 @@ class LotteryDrawServiceImplTest {
             LotteryTicket ticket = pendingTicket(1L, 100L);
             Tenant tenant = tenant(100L, TenantFileStatus.COMPLETED);
             listedThenChanged(List.of(ticket), () -> when(tenantUserApiRepository.findAllByTenant(tenant)).thenReturn(List.of(
-                    fr.dossierfacile.common.entity.TenantUserApi.builder()
-                            .userApi(fr.dossierfacile.common.entity.UserApi.builder().id(9L).name("closed-partner").build())
+                    TenantUserApi.builder()
+                            .userApi(UserApi.builder().id(9L).name("closed-partner").build())
                             .build())));
 
             Optional<LotteryDraw> draw = service.executeDrawIfNeeded(DRAW_DATE);

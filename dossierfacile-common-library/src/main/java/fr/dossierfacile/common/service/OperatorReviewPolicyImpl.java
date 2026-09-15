@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.constants.PartnerConstants;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -52,7 +53,13 @@ public class OperatorReviewPolicyImpl implements OperatorReviewPolicy {
     // TODO(partner-completed-optin-100): remove with the partner_completed_optin flag once every partner has integrated COMPLETED
     @Override
     public boolean isPartnerOptedIn(UserApi userApi) {
-        return featureFlagService.isPartnerOptedIn(PARTNER_COMPLETED_OPTIN_FEATURE_FLAG, userApi);
+        // The owner space is excluded whatever its flag (owner mappers and mails are unconditional)
+        if (userApi == null || !userApi.isCompletedStatusSupported()
+                || PartnerConstants.DF_OWNER_NAME.equals(userApi.getName())) {
+            return false;
+        }
+        // Global kill-switch, read last: no flag lookup for a partner that did not integrate COMPLETED
+        return featureFlagService.isFeatureEnabled(PARTNER_COMPLETED_OPTIN_FEATURE_FLAG);
     }
 
     @Override

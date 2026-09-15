@@ -10,10 +10,10 @@ Garanties :
 - **Flag inactif = comportement antérieur exact** : aucun partenaire n'a intégré `COMPLETED`, les trois verrous de l'opt-in (completed-optin.md §7) s'appliquent à tous.
 - Le partenaire n'est **pas notifié** du passage `COMPLETED → TO_PROCESS`. : depuis l'itération « partage en TO_PROCESS », les deux statuts sont des dossiers *non vérifiés* au rendu identique (page publique, full PDF, URLs). Le partenaire n'a donc **pas** à être notifié du passage `COMPLETED → TO_PROCESS`.
 - **Un partenaire n'ayant pas intégré `COMPLETED` ne le voit jamais** : verrous conditionnels + filets défensifs (§4).
-- **L'espace propriétaire (`dfconnect-proprietaire`) n'est pas considéré comme ayant intégré `COMPLETED`** (garde-fou en lecture et en saisie).
+- **L'espace propriétaire (`dfconnect-proprietaire`) n'est pas considéré comme ayant intégré `COMPLETED`** 
 - **Pas de rollback par partenaire** dans cette version (§9).
 
-Vocabulaire : un partenaire **ayant intégré le statut COMPLETED** (*partner opted in* dans le code) est un partenaire listé dans le flag actif `partner_completed_optin`. Les méthodes en découlent : `FeatureFlagService.isPartnerOptedIn(key, userApi)`, `OperatorReviewPolicy.isPartnerOptedIn(userApi)`.
+Vocabulaire : un partenaire **ayant intégré le statut COMPLETED** (*partner opted in* dans le code) est un partenaire coché `completed_status_supported` dans sa fiche, pendant que le kill-switch global `partner_completed_optin` est actif. Point d'entrée unique : `OperatorReviewPolicy.isPartnerOptedIn(userApi)`.
 
 ---
 
@@ -21,26 +21,23 @@ Vocabulaire : un partenaire **ayant intégré le statut COMPLETED** (*partner op
 
 Migration : `20260910000000-add-partner-completed-optin-flag.xml`.
 
-- **`feature_flag.opted_in_partners`** (`TEXT`, nullable) : liste de **client ids Keycloak** des partenaires (`dfconnect-xxx`, stockés dans `user_api.name`, champ « clientId » de la fiche partenaire BO ; `name2` est le libellé d'affichage) séparés par des virgules. Null ou vide = aucun partenaire. Parsing dans l'entité (`FeatureFlag.getOptedInPartnerNames()` : trim, doublons et vides ignorés, ordre conservé).
-- **Flag `partner_completed_optin`**, inséré inactif, `only_for_new_user = false`, `rollout_pct = 100` : flag **global** (comme `tenant_lottery`), `rollout_pct` / `only_for_new_user` ignorés.
-
+- **`user_api.completed_status_supported`** (`BOOLEAN NOT NULL DEFAULT false`) : le partenaire a intégré le statut `COMPLETED`. Porté par l'entité `UserApi` (`completedStatusSupported`).
+- **Flag `partner_completed_optin`**, inséré inactif, `only_for_new_user = false`, `rollout_pct = 100` : **kill-switch global** (comme `tenant_lottery`), `rollout_pct` / `only_for_new_user` ignorés. Inactif = aucun partenaire n'a intégré `COMPLETED`.
 
 ---
 
 ## 3. Pilotage BO
 
-Écran `/bo/feature-flags` (rôle ADMIN) :
-- le flag est marqué **Global** (pas de rollout) et affiche ses **partenaires opt-in** en badges ;
-- bouton **« Partenaires »** → modale avec la liste éditable (`user_api.name`, séparés par des virgules) et la liste des partenaires connus en aide à la saisie ;
-- `POST /bo/feature-flags/opted-in-partners` (`key`, `value`) : refuse une clé qui n'est pas un flag partenaire, refuse `dfconnect-proprietaire`, refuse toute liste contenant un nom inconnu (`user_api.name`) — **rien n'est enregistré** dans ces cas, message d'erreur listant les noms inconnus ; succès → message de confirmation, `log.info` ancien → nouveau.
+- Fiche partenaire `/bo/userApi/{id}` (`BOUserApiController`, fragment `user-api-form.html`) : case **« Statut COMPLETED intégré »** (`completedStatusSupported`). Cocher pour `dfconnect-proprietaire` est refusé (erreur de validation sur le champ, rien n'est enregistré). **L'intégration est définitive** : la case est désactivée une fois cochée, et le contrôleur conserve la valeur persistée à `true` quel que soit le POST (une case désactivée n'est pas envoyée). Retour arrière uniquement par SQL. La liste `/bo/userApi` affiche la colonne **COMPLETED**.
+- Écran `/bo/feature-flags` (rôle ADMIN) : le flag `partner_completed_optin` est marqué **Global** (pas de rollout), Start/Stop uniquement.
 
-Procédure d'ouverture d'un partenaire : recette de son intégration en préprod (§7), ajout à la liste, puis activation du flag s'il ne l'est pas encore. **Retirer un nom n'agit que sur les nouvelles soumissions et liaisons** (§9).
+Procédure d'ouverture d'un partenaire : recette de son intégration en préprod (§7), coche dans sa fiche, puis activation du flag s'il ne l'est pas encore. **Pas de retour arrière par partenaire** (§9).
 
 ---
 
 ## 4. Verrous conditionnels
 
-Point d'entrée unique : `OperatorReviewPolicy.isPartnerOptedIn(userApi)` → `FeatureFlagService.isPartnerOptedIn("partner_completed_optin", userApi)` (faux si `userApi` nul, nom blanc ou `dfconnect-proprietaire` ; sinon flag actif **et** nom listé, comparaison exacte après trim).
+Point d'entrée unique : `OperatorReviewPolicy.isPartnerOptedIn(userApi)` (faux si `userApi` nul, non coché `completedStatusSupported` ou `dfconnect-proprietaire` ; sinon flag `partner_completed_optin` actif, lu en dernier).
 
 | Verrou (completed-optin.md §7) | Avant | Après |
 |---|---|---|
@@ -89,19 +86,19 @@ Règle du contrat : **à chaque entrée dans un état, un événement nommé d'a
 
 ## 7. Scénarios de test manuel (préprod)
 
-Préparation : flag `tenant_completed_optin` actif à 100 %, `tenant_lottery` OFF puis ON, deux partenaires DFC de test `P_open` et `P_closed`, `partner_completed_optin` actif avec `P_open` listé (sauf S1-S2). Vérifications : `tenant.status`, `tenant_userapi`, `tenant_log`, `callback_log` (`partner_id`, `tenant_status`, payload), ELK.
+Préparation : flag `tenant_completed_optin` actif à 100 %, `tenant_lottery` OFF puis ON, deux partenaires DFC de test `P_open` (coché « Statut COMPLETED intégré ») et `P_closed` (non coché), `partner_completed_optin` actif (sauf S1-S2). Vérifications : `tenant.status`, `tenant_userapi`, `tenant_log`, `callback_log` (`partner_id`, `tenant_status`, payload), ELK.
 
 | # | Scénario | Attendu |
 |---|---|---|
-| S1 | Flag `partner_completed_optin` **inactif**, `P_open` listé : liaison DFC d'un dossier COMPLETED | Bascule TO_PROCESS, mail 174, `CREATED_ACCOUNT` avec `status=TO_PROCESS` |
-| S2 | Idem, flag actif mais liste vide | Idem S1 |
+| S1 | Flag `partner_completed_optin` **inactif**, `P_open` coché : liaison DFC d'un dossier COMPLETED | Bascule TO_PROCESS, mail 174, `CREATED_ACCOUNT` avec `status=TO_PROCESS` |
+| S2 | Idem, flag actif mais aucun partenaire coché | Idem S1 |
 | S3 | Flag actif, compte lié à `P_open` avant soumission → signature | `COMPLETED`, `COMPLETED_ACCOUNT` avec `status=COMPLETED` aux deux niveaux, `dossierUrl` / `dossierPdfUrl` renseignés ; GET api-partner : `optInEligible=false`, pas de `validationRequested` ; encart opt-in visible côté locataire |
 | S4 | S3 → opt-in « oui » (loterie OFF) | TO_PROCESS, **aucune** nouvelle ligne `callback_log` ; annulation → COMPLETED, nouveau `COMPLETED_ACCOUNT` |
 | S5 | S3 → loterie ON, ticket tiré | TO_PROCESS sans webhook ; validation opérateur → `VERIFIED_ACCOUNT` |
 | S6 | S3 → liaison à `P_closed` | Bascule TO_PROCESS, mail 174 nommant `P_closed`, `CREATED_ACCOUNT` à `P_closed` seulement ; `optInEligible=false` côté locataire (plus éligible) ; re-soumission ultérieure → TO_PROCESS |
 | S7 | Dossier COMPLETED sans partenaire → liaison à `P_open` | Pas de bascule, `COMPLETED_ACCOUNT`, `callback_log.tenant_status=COMPLETED` |
 | S8 | BO : renvoi manuel d'un COMPLETED vers `P_open` / vers `P_closed` | `COMPLETED_ACCOUNT` / `CREATED_ACCOUNT` + `log.error` « Defensive callback type downgrade » (cas anormal, ne se produit que si `P_closed` est lié à un COMPLETED) |
-| S9 | BO : saisie de `dfconnect-proprietaire`, d'un nom inconnu, d'une liste avec espaces | Refus avec message / refus listant l'inconnu / liste normalisée enregistrée |
+| S9 | BO : cocher « Statut COMPLETED intégré » sur la fiche `dfconnect-proprietaire` ; ré-enregistrer la fiche `P_open` (case désactivée) | Refus avec message sur le champ, fiche non enregistrée / `P_open` reste coché |
 | S10 | DFC `GET /dfc/tenant/profile` d'un COMPLETED avec `P_closed` | Réponse `TO_PROCESS` (bascule) **sans** `log.error` de masquage |
 
 ---
@@ -116,17 +113,16 @@ FROM tenant t
 JOIN tenant_userapi tua ON tua.tenant_id = t.id
 JOIN user_api ua ON ua.id = tua.userapi_id
 WHERE t.status = 'COMPLETED'
-  AND ua.name <> ALL (string_to_array(
-        (SELECT COALESCE(opted_in_partners, '') FROM feature_flag WHERE key = 'partner_completed_optin'), ','));
+  AND NOT ua.completed_status_supported;
 ```
-- `callback_log` : `SELECT partner_id, count(*) FROM callback_log WHERE tenant_status = 'COMPLETED' GROUP BY 1` — uniquement des partenaires listés.
+- `callback_log` : `SELECT partner_id, count(*) FROM callback_log WHERE tenant_status = 'COMPLETED' GROUP BY 1` — uniquement des partenaires cochés.
 - Effet attendu sur la loterie : baisse du `bypass_count` (`lottery_draw`), les liaisons vers des partenaires ayant intégré COMPLETED n'entrant plus en file.
 
 ---
 
 ## 9. Limites et évolutions
 
-- **Pas de rollback par partenaire** : retirer un nom de la liste (ou désactiver le flag) n'agit que sur les nouvelles soumissions et liaisons. Les dossiers COMPLETED déjà liés à ce partenaire le restent ; ses lectures sont alors masquées avec `log.error` (§4), et l'invariant SQL §8 les liste. Le rollback global `/completed-rollback` (completed-optin.md §9) reste disponible.
+- **Pas de rollback par partenaire** : l'intégration COMPLETED d'un partenaire est définitive dans le BO (§3). Désactiver le flag global (kill-switch) n'agit que sur les nouvelles soumissions et liaisons : les dossiers COMPLETED déjà liés le restent, leurs lectures par le partenaire sont alors masquées avec `log.error` (§4), et l'invariant SQL §8 les liste. Le rollback global `/completed-rollback` (completed-optin.md §9) reste disponible.
 - **Propriétaire** hors périmètre (mappers owner inconditionnels, mails « candidat validé / non validé »).
 - **Retour en `INCOMPLETE`** non notifié, comme pour `TO_PROCESS` aujourd'hui.
 - **COUPLE / GROUP** : suivent l'extension de l'opt-in locataire.

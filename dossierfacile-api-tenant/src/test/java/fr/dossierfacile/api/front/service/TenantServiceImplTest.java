@@ -11,6 +11,8 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
+import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
@@ -84,6 +86,8 @@ class TenantServiceImplTest {
     private FeatureFlagService featureFlagService;
     @Mock
     private LotteryTicketService lotteryTicketService;
+    @Mock
+    private ApartmentSharingLinkService apartmentSharingLinkService;
 
     @InjectMocks
     private TenantServiceImpl tenantService;
@@ -263,6 +267,23 @@ class TenantServiceImplTest {
             assertThrows(TenantIllegalStateException.class, () -> tenantService.createSharingLink(tenant, form));
         }
         verify(apartmentSharingLinkRepository, never()).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
+    void getDefaultSharingLink_isAllowedForSubmittedDossier() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.TO_PROCESS);
+        ApartmentSharingLinkModel link = ApartmentSharingLinkModel.builder().id(1L).build();
+        when(apartmentSharingLinkService.getDefaultLink(tenant.getApartmentSharing(), tenant, true)).thenReturn(link);
+
+        assertEquals(link, tenantService.getDefaultSharingLink(tenant, true));
+    }
+
+    @Test
+    void getDefaultSharingLink_isRefusedForNonSubmittedDossier() {
+        Tenant tenant = aloneTenantWithStatus(TenantFileStatus.INCOMPLETE);
+
+        assertThrows(TenantIllegalStateException.class, () -> tenantService.getDefaultSharingLink(tenant, true));
+        verifyNoInteractions(apartmentSharingLinkService);
     }
 
     @Test

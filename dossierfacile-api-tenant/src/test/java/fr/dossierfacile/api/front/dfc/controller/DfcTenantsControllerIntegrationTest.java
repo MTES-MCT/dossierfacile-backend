@@ -20,6 +20,7 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
@@ -109,6 +110,8 @@ class DfcTenantsControllerIntegrationTest {
     private TenantStatusService tenantStatusService;
     @MockitoBean
     private ApartmentSharingCommonService apartmentSharingCommonService;
+    @MockitoBean
+    private ApartmentSharingLinkService apartmentSharingLinkService;
 
     private Long tenantId;
     private String expectedDocumentUrl;

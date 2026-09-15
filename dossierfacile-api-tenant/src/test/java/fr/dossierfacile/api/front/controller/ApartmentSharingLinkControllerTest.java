@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
@@ -155,7 +156,10 @@ public class ApartmentSharingLinkControllerTest {
                                     409,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.INCOMPLETE));
+                                        Tenant tenant = tenantWithDossierStatus(TenantFileStatus.INCOMPLETE);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        doThrow(new TenantIllegalStateException("Sharing a dossier requires a submitted dossier"))
+                                                .when(self.tenantService).getDefaultSharingLink(tenant, true);
                                         return v;
                                     },
                                     Collections.emptyList()

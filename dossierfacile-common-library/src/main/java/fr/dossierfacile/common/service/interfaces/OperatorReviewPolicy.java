@@ -12,9 +12,8 @@ public interface OperatorReviewPolicy {
 
     String COMPLETED_OPTIN_FEATURE_FLAG = "tenant_completed_optin";
     /**
-     * Global flag whose {@code opted_in_partners} lists the partners (user_api.name) that
-     * accept the COMPLETED status. Not opted in: every other partner, or all of them when
-     * the flag is inactive.
+     * Global kill-switch for the partners flagged {@code user_api.completed_status_supported}.
+     * Inactive: no partner accepts the COMPLETED status.
      * <p>
      * TODO(partner-completed-optin-100): drop the flag (and every {@code isPartnerOptedIn} call site) once every
      * partner has integrated COMPLETED.
@@ -28,8 +27,8 @@ public interface OperatorReviewPolicy {
     boolean supportsCompletedStatus(Tenant tenant);
 
     /**
-     * The partner accepts the COMPLETED status: it is listed in the active
-     * {@link #PARTNER_COMPLETED_OPTIN_FEATURE_FLAG} flag. Such a partner sees COMPLETED in
+     * The partner accepts the COMPLETED status: flagged {@code completedStatusSupported} while
+     * the {@link #PARTNER_COMPLETED_OPTIN_FEATURE_FLAG} flag is active. Such a partner sees COMPLETED in
      * its payloads, receives the COMPLETED_ACCOUNT webhook and does not send a COMPLETED
      * dossier back to the operator queue when linked. The owner partner is never opted in.
      */
