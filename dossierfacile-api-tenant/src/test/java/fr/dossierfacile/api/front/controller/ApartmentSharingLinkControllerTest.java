@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
@@ -137,13 +138,28 @@ public class ApartmentSharingLinkControllerTest {
                                     Collections.emptyList()
                             )
                     ),
-                    Pair.of("Should respond 409 when dossier is neither COMPLETED nor VALIDATED",
+                    Pair.of("Should respond 200 when dossier is TO_PROCESS",
+                            new ControllerParameter<>(
+                                    new UpdateDefaultLinkTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.TO_PROCESS));
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 409 when dossier is not submitted",
                             new ControllerParameter<>(
                                     new UpdateDefaultLinkTestParameter(),
                                     409,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenantWithDossierStatus(TenantFileStatus.TO_PROCESS));
+                                        Tenant tenant = tenantWithDossierStatus(TenantFileStatus.INCOMPLETE);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        doThrow(new TenantIllegalStateException("Sharing a dossier requires a submitted dossier"))
+                                                .when(self.tenantService).getDefaultSharingLink(tenant, true);
                                         return v;
                                     },
                                     Collections.emptyList()

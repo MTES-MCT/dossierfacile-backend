@@ -81,6 +81,19 @@
                           th:if="${#fields.hasErrors('disabled')}"></span>
                 </div>
                 <div class="mb-3 col-md-6">
+                    <div>
+                    <input autocomplete="off" id="completedStatusSupported"
+                           th:field="*{completedStatusSupported}"
+                           th:disabled="*{completedStatusSupported}"
+                           type="checkbox"/><label for="completedStatusSupported">Statut COMPLETED intégré</label>
+                    </div>
+                    <div class="form-text">
+                        Le partenaire verra le statut <strong>COMPLETED</strong> et recevra le webhook <strong>COMPLETED_ACCOUNT</strong>
+                        (si le flag global <code>partner_completed_optin</code> est actif). Ne cocher qu'après recette de son intégration :
+                        <strong>l'intégration est définitive</strong>, la case ne peut plus être décochée ensuite.
+                    </div>
+                    <span class="help-block color--error" th:errors="*{completedStatusSupported}"
+                          th:if="${#fields.hasErrors('completedStatusSupported')}"></span>
                 </div>
             </div>
             <div class="row">

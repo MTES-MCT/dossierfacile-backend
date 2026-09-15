@@ -86,6 +86,9 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     public void changeTenantStatusToValidated(Tenant tenant) {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantCommonRepository.save(tenant);
+        // A full PDF rendered while the dossier was not verified (TO_PROCESS or COMPLETED
+        // design) must not survive the validation: it is regenerated lazily with the verified design
+        apartmentSharingCommonService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         // the lottery draw win is spent
         lotteryTicketService.consumeDrawnTicket(tenant.getId());
 

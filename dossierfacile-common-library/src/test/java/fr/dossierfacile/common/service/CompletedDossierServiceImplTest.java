@@ -9,7 +9,6 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -32,7 +31,6 @@ class CompletedDossierServiceImplTest {
     private TenantLogCommonService tenantLogCommonService;
     private TenantMapperForMail tenantMapperForMail;
     private MailCommonService mailCommonService;
-    private ApartmentSharingCommonService apartmentSharingCommonService;
     private LotteryTicketService lotteryTicketService;
 
     private CompletedDossierServiceImpl service;
@@ -46,7 +44,6 @@ class CompletedDossierServiceImplTest {
         tenantLogCommonService = mock(TenantLogCommonService.class);
         tenantMapperForMail = mock(TenantMapperForMail.class);
         mailCommonService = mock(MailCommonService.class);
-        apartmentSharingCommonService = mock(ApartmentSharingCommonService.class);
         lotteryTicketService = mock(LotteryTicketService.class);
 
         service = new CompletedDossierServiceImpl(
@@ -54,7 +51,6 @@ class CompletedDossierServiceImplTest {
                 tenantLogCommonService,
                 tenantMapperForMail,
                 Optional.of(mailCommonService),
-                apartmentSharingCommonService,
                 lotteryTicketService
         );
 
@@ -87,8 +83,6 @@ class CompletedDossierServiceImplTest {
                 verify(tenantCommonRepository).save(tenant);
                 verify(tenantLogCommonService).saveTenantLog(argThat(log ->
                         log.getLogType() == LogType.COMPLETED_SWITCHED_TO_PROCESS && log.getTenantId().equals(tenant.getId())));
-                // The full PDF rendered with the COMPLETED design is dropped
-                verify(apartmentSharingCommonService).resetDossierPdfGenerated(apartmentSharing);
 
                 // And - the mail mentioning the partner is sent after commit
                 verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
@@ -111,7 +105,6 @@ class CompletedDossierServiceImplTest {
             assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
             verify(tenantCommonRepository).save(tenant);
             verify(tenantLogCommonService).saveTenantLog(any(TenantLog.class));
-            verify(apartmentSharingCommonService).resetDossierPdfGenerated(apartmentSharing);
             verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
         }
 
@@ -124,7 +117,6 @@ class CompletedDossierServiceImplTest {
             assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.VALIDATED);
             verify(tenantCommonRepository, never()).save(any(Tenant.class));
             verify(tenantLogCommonService, never()).saveTenantLog(any(TenantLog.class));
-            verify(apartmentSharingCommonService, never()).resetDossierPdfGenerated(any());
             verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
         }
     }

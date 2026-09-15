@@ -56,12 +56,24 @@ public class ApartmentSharingPdfDocumentTemplateTest {
         }
     }
 
-    // A COMPLETED dossier renders with the dedicated first-page template
-    // (visual check: target/fullPdfGenerationCompleted.pdf)
+    // A non verified dossier (COMPLETED or TO_PROCESS) renders without index pages nor
+    // header logos (visual check: target/fullPdfGenerationCompleted.pdf / ...ToProcess.pdf)
     @Test
     void should_generate_pdf_for_completed_dossier(ApartmentSharing apartmentSharing) throws IOException {
         apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.COMPLETED));
         File resultFile = new File("target/fullPdfGenerationCompleted.pdf");
+
+        try (FileOutputStream w = new FileOutputStream(resultFile); InputStream is = pdfService.render(apartmentSharing)) {
+            byte[] result = is.readAllBytes();
+            w.write(result);
+            Assertions.assertThat(result).isNotEmpty();
+        }
+    }
+
+    @Test
+    void should_generate_pdf_for_to_process_dossier(ApartmentSharing apartmentSharing) throws IOException {
+        apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.TO_PROCESS));
+        File resultFile = new File("target/fullPdfGenerationToProcess.pdf");
 
         try (FileOutputStream w = new FileOutputStream(resultFile); InputStream is = pdfService.render(apartmentSharing)) {
             byte[] result = is.readAllBytes();

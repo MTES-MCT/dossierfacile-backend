@@ -5,6 +5,8 @@ import fr.dossierfacile.common.entity.LotteryTicket;
 import fr.dossierfacile.common.entity.LotteryDraw;
 import fr.dossierfacile.common.entity.ProcessingCapacity;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.TenantUserApi;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LotteryTicketStatus;
 import fr.dossierfacile.common.enums.QueueEntrySource;
@@ -16,7 +18,6 @@ import fr.dossierfacile.common.repository.ProcessingCapacityRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
-import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
@@ -57,7 +58,6 @@ class LotteryDrawServiceImplTest {
     private TenantLogRepository tenantLogRepository;
     private TenantCommonRepository tenantCommonRepository;
     private TenantLogCommonService tenantLogCommonService;
-    private ApartmentSharingCommonService apartmentSharingCommonService;
     private TenantMapperForMail tenantMapperForMail;
     private MailCommonService mailCommonService;
 
@@ -74,7 +74,6 @@ class LotteryDrawServiceImplTest {
         tenantLogRepository = mock(TenantLogRepository.class);
         tenantCommonRepository = mock(TenantCommonRepository.class);
         tenantLogCommonService = mock(TenantLogCommonService.class);
-        apartmentSharingCommonService = mock(ApartmentSharingCommonService.class);
         tenantMapperForMail = mock(TenantMapperForMail.class);
         mailCommonService = mock(MailCommonService.class);
         lotteryTicketService = new LotteryTicketServiceImpl(
@@ -93,7 +92,6 @@ class LotteryDrawServiceImplTest {
                 tenantLogRepository,
                 tenantCommonRepository,
                 tenantLogCommonService,
-                apartmentSharingCommonService,
                 tenantMapperForMail,
                 Optional.of(mailCommonService)
         );
@@ -320,7 +318,10 @@ class LotteryDrawServiceImplTest {
             mockBypass(0);
             LotteryTicket ticket = pendingTicket(1L, 100L);
             Tenant tenant = tenant(100L, TenantFileStatus.COMPLETED);
-            listedThenChanged(List.of(ticket), () -> when(tenantUserApiRepository.existsByTenant(tenant)).thenReturn(true));
+            listedThenChanged(List.of(ticket), () -> when(tenantUserApiRepository.findAllByTenant(tenant)).thenReturn(List.of(
+                    TenantUserApi.builder()
+                            .userApi(UserApi.builder().id(9L).name("closed-partner").build())
+                            .build())));
 
             Optional<LotteryDraw> draw = service.executeDrawIfNeeded(DRAW_DATE);
 
