@@ -250,9 +250,10 @@ class BOApplicationAccessServiceTest {
         @Test
         void fileWithoutDocument_throwsAccessDenied() {
             File file = File.builder().id(1L).build();
+            UserPrincipal principal = operatorPrincipal();
             when(tenantResolver.resolveTenantFromFile(file)).thenThrow(BOAccessDenied.generic());
 
-            assertThatThrownBy(() -> service.checkFileAccess(operatorPrincipal(), file))
+            assertThatThrownBy(() -> service.checkFileAccess(principal, file))
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
         }
@@ -429,7 +430,9 @@ class BOApplicationAccessServiceTest {
 
         @Test
         void operatorWithExplicitTenantId_throwsAccessDenied() {
-            assertThatThrownBy(() -> service.checkNextApplicationAccess(operatorPrincipal(), TENANT_ID))
+            UserPrincipal principal = operatorPrincipal();
+
+            assertThatThrownBy(() -> service.checkNextApplicationAccess(principal, TENANT_ID))
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
         }

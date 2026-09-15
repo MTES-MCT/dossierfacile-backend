@@ -10,7 +10,11 @@ public class XssSanitizer {
         // Private constructor for utility class
     }
 
-    private static final Safelist HTML_SAFELIST = Safelist.basic()
+    private static final Safelist HTML_SAFELIST = new Safelist()
+            .addTags("b", "i", "em", "strong", "a", "p", "ul", "li", "br", "span", "hr")
+            .addAttributes(":all", "class", "style")
+            .addAttributes("a", "href", "target", "rel")
+            .addProtocols("a", "href", "ftp", "http", "https", "mailto")
             .preserveRelativeLinks(true);
 
     public static String sanitize(String value) {

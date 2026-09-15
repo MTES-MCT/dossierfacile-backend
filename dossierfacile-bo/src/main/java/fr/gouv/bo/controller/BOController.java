@@ -50,6 +50,7 @@ public class BOController {
 
     private static final String EMAIL = "email";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
+    private static final String REDIRECT_BO_ERROR = "redirect:/error";
     private static final String SHOW_ALERT = "showAlert";
     private static final String MAX_PAGE_SIZE = "20";
     private static final int MAX_PAGE_NUMBER = 5;
@@ -101,7 +102,7 @@ public class BOController {
         }
 
         // Pas de fallback vers une page de login multiple : redirige vers une page d'erreur
-        return "redirect:/error";
+        return REDIRECT_BO_ERROR;
     }
 
     @GetMapping("/bo")
@@ -188,7 +189,7 @@ public class BOController {
     @GetMapping("/bo/nextApplication")
     public String nextApplication(@AuthenticationPrincipal UserPrincipal principal, @RequestParam(value = "tenant_id", required = false) Long tenantId) {
         if (principal == null) {
-            return "redirect:/error";
+            return REDIRECT_BO_ERROR;
         }
         applicationAccessService.checkNextApplicationAccess(principal, tenantId);
         return tenantService.redirectToApplication(principal, tenantId);
@@ -198,7 +199,7 @@ public class BOController {
     @RateLimit(name = "bo-regenerate-pdf", capacity = 10, period = 1, unit = java.util.concurrent.TimeUnit.MINUTES)
     public String regeneratePdfDocument(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
         if (principal == null) {
-            return "redirect:/error";
+            return REDIRECT_BO_ERROR;
         }
         Tenant tenant = tenantResolver.resolveTenantFromDocument(id);
         applicationAccessService.checkTenantAccess(principal, tenant.getId());

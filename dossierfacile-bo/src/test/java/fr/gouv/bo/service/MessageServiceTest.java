@@ -40,7 +40,7 @@ class MessageServiceTest {
 
         when(messageRepository.save(any(Message.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Message created = messageService.create(messageDTO, tenant, false, false);
+        messageService.create(messageDTO, tenant, false, false);
 
         ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(messageRepository).save(captor.capture());

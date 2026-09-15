@@ -77,9 +77,10 @@ class XssSanitizationTest {
         String input = "<p>Hello <script>alert('XSS')</script><img src=x onerror=alert(1)>world</p>";
         String cleaned = XssSanitizer.cleanHtml(input);
 
-        assertThat(cleaned).doesNotContain("<script>");
-        assertThat(cleaned).doesNotContain("onerror");
-        assertThat(cleaned).contains("<p>Hello world</p>");
+        assertThat(cleaned)
+                .doesNotContain("<script>")
+                .doesNotContain("onerror")
+                .contains("<p>Hello world</p>");
     }
 
     @Test
@@ -87,18 +88,31 @@ class XssSanitizationTest {
         String input = "<p>Bonjour,</p><ul><li>Document non conforme</li></ul><p>Consulter <a href=\"/contact?open=form\">support</a></p>";
         String cleaned = XssSanitizer.cleanHtml(input);
 
-        assertThat(cleaned).contains("<p>Bonjour,</p>");
-        assertThat(cleaned).contains("<ul>");
-        assertThat(cleaned).contains("<li>Document non conforme</li>");
-        assertThat(cleaned).contains("<a href=\"/contact?open=form\">support</a>");
+        assertThat(cleaned)
+                .contains("<p>Bonjour,</p>")
+                .contains("<ul>")
+                .contains("<li>Document non conforme</li>")
+                .contains("<a href=\"/contact?open=form\">support</a>");
     }
 
     @Test
-    void cleanHtml_shouldAddNofollowToExternalLinks() {
-        String input = "<a href=\"https://example.com\">External</a>";
+    void cleanHtml_shouldPreserveClassesAndStyles() {
+        String input = "<ul class=\"custom-message\"><li><strong class=\"name\">John</strong><span style=\"color: red;\">Alert</span></li></ul><hr>";
         String cleaned = XssSanitizer.cleanHtml(input);
 
-        assertThat(cleaned).contains("<a href=\"https://example.com\" rel=\"nofollow\">External</a>");
+        assertThat(cleaned)
+                .contains("<ul class=\"custom-message\">")
+                .contains("<strong class=\"name\">John</strong>")
+                .contains("<span style=\"color: red;\">Alert</span>")
+                .contains("<hr>");
+    }
+
+    @Test
+    void cleanHtml_shouldPreserveLinkAttributes() {
+        String input = "<a href=\"https://example.com\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"link\">External</a>";
+        String cleaned = XssSanitizer.cleanHtml(input);
+
+        assertThat(cleaned).contains("<a href=\"https://example.com\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"link\">External</a>");
     }
 
     @Test
@@ -106,8 +120,9 @@ class XssSanitizationTest {
         String input = "<a href=\"javascript:alert(1)\">Click me</a>";
         String cleaned = XssSanitizer.cleanHtml(input);
 
-        assertThat(cleaned).doesNotContain("javascript:");
-        assertThat(cleaned).contains("<a rel=\"nofollow\">Click me</a>");
+        assertThat(cleaned)
+                .doesNotContain("javascript:")
+                .isEqualTo("<a>Click me</a>");
     }
 
     @Test
