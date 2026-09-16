@@ -112,7 +112,7 @@ public class MailCommonServiceImpl implements MailCommonService {
             log.error("Lottery cooldown-ended mail skipped: brevo.template.id.lottery.cooldown.ended is not configured");
             return;
         }
-        Map<String, String> params = createBaseParams(tenant, false);
+        Map<String, String> params = createBaseParams(tenant, true);
         sendEmailToTenant(tenant, params, templateIdLotteryCooldownEnded);
     }
 
