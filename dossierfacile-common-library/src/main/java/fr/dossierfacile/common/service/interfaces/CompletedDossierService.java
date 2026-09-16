@@ -2,19 +2,12 @@ package fr.dossierfacile.common.service.interfaces;
 
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 
 /**
- * Shared transitions of the COMPLETED opt-in MVP, used by both status update
- * implementations (api-tenant and BO) and by every switch-back path.
+ * Switch-back of a COMPLETED dossier to the operator queue, shared by every
+ * switch-back path (partner link, BO rollback).
  */
 public interface CompletedDossierService {
-
-    /**
-     * Returns COMPLETED instead of TO_PROCESS when the dossier is eligible to the
-     * opt-in. Any other computed status is returned unchanged.
-     */
-    TenantFileStatus toCompletedIfEligible(Tenant tenant, TenantFileStatus computedStatus);
 
     /**
      * Sends a COMPLETED dossier back to the operator queue: status TO_PROCESS,

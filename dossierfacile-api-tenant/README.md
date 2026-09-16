@@ -18,64 +18,7 @@ The Swagger documentation is available [here](https://api-preprod.dossierfacile.
 
 ## Configuration
 
-Create a file `application-dev.properties` in `dossierfacile-api-tenant/src/main/resources`
-
-```properties
-#Path to the folder when the files will be saved during dev
-mock.storage.path=../mock-storage
-# List of the providers to use for the storage
-storage.provider.list=LOCAL
-# Url of the tenant front
-tenant.base.url=localhost:9002
-# Port of the API
-server.port=8090
-# Url of the tenant API
-application.base.url=http://localhost:8090
-
-# TODO: replace with your database credentials if changed in root docker-compose-dev.yml
-# URL of the database
-spring.datasource.url=jdbc:postgresql://localhost:5432/dossierfacile
-# Username of the database
-spring.datasource.username=dossierfacile
-# Password of the database
-spring.datasource.password=your_very_secure_password
-
-#Configuration for rabbitmq (example with the docker-compose)
-spring.rabbitmq.username=dev
-spring.rabbitmq.password=password
-spring.rabbitmq.host=127.0.0.1
-
-#Keycloak configuration
-#Keycloak Url
-keycloak.server.url=http://localhost:8085/auth
-#Keycloak Realm
-keycloak.server.realm=dossier-facile
-#Keycloak Client Id for admin purpose => need to be inside the realm Master
-keycloak.server.client.id=dossier-facile-api
-#Keycloak secret that need to be retrieved from `keycloak > master realm > Clients > dossier-facile-api > Credentials > Client Secret`
-keycloak.server.client.secret=<REPLACE_ME_KEYCLOAK_SECRET>
-#Issuer URI of the keycloak server
-spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8085/auth/realms/dossier-facile
-#JWK set URI of the keycloak server
-spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8085/auth/realms/dossier-facile/protocol/openid-connect/certs
-
-# Log configuration
-environment=localhost
-logging.config=classpath:logback-spring-delayed.xml
-logging.level.root=INFO
-logging.path=logs
-
-#Brevo config
-# Leave this empty for dev
-brevo.apikey=
-# Use to blacklist domains default value is : example.com
-brevo.domains.blacklist=
-link.shared.property=
-
-# Document IA
-document.ia.api.base.url=
-document.ia.api.key=
-```
+Copy [`src/main/resources/application-dev.properties.example`](src/main/resources/application-dev.properties.example) to `src/main/resources/application-dev.properties` (git-ignored, loaded by the `dev` profile) and fill in the `<REPLACE_ME>` values. The example file is the reference for every property this module reads: keep it up to date when adding one.
 
 ## LogStash :
 

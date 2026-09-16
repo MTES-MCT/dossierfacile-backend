@@ -11,62 +11,7 @@ Service dedicated to the generation of PDF documents.
 
 ## Configuration :
 
-Create a file `application-dev.properties` in `dossierfacile-pdf-generator/src/main/resources`
-
-```properties
-# Storage path for the MockStorage
-mock.storage.path=../mock-storage
-# Storage provider list (Options: LOCAL, OVH, OUTSCALE, S3)
-storage.provider.list=LOCAL
-# For S3 provider: s3.region=sbg, s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net, s3.access.key=, s3.secret.access.key=
-
-# TODO: replace with your database credentials if changed in root docker-compose-dev.yml
-# URL of the database
-spring.datasource.url=jdbc:postgresql://localhost:5432/dossierfacile
-# Username of the database
-spring.datasource.username=dossierfacile
-# Password of the database
-spring.datasource.password=your_very_secure_password
-
-# Keycloak configuration
-# Keycloak Url
-keycloak.server.url=http://localhost:8085/auth
-# Keycloak Realm
-keycloak.server.realm=dossier-facile
-# Keycloak Client Id for admin purpose => need to be inside the realm Master
-keycloak.server.client.id=dossier-facile-api
-# Keycloak secret that need to be retrieved from keycloak.
-keycloak.server.client.secret=
-
-# Pdf generator configuration
-# key used to generate a certificate
-pdf.certificate=
-# Is the signature of the pdf activated (default is false)
-pdf.signature.activation=
-# Key used to sign the pdf
-pdf.private_key=
-
-# RabbitMQ
-# Number of message a worker will receive at a time before he acknowledge them
-rabbitmq.prefetch=
-# Name of the queue apartment-sharing
-rabbitmq.queue.apartment-sharing.name=
-# Name of the queue watermark-generic
-rabbitmq.queue.watermark-generic.name=
-# Routing key for the apartment-sharing queue
-rabbitmq.routing.key.apartment-sharing=
-# Routing key for the watermark-generic queue
-rabbitmq.routing.key.watermark-generic=
-#Configuration for rabbitmq (example with the docker-compose)
-spring.rabbitmq.username=dev
-spring.rabbitmq.password=password
-spring.rabbitmq.host=127.0.0.1
-
-# Brevo config
-# Leave this empty for dev
-brevo.apikey=
-
-```
+Copy [`src/main/resources/application-dev.properties.example`](src/main/resources/application-dev.properties.example) to `src/main/resources/application-dev.properties` (git-ignored, loaded by the `dev` profile) and fill in the `<REPLACE_ME>` values. The example file is the reference for every property this module reads: keep it up to date when adding one.
 
 ## LogStash
 

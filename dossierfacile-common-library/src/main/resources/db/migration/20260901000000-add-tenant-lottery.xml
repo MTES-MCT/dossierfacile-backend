@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Daily verification lottery: available_slots = daily_count - bypass_count. The "one
+         run per day" rule is enforced by the application (relaxable in preprod via
+         lottery.draw.allow-multiple-per-day), hence no unique constraint -->
+    <changeSet id="20260901000000-1" author="dossierfacile">
+        <createTable tableName="lottery_draw">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="draw_date" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="daily_count" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bypass_count" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="available_slots" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ticket_count" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="drawn_count" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="lottery_draw" indexName="idx_lottery_draw_date">
+            <column name="draw_date"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="lottery_draw"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Lottery applications (tickets): PENDING -> DRAWN | NOT_DRAWN | CANCELLED, DRAWN -> CONSUMED -->
+    <changeSet id="20260901000000-2" author="dossierfacile">
+        <createTable tableName="lottery_ticket">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tenant_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lottery_draw_id" type="bigint"/>
+            <column name="drawn_at" type="timestamp"/>
+            <column name="cooldown_until" type="date"/>
+            <column name="cooldown_notified_at" type="timestamp"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="lottery_ticket" baseColumnNames="tenant_id"
+                                 referencedTableName="tenant" referencedColumnNames="id"
+                                 constraintName="fk_lottery_ticket_tenant" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="lottery_ticket" baseColumnNames="lottery_draw_id"
+                                 referencedTableName="lottery_draw" referencedColumnNames="id"
+                                 constraintName="fk_lottery_ticket_draw"/>
+        <createIndex tableName="lottery_ticket" indexName="idx_lottery_ticket_cooldown">
+            <column name="status"/>
+            <column name="cooldown_until"/>
+        </createIndex>
+        <!-- Per-tenant lookups (active ticket, latest NOT_DRAWN) run on every profile
+             load through the TenantMapper: they must not seq-scan once the table grows -->
+        <createIndex tableName="lottery_ticket" indexName="idx_lottery_ticket_tenant">
+            <column name="tenant_id"/>
+            <column name="status"/>
+        </createIndex>
+        <!-- At most one active (PENDING or DRAWN) ticket per tenant -->
+        <sql>
+            CREATE UNIQUE INDEX uq_lottery_ticket_active ON lottery_ticket (tenant_id)
+                WHERE status IN ('PENDING', 'DRAWN');
+        </sql>
+        <rollback>
+            <dropTable tableName="lottery_ticket"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Global on/off flag: rollout_pct and only_for_new_user are ignored by the
+         global check (the lottery applies to every eligible tenant, old accounts
+         included); values are set to 100/false so the BO screen reflects that -->
+    <changeSet id="20260901000000-3" author="dossierfacile">
+        <insert tableName="feature_flag">
+            <column name="key" value="tenant_lottery"/>
+            <column name="description" value="Verification requests go through a daily lottery (available slots = processing capacity - bypass) instead of entering the operator queue immediately. Deactivation flushes pending applications to the queue."/>
+            <column name="active" valueBoolean="false"/>
+            <column name="only_for_new_user" valueBoolean="false"/>
+            <column name="rollout_pct" valueNumeric="100"/>
+        </insert>
+        <rollback>
+            <delete tableName="feature_flag">
+                <where>key = 'tenant_lottery'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <!-- Grandfathering of the opt-ins already in the queue is done on flag activation
+         (LotteryDrawService.grantTicketsToQueuedOptIns), not here: it must also cover
+         the opt-ins made while the flag is off (including after a kill-switch) -->
+
+</databaseChangeLog>

@@ -28,4 +28,12 @@ public enum TenantFileStatus {
     public boolean isCompletedOrValidated() {
         return this == VALIDATED || this == COMPLETED;
     }
+
+    /**
+     * Complete dossier (all mandatory documents + honor declaration) on its way to
+     * verification: COMPLETED → TO_PROCESS → VALIDATED. Excludes INCOMPLETE, DECLINED, ARCHIVED.
+     */
+    public boolean isCompletedOrBetter() {
+        return this == COMPLETED || this == TO_PROCESS || this == VALIDATED;
+    }
 }

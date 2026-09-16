@@ -23,5 +23,7 @@ public interface MailCommonService {
 
     void sendEmailCompletedSwitchedToProcessing(TenantDto tenant, String partnerName);
 
+    void sendEmailLotteryCooldownEnded(TenantDto tenant);
+
 }
 

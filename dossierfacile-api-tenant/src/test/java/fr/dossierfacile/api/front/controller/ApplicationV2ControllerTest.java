@@ -20,7 +20,8 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.service.FileUploadPreprocessor;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
+import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +85,9 @@ class ApplicationV2ControllerTest {
     private ApplicationRegistrationValidator applicationRegistrationValidator;
 
     @MockitoBean
-    private CompletedEligibilityService completedEligibilityService;
+    private OperatorReviewPolicy operatorReviewPolicy;
+    @MockitoBean
+    private LotteryTicketService lotteryTicketService;
 
     private final Gson gson = new Gson();
     private final SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtToken =
