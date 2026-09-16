@@ -38,7 +38,6 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
-import static fr.dossierfacile.common.service.interfaces.LotteryTicketService.COOLDOWN_DAYS;
 import static fr.dossierfacile.common.service.interfaces.LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG;
 
 @Slf4j
@@ -66,6 +65,9 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
     // Preprod only: allows several draws on the same day
     @Value("${lottery.draw.allow-multiple-per-day:false}")
     private boolean allowMultipleDrawsPerDay;
+
+    @Value("${lottery.cooldown.days:3}")
+    private int cooldownDays;
 
     @Override
     public boolean allowsMultipleDrawsPerDay() {
@@ -117,7 +119,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
                         drawnCount++;
                     }
                 } else {
-                    self.markNotDrawn(ticket.getId(), draw.getId(), drawDate.plusDays(COOLDOWN_DAYS));
+                    self.markNotDrawn(ticket.getId(), draw.getId(), drawDate.plusDays(cooldownDays));
                 }
             } catch (Exception e) {
                 log.error("Lottery draw for {}: failed to process ticket {} (tenant {})",
