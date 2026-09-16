@@ -99,6 +99,7 @@ class LotteryDrawServiceImplTest {
         );
         // Without Spring, the transactional self-proxy is the service itself
         ReflectionTestUtils.setField(service, "self", service);
+        ReflectionTestUtils.setField(service, "cooldownDays", 3);
 
         when(featureFlagService.isFeatureEnabled(LotteryTicketService.TENANT_LOTTERY_FEATURE_FLAG)).thenReturn(true);
         // Every tenant is in the opt-in rollout unless a test says otherwise
@@ -240,7 +241,7 @@ class LotteryDrawServiceImplTest {
             assertThat(winnerTenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
             assertThat(winnerTenant.getLastUpdateDate()).isNotNull();
             assertThat(loser.getStatus()).isEqualTo(LotteryTicketStatus.NOT_DRAWN);
-            assertThat(loser.getCooldownUntil()).isEqualTo(DRAW_DATE.plusDays(LotteryTicketService.COOLDOWN_DAYS));
+            assertThat(loser.getCooldownUntil()).isEqualTo(DRAW_DATE.plusDays(3));
             assertThat(draw).hasValueSatisfying(r -> assertThat(r.getDrawnCount()).isEqualTo(1));
             verify(tenantLogCommonService).logQueueEntered(100L, QueueEntrySource.LOTTERY_DRAW);
             verify(tenantLogCommonService, never()).logQueueEntered(eq(200L), any());

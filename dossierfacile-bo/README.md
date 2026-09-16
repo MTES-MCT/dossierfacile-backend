@@ -13,77 +13,7 @@ The back office for the Dossierfacile operators, to validate applications.
 
 ## Configuration
 
-Create a file `application-dev.properties` in `dossierfacile-bo/src/main/resources`
-
-```properties
-# Port for this Application
-server.port=8081
-application.name=bo
-environment=localhost
-
-tenant.base.url=http://localhost:9002
-# Path for the mock storage
-mock.storage.path=../mock-storage
-# List of the providers to use for the storage
-storage.provider.list=LOCAL
-
-# e2e tests
-testing.api.allowed-email-pattern=(ywiwyne-1268@yopmail\\.com|[a-z0-9]+\\.[a-z0-9_-]+@inbox\\.testmail\\.app)
-testing.api.operator-email=e2e-tests@dossierfacile.fr
-
-# TODO: replace with your database credentials if changed in root docker-compose-dev.yml
-# URL of the database
-spring.datasource.url=jdbc:postgresql://localhost:5432/dossierfacile
-# Username of the database
-spring.datasource.username=dossierfacile
-# Password of the database
-spring.datasource.password=your_very_secure_password
-
-# Keycloak configuration
-# Keycloak Url
-keycloak.server.url=http://localhost:8085/auth
-# Keycloak Realm
-keycloak.server.realm=dossier-facile-bo
-# Keycloak Client Id for admin purpose => need to be inside the realm Master
-keycloak.server.client.id=dossier-facile-bo
-# Keycloak secret that need to be retrieved from `keycloak > master realm > Clients > dossier-facile-api > Credentials > Client Secret`
-keycloak.server.client.secret=<REPLACE_ME_KEYCLOAK_SECRET>
-
-# SSO Keycloak
-spring.security.oauth2.client.provider.keycloak.issuer-uri=${keycloak.server.url}/realms/${keycloak.server.realm}
-spring.security.oauth2.client.registration.keycloak.provider=keycloak
-spring.security.oauth2.client.registration.keycloak.client-id=${keycloak.server.client.id}
-spring.security.oauth2.client.registration.keycloak.client-secret=${keycloak.server.client.secret}
-spring.security.oauth2.client.registration.keycloak.authorization-grant-type=authorization_code
-spring.security.oauth2.client.registration.keycloak.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
-spring.security.oauth2.client.registration.keycloak.scope=openid,profile,email
-spring.security.oauth2.client.registration.keycloak.client-name=Keycloak
-
-# Allow the connection from every one who has a dossierfacile.fr email
-authorize.domain.bo=dossierfacile.fr
-# Allow the connection to specific emails (used in preprod)
-authorize.bo.access.emails=
-
-# Leave this commented for dev
-# Control the max number of application that can be processed by day by operator (default: 600)
-#process.max.dossier.by.day=
-# Control the max number of application that can be processed by interval by operator (default: 20)
-#process.max.dossier.by.interval=
-# Interval to apply the control (default: 10)
-#process.max.dossier.time.interval=
-# Set the number of days to display in operator's dashboard (default: 5)
-#dashboard.days.before.to.display=
-# Time to wait before a selected application can be process by another operator (no default value).
-#time.reprocess.application.minutes=5
-
-# DocumentIA encryption key (AES, base64-encoded)
-# Clé AES (base64) utilisée pour chiffrer/déchiffrer document_ia.result. `openssl rand -base64 32`
-dossierfacile.document.ia.result.encryption.key=
-
-# Brevo config
-# Leave this empty for dev
-brevo.apikey=
-```
+Copy [`src/main/resources/application-dev.properties.example`](src/main/resources/application-dev.properties.example) to `src/main/resources/application-dev.properties` (git-ignored, loaded by the `dev` profile) and fill in the `<REPLACE_ME>` values. The example file is the reference for every property this module reads: keep it up to date when adding one.
 
 **Important**: This step is crucial because Google SSO is configured with this specific redirect URI. Omitting this will result in a `redirect_uri_mismatch` error during login: `Erreur 400: redirect_uri_mismatch`
 

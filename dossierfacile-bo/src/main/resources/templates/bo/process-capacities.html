@@ -20,6 +20,8 @@
                  th:text="${lotteryWarningMessage}"></div>
             <div th:if="${lotteryErrorMessage}" class="alert alert-danger mt-3" role="alert"
                  th:text="${lotteryErrorMessage}"></div>
+            <div th:if="${lotteryNotifiedMessage}" class="alert alert-info mt-3" role="alert"
+                 th:text="${lotteryNotifiedMessage}"></div>
             <div class="table-responsive">
                 <form th:object="${processCapacitiesDTO}" method="post" th:action="@{/bo/admin/process/capacities}">
                     <table class="table table-striped table-bordered table-hover">
@@ -33,22 +35,22 @@
                                       title="Charge opérateur totale visée pour le jour (tirés + bypass). À saisir et enregistrer avant le tirage."></span>
                             </th>
                             <!-- TODO(lottery-bypass): drop the bypass column once every dossier goes through the lottery -->
-                            <th th:if="${lotteryFlagActive}">Bypass mesuré
+                            <th th:if="${lotteryFlagActive}">Bypass estimé
                                 <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
                                       data-bs-toggle="tooltip"
                                       title="Dossiers entrés en file la veille sans passer par le tirage (liaison partenaire, couple ou colocation, hors rollout). Déduit de la capacité."></span>
                             </th>
-                            <th th:if="${lotteryFlagActive}">Places
+                            <th th:if="${lotteryFlagActive}">Places disponibles
                                 <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
                                       data-bs-toggle="tooltip"
-                                      title="Capacité − bypass : nombre maximal de tickets tirés. Si ≤ 0, aucun tirage et les tickets restent en attente."></span>
+                                      title="Capacité − bypass : nombre maximal de tickets tirés. À 0 (bypass supérieur ou égal à la capacité), aucun tirage et les tickets restent en attente ; augmentez la capacité au-delà du bypass."></span>
                             </th>
-                            <th th:if="${lotteryFlagActive}">Tickets
+                            <th th:if="${lotteryFlagActive}">Demandes
                                 <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
                                       data-bs-toggle="tooltip"
                                       title="Demandes de vérification en attente sur un dossier complet, seul et sans partenaire au moment du tirage."></span>
                             </th>
-                            <th th:if="${lotteryFlagActive}">Tirés
+                            <th th:if="${lotteryFlagActive}">Gagnants
                                 <span class="fa fa-question-circle text-muted" tabindex="0" role="img" aria-label="Définition"
                                       data-bs-toggle="tooltip"
                                       title="Tickets tirés au sort : les dossiers correspondants sont passés en file de traitement."></span>
@@ -73,7 +75,8 @@
                             <td th:if="${lotteryFlagActive}"
                                 th:text="${lotteryDraws[it.index] != null ? lotteryDraws[it.index].bypassCount : '—'}"></td>
                             <td th:if="${lotteryFlagActive}"
-                                th:text="${lotteryDraws[it.index] != null ? lotteryDraws[it.index].availableSlots : '—'}"></td>
+                                th:title="${lotteryDraws[it.index] != null and lotteryDraws[it.index].availableSlots < 0 ? 'Le bypass dépasse la capacité de ' + (-lotteryDraws[it.index].availableSlots) : null}"
+                                th:text="${lotteryDraws[it.index] != null ? T(java.lang.Math).max(0, lotteryDraws[it.index].availableSlots) : '—'}"></td>
                             <td th:if="${lotteryFlagActive}"
                                 th:text="${lotteryDraws[it.index] != null ? lotteryDraws[it.index].ticketCount : '—'}"></td>
                             <td th:if="${lotteryFlagActive}"
@@ -107,9 +110,9 @@
                         <strong th:text="${#temporals.format(todayLotteryDraw.createdAt, 'HH')} + 'h' + ${#temporals.format(todayLotteryDraw.createdAt, 'mm')}"></strong> :
                         <strong th:text="${todayLotteryDraw.drawnCount}"></strong> dossiers tirés
                         sur <span th:text="${todayLotteryDraw.ticketCount}"></span> tickets
-                        (<span th:text="${todayLotteryDraw.availableSlots}"></span> places
-                        = capacité <span th:text="${todayLotteryDraw.dailyCount}"></span>
-                        − bypass <span th:text="${todayLotteryDraw.bypassCount}"></span>).
+                        (<span th:text="${T(java.lang.Math).max(0, todayLotteryDraw.availableSlots)}"></span> places disponibles
+                        pour une capacité de <span th:text="${todayLotteryDraw.dailyCount}"></span>
+                        et un bypass de <span th:text="${todayLotteryDraw.bypassCount}"></span>).
                         <span th:unless="${lotteryDrawAllowed}">Il ne peut pas être rejoué.</span>
                     </p>
                     <form th:if="${lotteryDrawAllowed}" method="post" th:action="@{/bo/admin/process/lottery-draw}"

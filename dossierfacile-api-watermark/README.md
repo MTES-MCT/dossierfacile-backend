@@ -8,37 +8,7 @@ REST API dedicated to the FiligraneFacile project.
 - download the watermarked files
 
 ## Configuration
-Create a file `application-dev.properties` in `dossierfacile-api-watermark/src/main/resources`
-
-```properties
-#Path to the folder when the files will be saved during dev
-mock.storage.path=../mock-storage
-# Port of this API
-server.port=8091
-# List of storage providers (Options: LOCAL, OVH, OUTSCALE, S3)
-storage.provider.list=LOCAL
-# For S3 provider: s3.region=sbg, s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net, s3.access.key=, s3.secret.access.key=
-# SQL
-#URL of the database
-spring.datasource.url=
-#Username of the database
-spring.datasource.username=
-#Password of the database
-spring.datasource.password=
-
-#cron to clean the files (every day at midnight)
-cron.process.cleanup=0 0 0 * * ?
-# Number of days to keep the files watermarked
-file.retention.days=1
-
-# RABBIT
-#RabbitMQ Configuration (Configuration example with docker compose)
-rabbitmq.exchange.name=exchange.pdf.generator
-rabbitmq.routing.key=routing.key.pdf.generator.watermark-generic
-spring.rabbitmq.username=dev
-spring.rabbitmq.password=password
-spring.rabbitmq.host=127.0.0.1
-```
+Copy [`src/main/resources/application-dev.properties.example`](src/main/resources/application-dev.properties.example) to `src/main/resources/application-dev.properties` (git-ignored, loaded by the `dev` profile) and fill in the `<REPLACE_ME>` values. The example file is the reference for every property this module reads: keep it up to date when adding one.
 
 # LogStash :
 

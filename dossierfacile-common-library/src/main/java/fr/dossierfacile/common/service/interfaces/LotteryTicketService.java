@@ -15,9 +15,6 @@ public interface LotteryTicketService {
 
     String TENANT_LOTTERY_FEATURE_FLAG = "tenant_lottery";
 
-    /** Days a non-drawn tenant must wait before applying again. */
-    int COOLDOWN_DAYS = 3;
-
     /** The active (PENDING or DRAWN, see LotteryTicketStatus) ticket of this tenant, if any. */
     Optional<LotteryTicket> getActiveTicket(Long tenantId);
 

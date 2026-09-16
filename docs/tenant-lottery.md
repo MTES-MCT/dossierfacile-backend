@@ -2,7 +2,7 @@
 
 ## 1. Vue d'ensemble
 
-Le module **tenant lottery** plafonne le coût opérateur de la vérification opt-in (cf. [completed-optin.md](completed-optin.md)) : le clic « demander une vérification » n'envoie plus le dossier directement en `TO_PROCESS` — il enregistre une **candidature** pour un **tirage au sort quotidien**. Chaque nuit à 00h05 (Europe/Paris), X candidatures sont tirées parmi celles en attente ; les dossiers tirés entrent en file opérateur, les non-tirés subissent un **cooldown de 3 jours** puis doivent **recandidater manuellement** (mail de relance à la fin du cooldown, pas de mail immédiat).
+Le module **tenant lottery** plafonne le coût opérateur de la vérification opt-in (cf. [completed-optin.md](completed-optin.md)) : le clic « demander une vérification » n'envoie plus le dossier directement en `TO_PROCESS` — il enregistre une **candidature** pour un **tirage au sort quotidien**. Chaque nuit à 00h05 (Europe/Paris), X candidatures sont tirées parmi celles en attente ; les dossiers tirés entrent en file opérateur, les non-tirés subissent un **cooldown de 3 jours** (`lottery.cooldown.days`, défaut 3) puis doivent **recandidater manuellement** (mail de relance à la fin du cooldown, pas de mail immédiat).
 
 ```
 X (places du jour J) = processing_capacity.daily_count(J) − bypass mesuré sur le jour civil J−1
@@ -12,7 +12,7 @@ Le **bypass** = les entrées en `TO_PROCESS` qui ne passent pas par le tirage (l
 
 Garanties :
 - **Le ticket fait foi** : un dossier en file via l'opt-in a toujours un ticket `DRAWN` ; c'est lui — et non plus `validation_requested` — que lisent le calcul de statut (§3) et le comptage du bypass (§7).
-- **Un seul tirage par jour** : le job est idempotent et relançable depuis le BO. `lottery.draw.allow-multiple-per-day` (défaut `false`, **préprod uniquement**) lève cette règle pour tester.
+- **Un seul tirage par jour** : le job est idempotent et relançable depuis le BO. `lottery.draw.allow-multiple-per-day` (défaut `false`, **préprod uniquement**) lève cette règle pour tester ; `lottery.cooldown.days=0` (préprod) permet de tester le mail de fin de cooldown en un seul clic (§6).
 - **Kill-switch total** : flag OFF = comportement pré-tirage exact ; la désactivation bascule les candidatures en attente vers la file (§8).
 - **Invisibilité partenaires inchangée** : aucun état de loterie exposé aux mappers partenaires ; pas de nouveau statut dans `TenantFileStatus` — l'attente est un état du *ticket*, pas du dossier.
 
@@ -43,7 +43,7 @@ Un ticket est **actif** en `PENDING` ou `DRAWN` ; `NOT_DRAWN`, `CANCELLED` et `C
 |---|---|---|
 | — → `PENDING` | clic opt-in « oui » | aucun (reste `COMPLETED`) |
 | `PENDING` → `DRAWN` | tiré au sort, ou flush (§8) | `COMPLETED → TO_PROCESS` |
-| `PENDING` → `NOT_DRAWN` | non tiré | aucun ; `cooldown_until = J+3` |
+| `PENDING` → `NOT_DRAWN` | non tiré | aucun ; `cooldown_until = J + lottery.cooldown.days` (J+3 par défaut) |
 | `PENDING` → `CANCELLED` | dossier **hors périmètre au moment du tirage** | aucun ; pas de cooldown |
 | `PENDING`/`DRAWN` → `CANCELLED` | annulation locataire, liaison partenaire, changement de type, regroupement BO | si `DRAWN` : retour `COMPLETED` |
 | `DRAWN` → `CONSUMED` | verdict opérateur `VALIDATED` **ou** `DECLINED` | toute re-soumission ultérieure retombe en `COMPLETED` et exige une nouvelle candidature |
@@ -80,7 +80,9 @@ Le périmètre (`supportsCompletedStatus` : ALONE, aucun lien partenaire, dans l
    BOFeatureFlagsController       reprise des opt-ins en file à l'activation (§3), flush à la désactivation (§8)
    BOProcessDossierController     colonnes lecture seule (bypass/places/tickets/tirés) + bouton
                                   « Lancer le tirage du jour » (ADMIN), remplacé par le détail du
-                                  tirage une fois exécuté ; messages flash succès / déjà exécuté / échec
+                                  tirage une fois exécuté ; enchaîne le passage de notification de fin
+                                  de cooldown comme le cron ; messages flash succès / déjà exécuté /
+                                  échec / mails envoyés
  task-scheduler
    LotteryDrawTask                cron ${lottery.draw.cron:0 5 0 * * *}, zone Europe/Paris
 ```
@@ -98,10 +100,10 @@ Garde 409 `canRequestOperatorReview`, persistance de `validation_requested` et l
 3. Bypass = comptage §7 sur J−1 ; X places = capacité − bypass ; tickets en jeu = `PENDING` sur dossier **dans le périmètre** (`COMPLETED`, ALONE, sans `tenant_userapi` — pré-filtre SQL), en **ordre aléatoire SQL** — l'ordre EST le tirage. Ligne `lottery_draw` créée.
 4. **Balayage** : tout `PENDING` dont le dossier est hors périmètre → `CANCELLED`, sans cooldown. Exécuté même si X ≤ 0.
 5. **X ≤ 0** → arrêt : rien n'est tiré, **rien ne passe en `NOT_DRAWN`**. Les tickets restent `PENDING` et participent au tirage suivant sans recandidater — un candidat qui n'a perdu aucun tirage ne subit pas de cooldown.
-6. Les X premiers → `DRAWN` (une transaction par dossier, échec unitaire loggé) : re-vérification `PENDING` + périmètre (sinon `CANCELLED`), dossier `TO_PROCESS` + `last_update_date = now`, logs `LOTTERY_DRAWN` + `QUEUE_ENTERED`, invalidation du full PDF, aucun mail. Les autres, s'ils sont encore dans le périmètre (sinon `CANCELLED`) → `NOT_DRAWN`, `cooldown_until = J+3`, log `LOTTERY_NOT_DRAWN`, aucun mail.
+6. Les X premiers → `DRAWN` (une transaction par dossier, échec unitaire loggé) : re-vérification `PENDING` + périmètre (sinon `CANCELLED`), dossier `TO_PROCESS` + `last_update_date = now`, logs `LOTTERY_DRAWN` + `QUEUE_ENTERED`, invalidation du full PDF, aucun mail. Les autres, s'ils sont encore dans le périmètre (sinon `CANCELLED`) → `NOT_DRAWN`, `cooldown_until = J + lottery.cooldown.days` (défaut 3), log `LOTTERY_NOT_DRAWN`, aucun mail.
 7. `refreshRank()` (sinon la vue matérialisée retarde de 5 min la distribution).
 
-**`notifyCooldownEnded`** (même job, second passage) : `NOT_DRAWN` avec `cooldown_until ≤ today` non notifiés → mail « vous pouvez recandidater » (`brevo.template.id.lottery.cooldown.ended`, **template à créer** ; sans configuration, mail sauté + log.error), envoyé seulement si le dossier est encore dans le périmètre du tirage ; `cooldown_notified_at` posé dans tous les cas.
+**`notifyCooldownEnded`** (même job, second passage — également enchaîné par le bouton BO) : `NOT_DRAWN` avec `cooldown_until ≤ today` non notifiés → mail « vous pouvez recandidater » (`brevo.template.id.lottery.cooldown.ended`, **template à créer** ; sans configuration, mail sauté + log.error), envoyé seulement si le dossier est encore dans le périmètre du tirage ; `cooldown_notified_at` posé dans tous les cas.
 
 ## 7. Journal des entrées en file (`QUEUE_ENTERED`)
 
@@ -148,7 +150,7 @@ Le calcul « traité entre le … et le … » (`GET /api/tenant/{id}/expectedPr
 1. Déployer BO/api-tenant (migration Liquibase), **puis** task-scheduler (`spring.liquibase.enabled=false` chez lui). Flag OFF : comportement inchangé ; `QUEUE_ENTERED` commence à s'accumuler. Les tickets de reprise seront créés à l'activation du flag (§3).
 2. Créer le template Brevo « fin de cooldown » et renseigner `brevo.template.id.lottery.cooldown.ended`.
 3. Déployer le frontend (nouveaux états de l'encart, wording neutre compatible flag OFF).
-4. Saisir les capacités sur `/bo/admin/process/capacities`. En préprod seulement : `lottery.draw.allow-multiple-per-day=true`.
+4. Saisir les capacités sur `/bo/admin/process/capacities`. En préprod seulement : `lottery.draw.allow-multiple-per-day=true` et, pour tester le mail de fin de cooldown, `lottery.cooldown.days=0` (`LOTTERY_COOLDOWN_DAYS`).
 5. Activer `tenant_lottery` sur `/bo/feature-flags` — **au moins 24 h après l'étape 1** (bypass mesuré sur J−1 ; trop tôt, X serait surestimé). Surveiller le premier tirage.
 6. Commit de nettoyage ETA backend (§10).
 7. **Rollback** : désactiver le flag (flush automatique).
@@ -161,7 +163,7 @@ Le calcul « traité entre le … et le … » (`GET /api/tenant/{id}/expectedPr
 | L2 | Saisir la capacité du jour puis bouton BO « Lancer le tirage du jour » | Ligne `lottery_draw` cohérente ; tirés : `DRAWN`, `TO_PROCESS`, aucun mail, présents dans `ranked_tenant` ; non-tirés : `NOT_DRAWN`, `cooldown_until=J+3`, aucun mail |
 | L3 | Retenter le tirage après exécution | Bouton masqué, détail du tirage affiché ; un POST direct répond « déjà eu lieu à HHhMM » sans rien rejouer |
 | L4 | Non-tiré → clic opt-in avant J+3 | `409`, bouton front désactivé avec date de recandidature |
-| L5 | Non-tiré → passage à J+3 (job de la nuit) | Mail « vous pouvez recandidater », `cooldown_notified_at` posé, clic → nouveau `PENDING` |
+| L5 | Non-tiré → passage à J+3 (job de la nuit) ou, avec `lottery.cooldown.days=0`, relance du tirage depuis le BO | Mail « vous pouvez recandidater », `cooldown_notified_at` posé, message flash BO « N e-mail(s) envoyé(s) », clic → nouveau `PENDING` |
 | L6 | Tiré non traité → annulation (clic « non ») | Ticket `CANCELLED`, retour `COMPLETED`, sort de la file |
 | L7 | Tiré non traité → modification document → re-signature | Retour `TO_PROCESS` (ticket `DRAWN`), `QUEUE_ENTERED` avec `bypass = false` |
 | L8 | Tiré → validé (ou refusé) → modification → re-signature | Ticket `CONSUMED` ; re-soumission en `COMPLETED`, encart de candidature réaffiché |

@@ -100,8 +100,8 @@ public class BOProcessDossierController {
                                     draw.getDrawDate(), draw.getDrawnCount(), draw.getTicketCount(), draw.getAvailableSlots());
                             redirectAttributes.addFlashAttribute("lotterySuccessMessage",
                                     "Tirage exécuté : " + draw.getDrawnCount() + " tickets tirés sur "
-                                            + draw.getTicketCount() + " (" + draw.getAvailableSlots() + " places"
-                                            + " = capacité " + draw.getDailyCount() + " − bypass " + draw.getBypassCount() + ").");
+                                            + draw.getTicketCount() + " (" + Math.max(0, draw.getAvailableSlots()) + " places disponibles"
+                                            + " pour une capacité de " + draw.getDailyCount() + " et un bypass de " + draw.getBypassCount() + ").");
                         },
                         () -> {
                             log.warn("Manual lottery draw did not run (flag off or missing capacity)");
@@ -109,6 +109,12 @@ public class BOProcessDossierController {
                                     "Le tirage n'a pas pu être exécuté : vérifiez que le flag tenant_lottery est actif "
                                             + "et que la capacité du jour est saisie et enregistrée.");
                         });
+        // Same second pass as the scheduled task: mail the tenants whose cooldown ended
+        int notified = lotteryDrawService.notifyCooldownEnded(today);
+        if (notified > 0) {
+            redirectAttributes.addFlashAttribute("lotteryNotifiedMessage",
+                    notified + " e-mail(s) de fin de cooldown envoyé(s).");
+        }
         return "redirect:/bo/admin/process/capacities";
     }
 
