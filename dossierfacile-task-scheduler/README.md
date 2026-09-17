@@ -52,5 +52,94 @@ For the dev environment the appender Logstash is disabled by default.
 ## Run the application
 
 ```shell
-mvn spring-boot:run -D  spring-boot.run.profiles=dev,mockOvh
+mvn spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh
+```
+
+---
+
+## One-Off Task: Réplication & Anonymisation Analytics
+
+Cette tâche remplace le DAG Airflow historique. Elle réplique et anonymise les données depuis la base PostgreSQL Scalingo (production) vers la base PostgreSQL OVH (dbt / Metabase).
+
+### Principes clés
+- **Isolation totale** : Portée par l'application dédiée [`AnalyticsReplicationApplication`](src/main/java/fr/dossierfacile/scheduler/AnalyticsReplicationApplication.java). Elle ne démarre aucun serveur web (Tomcat), aucune tâche `@Scheduled` de l'application principale, et aucune couche JPA/Hibernate.
+- **Streaming natif JDBC (Zero Heap OOM)** : Transfert par buffer mémoire de 64 Ko avec `CopyManager` PostgreSQL (`copyOut` vers `copyIn`) via un thread producteur dédié et `PipedInputStream` / `PipedOutputStream`.
+- **Garde-fous anti-destruction de la production** :
+  - **Verrouillage lecture seule de la source** : La connexion vers la base source est verrouillée via `sourceConn.setReadOnly(true)` dès son ouverture. PostgreSQL interdit ainsi physiquement tout ordre DDL (`DROP`, `ALTER`, `TRUNCATE`) ou DML (`INSERT`, `UPDATE`, `DELETE`) sur la base de production.
+  - **Kill-Switch d'identité physique** : Le job vérifie la non-égalité des URLs source et destination et interroge PostgreSQL (`inet_server_addr()`, `inet_server_port()`, `current_database()`). Si la source et la destination résolvent vers la même base physique, le job s'interrompt immédiatement avec une erreur fatale avant toute opération.
+- **Zero-Downtime Swap** : Copie dans des tables temporaires (`tmp_<table>`), suivie d'une bascule atomique globale dans une transaction unique (`DROP TABLE IF EXISTS <table> CASCADE; ALTER TABLE tmp_<table> RENAME TO <table>;`).
+- **Conformité RGPD stricte** : Whitelist de 25 tables ([`AnalyticsTableMapping`](src/main/java/fr/dossierfacile/scheduler/tasks/analytics/AnalyticsTableMapping.java)). Exclusion de toutes les données personnelles (noms, emails, adresses, etc.) et hachage salé SHA-256 des tokens (`encode(sha256((token || '<salt>')::bytea), 'hex')`).
+- **Enchaînement dbt optionnel** : Déclenche le webhook POST vers dbt si configuré (sinon log `Pas de trigger DBT, skip.`).
+- **Code de sortie système** : `0` en cas de succès, `1` en cas d'erreur (remontée dans Scalingo et ELK via `TaskName.REPLICATE_ANALYTICS`).
+
+### Génération du SALT secret
+
+Le sel (`ANALYTICS_SALT`) doit être une chaîne secrète robuste et non vide. Vous pouvez le générer avec l'une des commandes suivantes :
+
+```shell
+# Recommandé (32 octets aléatoires encodés en hexadécimal, 64 caractères) :
+openssl rand -hex 32
+
+# Alternative en Base64 :
+openssl rand -base64 32
+```
+
+### Variables d'environnement
+
+| Variable | Description | Obligatoire |
+|---|---|---|
+| `ANALYTICS_SALT` | Sel secret utilisé pour hacher les tokens RGPD | **Oui** |
+| `ANALYTICS_DEST_DB_URL` | URL JDBC de la base destination OVH (`jdbc:postgresql://...`) | **Oui** |
+| `ANALYTICS_DEST_DB_USER` | Utilisateur de la base destination | **Oui** |
+| `ANALYTICS_DEST_DB_PASSWORD` | Mot de passe de la base destination | **Oui** |
+| `DBT_WEBHOOK_URL` | URL du webhook dbt à déclencher après la bascule | Non (optionnel) |
+| `DBT_WEBHOOK_TOKEN` | Bearer token d'authentification pour le webhook dbt | Non (optionnel) |
+
+> Note : La base source utilise par défaut `spring.datasource.url`, `spring.datasource.username` et `spring.datasource.password`.
+
+### Exécution locale avec Maven
+
+```shell
+ANALYTICS_SALT="$(openssl rand -hex 32)" \
+ANALYTICS_DEST_DB_URL="jdbc:postgresql://localhost:5432/analytics_dest" \
+ANALYTICS_DEST_DB_USER="mon_user" \
+ANALYTICS_DEST_DB_PASSWORD="mon_password" \
+mvn spring-boot:run -pl dossierfacile-task-scheduler \
+  -Dspring-boot.run.profiles=dev \
+  -Dspring-boot.run.main-class=fr.dossierfacile.scheduler.AnalyticsReplicationApplication \
+  -Dspring-boot.run.arguments="--run-task=replicate-analytics"
+```
+
+### Exécution sur Scalingo (Tâche planifiée)
+
+> **Pourquoi pas de `cron.json` dans le dépôt Git ?**  
+> Ce dépôt multi-modules déploie plusieurs applications Scalingo distinctes (`api-tenant`, `bo`, `api-owner`, `task-scheduler`...). Si un fichier `cron.json` était placé à la racine du dépôt, Scalingo l'enregistrerait automatiquement sur **l'ensemble des applications**, déclenchant des conteneurs inutiles sur les autres services.  
+> La tâche est donc configurée **uniquement sur l'application Scalingo `task-scheduler`**, sans fichier `cron.json`.
+
+#### Configuration sur l'app Scalingo `task-scheduler`
+
+**Option A : Via le Dashboard Scalingo**
+1. Accéder à l'application **`task-scheduler`** sur Scalingo.
+2. Aller dans l'onglet **Scheduler** (ou Tâches planifiées).
+3. Ajouter une nouvelle tâche :
+   - **Taille du conteneur** : `L`
+   - **Fréquence (cron)** : `0 3 * * *` (ou l'heure souhaitée, ex. 03h00 UTC)
+   - **Commande** :
+     ```bash
+     java $JVM_OPTIONS -Djna.library.path=$JNA_LIBRARY_PATH -cp $APP_DIR/target/$APP_DIR.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher
+     ```
+
+**Option B : Via la CLI Scalingo**
+```shell
+scalingo --app <nom-app-task-scheduler> cron-jobs:add \
+  --cron "0 3 * * *" \
+  --size L \
+  --command "java \$JVM_OPTIONS -Djna.library.path=\$JNA_LIBRARY_PATH -cp \$APP_DIR/target/\$APP_DIR.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher"
+```
+
+#### Test manuel ponctuel (One-off container)
+Pour déclencher manuellement la réplication sur Scalingo sans attendre le cron :
+```shell
+scalingo --app <nom-app-task-scheduler> run --size L \
+  "java \$JVM_OPTIONS -Djna.library.path=\$JNA_LIBRARY_PATH -cp \$APP_DIR/target/\$APP_DIR.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher"
 ```
