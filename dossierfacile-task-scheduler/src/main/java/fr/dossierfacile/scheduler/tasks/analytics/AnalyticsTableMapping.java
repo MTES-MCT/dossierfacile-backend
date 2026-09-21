@@ -18,9 +18,7 @@ public enum AnalyticsTableMapping {
                     "application_type",
                     "dossier_pdf_document_status",
                     "last_update_date",
-                    "pdf_dossier_file_id",
-                    "encode(sha256((token || ':salt')::bytea), 'hex') AS token",
-                    "encode(sha256((token_public || ':salt')::bytea), 'hex') AS token_public"
+                    "pdf_dossier_file_id"
             )
     ),
 
@@ -38,11 +36,8 @@ public enum AnalyticsTableMapping {
                     "last_sent_datetime",
                     "expiration_date",
                     "deleted",
-                    "created_by",
                     "partner_id",
                     "property_id",
-                    "failed_attempt_count",
-                    "first_failed_attempt_at",
                     "encode(sha256((token::text || ':salt')::bytea), 'hex') AS token"
             )
     ),
@@ -61,12 +56,9 @@ public enum AnalyticsTableMapping {
                     "document_status",
                     "no_document",
                     "creation_date",
-                    "document_denied_reasons_id",
-                    "avis_detected",
                     "watermark_file_id",
                     "last_modified_date",
-                    "document_category_step",
-                    "encode(sha256((name || ':salt')::bytea), 'hex') AS name"
+                    "document_category_step"
             )
     ),
 
@@ -78,9 +70,9 @@ public enum AnalyticsTableMapping {
                     "id",
                     "document_id",
                     "analysis_status",
-                    "failed_rules",
-                    "passed_rules",
-                    "inconclusive_rules",
+                    stripArrayKeys("failed_rules", "ruleData"),
+                    stripArrayKeys("passed_rules", "ruleData"),
+                    stripArrayKeys("inconclusive_rules", "ruleData"),
                     "created_at",
                     "data_document_id"
             )
@@ -107,7 +99,6 @@ public enum AnalyticsTableMapping {
             List.of(
                     "id",
                     "checked_options",
-                    "message_id",
                     "checked_options_id",
                     "message_data",
                     "document_id",
@@ -211,22 +202,11 @@ public enum AnalyticsTableMapping {
                     "creation_date",
                     "count_visit",
                     "property_id",
-                    "rent_cost",
                     "displayed",
-                    "notification",
-                    "cant_email_sent_prospect",
                     "validated",
                     "type",
-                    "furniture",
-                    "charges_cost",
-                    "living_space",
-                    "energy_consumption",
-                    "co2emission",
                     "validated_date",
-                    "dpe_date",
-                    "dpe_not_required",
-                    "encode(sha256((token || ':salt')::bytea), 'hex') AS token",
-                    "encode(sha256((name || ':salt')::bytea), 'hex') AS name"
+                    "dpe_not_required"
             )
     ),
 
@@ -251,18 +231,14 @@ public enum AnalyticsTableMapping {
                     "id",
                     "tenant_type",
                     "apartment_sharing_id",
-                    "satisfaction_survey",
-                    "accept_access",
                     "zip_code",
                     "honor_declaration",
                     "last_update_date",
                     "status",
-                    "operator_date_time",
                     "warnings",
-                    "abroad",
                     "owner_type",
-                    "ready_for_auto_validation",
-                    "validation_requested"
+                    "validation_requested",
+                    "ready_for_auto_validation"
             )
     ),
 
@@ -276,8 +252,7 @@ public enum AnalyticsTableMapping {
                     "operator_id",
                     "log_type",
                     "creation_date",
-                    "message_id",
-                    "log_details"
+                    anonymizeTenantLogDetails()
             )
     ),
 
@@ -318,10 +293,7 @@ public enum AnalyticsTableMapping {
                     "id",
                     "name",
                     "name2",
-                    "site",
-                    "disabled",
-                    "logo_url",
-                    "completed_status_supported"
+                    "disabled"
             )
     ),
 
@@ -364,8 +336,7 @@ public enum AnalyticsTableMapping {
                     "id",
                     "created_date",
                     "pdf_status",
-                    "pdf_file_id",
-                    "encode(sha256((token || ':salt')::bytea), 'hex') AS token"
+                    "pdf_file_id"
             )
     ),
 
@@ -436,5 +407,23 @@ public enum AnalyticsTableMapping {
             sb.append(" ").append(whereClause);
         }
         return sb.toString();
+    }
+
+    private static String stripArrayKeys(String column, String... keys) {
+        String keysArray = "'" + String.join("', '", keys) + "'";
+        return "CASE WHEN " + column + " IS NULL THEN NULL ELSE COALESCE(" +
+                "(SELECT jsonb_agg(elem - ARRAY[" + keysArray + "]) FROM jsonb_array_elements(" + column + ") AS elem), " +
+                "'[]'::jsonb) END AS " + column;
+    }
+
+    private static String stripObjectKeys(String column, String... keys) {
+        String keysArray = "'" + String.join("', '", keys) + "'";
+        return "CASE WHEN " + column + " IS NULL THEN NULL ELSE " + column + " - ARRAY[" + keysArray + "] END AS " + column;
+    }
+
+    private static String anonymizeTenantLogDetails() {
+        return "CASE WHEN log_type = 'OPERATOR_COMMENT' THEN NULL " +
+                "WHEN log_details IS NULL THEN NULL " +
+                "ELSE log_details - ARRAY['email', 'fileName', 'comment'] END AS log_details";
     }
 }

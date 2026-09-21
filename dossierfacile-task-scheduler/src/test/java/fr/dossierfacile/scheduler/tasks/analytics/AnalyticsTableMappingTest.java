@@ -141,23 +141,13 @@ class AnalyticsTableMappingTest {
     void should_hash_tokens_with_salt() {
         String salt = "secret_salt_123";
 
-        String queryApartmentSharing = AnalyticsTableMapping.APARTMENT_SHARING.buildSelectQuery(salt);
-        assertThat(queryApartmentSharing)
-                .contains("encode(sha256((token || 'secret_salt_123')::bytea), 'hex') AS token")
-                .contains("encode(sha256((token_public || 'secret_salt_123')::bytea), 'hex') AS token_public");
-
         String queryLink = AnalyticsTableMapping.APARTMENT_SHARING_LINK.buildSelectQuery(salt);
         assertThat(queryLink)
                 .contains("encode(sha256((token::text || 'secret_salt_123')::bytea), 'hex') AS token");
 
-        String queryDoc = AnalyticsTableMapping.DOCUMENT.buildSelectQuery(salt);
-        assertThat(queryDoc)
-                .contains("encode(sha256((name || 'secret_salt_123')::bytea), 'hex') AS name");
-
-        String queryProperty = AnalyticsTableMapping.PROPERTY.buildSelectQuery(salt);
-        assertThat(queryProperty)
-                .contains("encode(sha256((token || 'secret_salt_123')::bytea), 'hex') AS token")
-                .contains("encode(sha256((name || 'secret_salt_123')::bytea), 'hex') AS name");
+        String queryLinkLog = AnalyticsTableMapping.LINK_LOG.buildSelectQuery(salt);
+        assertThat(queryLinkLog)
+                .contains("encode(sha256((token::text || 'secret_salt_123')::bytea), 'hex') AS token");
     }
 
     @Test
@@ -177,7 +167,29 @@ class AnalyticsTableMappingTest {
     @DisplayName("Devrait échapper les simples quotes dans le sel pour éviter l'injection SQL")
     void should_escape_single_quotes_in_salt() {
         String saltWithQuote = "salt'with'quotes";
-        String query = AnalyticsTableMapping.APARTMENT_SHARING.buildSelectQuery(saltWithQuote);
+        String query = AnalyticsTableMapping.APARTMENT_SHARING_LINK.buildSelectQuery(saltWithQuote);
         assertThat(query).contains("'salt''with''quotes'");
+    }
+
+    @Test
+    @DisplayName("Devrait retirer la clé ruleData des colonnes jsonb de document_analysis_report")
+    void should_strip_rule_data_from_document_analysis_report() {
+        AnalyticsTableMapping report = AnalyticsTableMapping.DOCUMENT_ANALYSIS_REPORT;
+        String query = report.buildSelectQuery("dummy_salt");
+
+        assertThat(query)
+                .contains("CASE WHEN failed_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(failed_rules) AS elem), '[]'::jsonb) END AS failed_rules")
+                .contains("CASE WHEN passed_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(passed_rules) AS elem), '[]'::jsonb) END AS passed_rules")
+                .contains("CASE WHEN inconclusive_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(inconclusive_rules) AS elem), '[]'::jsonb) END AS inconclusive_rules");
+    }
+
+    @Test
+    @DisplayName("Devrait anonymiser le champ log_details de tenant_log")
+    void should_anonymize_log_details_in_tenant_log() {
+        AnalyticsTableMapping mapping = AnalyticsTableMapping.TENANT_LOG;
+        String query = mapping.buildSelectQuery("dummy_salt");
+
+        assertThat(query)
+                .startsWith("SELECT id, tenant_id, operator_id, log_type, creation_date, CASE WHEN log_type = 'OPERATOR_COMMENT' THEN NULL WHEN log_details IS NULL THEN NULL ELSE log_details - ARRAY['email', 'fileName', 'comment'] END AS log_details FROM tenant_log");
     }
 }
