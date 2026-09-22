@@ -3,6 +3,8 @@
 
 # Path to the folder when the files will be saved during dev
 mock.storage.path=../mock-storage
+# Use local file storage for development
+storage.provider.list=LOCAL
 # Url of the owner front
 owner.url=http://localhost:3000
 # Port of this API
@@ -23,6 +25,12 @@ days.after.validated.property.to.follow.up.email=42
 callback.http.auth.token=
 # name of the header used to pass the token
 callback.http.auth.token.header.name=
+
+# Local RabbitMQ connection, shared with the tenant API
+spring.rabbitmq.username=dev
+spring.rabbitmq.password=password
+spring.rabbitmq.host=127.0.0.1
+
 
 # Keycloak configuration
 # Keycloak Url
