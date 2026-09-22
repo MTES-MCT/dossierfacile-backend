@@ -22,14 +22,30 @@ alert:
   - slack
 
 slack_webhook_url: "{{mattermost_webhook_url}}"
-slack_msg_pretext: ":rotating_light: *ALERTE API DELETE ACCOUNT* :rotating_light:"
 slack_msg_color: danger
+slack_title: "🚨 **ALERTE PREPROD** : Appel détecté sur l'API de suppression de compte"
 slack_username_override: "ElastAlert"
 slack_emoji_override: ":warning:"
 
+# Empêche ElastAlert de dumper tout le document brut
+alert_text_type: alert_text_only
+
+alert_text: |
+  **Détail de l'incident** :
+  Un appel `{0}` sur l'URI `{1}` a été effectué par l'utilisateur `{2}` (IP : `{3}`) avec le statut `{4}`.
+alert_text_args:
+  - method
+  - normalized_uri
+  - user
+  - ip
+  - response_status
+
 slack_alert_fields:
-  - title: URI
-    value: "normalized_uri"
+  - title: Environnement
+    value: "environment"
+    short: true
+  - title: Application
+    value: "application"
     short: true
   - title: Méthode
     value: "method"
@@ -37,12 +53,9 @@ slack_alert_fields:
   - title: Statut HTTP
     value: "response_status"
     short: true
-  - title: Utilisateur
-    value: "user"
+  - title: URI
+    value: "normalized_uri"
     short: false
-  - title: Adresse IP
-    value: "ip"
-    short: true
-  - title: Timestamp
+  - title: Dernière détection
     value: "@timestamp"
-    short: false
+    short: true
