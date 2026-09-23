@@ -1,0 +1,8 @@
+{
+  "jobs": [
+    {
+      "command": "0 23 * * * java $JVM_OPTIONS -Djna.library.path=$JNA_LIBRARY_PATH -cp target/dossierfacile-task-scheduler.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher",
+      "size": "L"
+    }
+  ]
+}

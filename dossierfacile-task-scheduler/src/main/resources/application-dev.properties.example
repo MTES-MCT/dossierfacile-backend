@@ -79,3 +79,14 @@ environment=local
 ademe.api.base.url=https://prd-x-ademe-externe-api.de-c1.eu1.cloudhub.io/api/v1
 ademe.api.client.id=
 ademe.api.client.secret=
+
+# Analytics Replication
+# analytics.replication.source-url=jdbc:postgresql://localhost:5432/dossierfacile
+# analytics.replication.source-username=dossierfacile
+# analytics.replication.source-password=your_very_secure_password
+analytics.replication.dest-url=jdbc:postgresql://localhost:5432/analytics_dest
+analytics.replication.dest-username=analytics_user
+analytics.replication.dest-password=analytics_password
+analytics.replication.salt=local_dev_secret_salt_32_bytes_min_example
+analytics.replication.dbt-webhook-url=
+analytics.replication.dbt-webhook-token=
