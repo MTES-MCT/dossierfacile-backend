@@ -28,20 +28,31 @@ alert:
   - slack
 
 slack_webhook_url: "{{mattermost_webhook_elk_alert_url}}"
-slack_msg_pretext: "📛 **ALERTE PROD** : Une anomalie a été détectée. Aucun archivage de tenants a été effectué depuis 2 semaines"
-
 slack_msg_color: danger
+slack_title: "🚨 **ALERTE PROD** : Aucun archivage de locataires depuis 2 semaines"
 slack_username_override: "AlerteFacile"
 slack_emoji_override: ":no_entry_sign:"
-slack_text_string: "@nicolas.sagon, @romaric.haldenwang, @alix.deschamps *It's time to shine*"
+
+# Empêche ElastAlert de dumper tout le document brut
+alert_text_type: alert_text_only
+
+alert_text: |
+  **Détail de l'incident** :
+  La tâche `{0}` de l'application `{1}` n'a enregistré aucun succès sur la période surveillée (2 semaines).
+alert_text_args:
+  - task_name
+  - application
 
 slack_alert_fields:
   - title: Environnement
     value: "environment"
     short: true
+  - title: Application
+    value: "application"
+    short: true
   - title: Tâche
     value: "task_name"
     short: true
-  - title: Heure
+  - title: Dernière détection
     value: "@timestamp"
-    short: false
+    short: true
