@@ -52,53 +52,34 @@ You may also need to add pgcrypt extension to your local database:
 
 ## Keycloak
 
-Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environment locally:
+### Import the development realms
 
-1. Follow the README instructions on repo [Dossier-Facile-Keycloak](https://github.com/MTES-MCT/Dossier-Facile-Keycloak).
-2. Connect to your keycloak admin console (default: http://localhost:8085/auth)
-3. Create a new realm "dossier-facile"
-4. Inside the realm create a new Client scope:
-   - Name: dossier
-   - Type: Default
-   - Display on consent screen: On
-   - Include in token scope: On
-5. Inside the realm create a new client: "dossier-facile-frontend-localhost"
-   - Root: Url of the tenant webProject (default: http://localhost:8090)
-   - Home URL: Url of the tenant webProject (default: http://localhost:8090)
-   - valid redirect Uris: `*`
-   - Valid post logout Uris: `*`
-   - web Origins: `*`
-   - Client authentication: Off
-   - authentication flow: Standard flow and Direct access Grants
-   - Theme: df
-   - Client scopes: add dossier
-6. Create a new realm: "dossier-facile-owner"
-7. Inside the realm create a new Client scope:
-   - Name: dossier
-   - Type: Default
-   - Display on consent screen: On
-   - Include in token scope: On
-8. Inside the realm create a new client: "dossier-facile-owner-localhost"
-   - Root: Url of the tenant webProject (default: http://localhost:8090)
-   - Home URL: Url of the tenant webProject (default: http://localhost:8090)
-   - valid redirect Uris: `*`
-   - Valid post logout Uris: `*`
-   - web Origins: `*`
-   - Client authentication: Off
-   - authentication flow: Standard flow and Direct access Grants
-   - Theme: df
-   - Client scopes: add dossier
-9. Inside the realm Master create a new client: "dossier-facile-api"
-   - Root: empty
-   - Home URL: empty
-   - valid redirect Uris: `*`
-   - Valid post logout Uris: `*`
-   - web Origins: `*`
-   - Client authentication: On
-   - authentication flow: Standard flow / Direct access Grants / Service account roles
-10. In this client you need add a Service account roles
-    - In the tab "Service Account Roles" add the role "admin"
-11. Save and copy the dossier-facile-api credentials (Client Secret).
+Follow the [Keycloak first-start instructions](https://github.com/MTES-MCT/Dossier-Facile-Keycloak#first-start)
+in the Keycloak repository, then starts Keycloak.
+
+### Configure the tenant and owner APIs
+
+Create each module's local `application-dev.properties` from its example, as
+described in the [tenant API](dossierfacile-api-tenant/README.md#configuration)
+and [owner API](dossierfacile-api-owner/README.md#configuration) READMEs.
+
+In the [Keycloak admin console](http://localhost:8085/auth/admin/), select `master`,
+then **Clients → dossier-facile-api → Credentials**. Copy its client secret into
+`keycloak.server.client.secret` in both APIs' local properties files.
+
+### Configure the back-office
+
+Follow the [back-office README](dossierfacile-bo/README.md) for application setup,
+reusing the imported realm and client.
+
+In the [Keycloak admin console](http://localhost:8085/auth/admin/), select `dossier-facile-bo`,
+then **Clients → dossier-facile-bo → Credentials**. Copy its client secret into
+`spring.security.oauth2.client.registration.keycloak.client-secret` in the back-office's local
+properties file.
+
+For administrative operations, select `master`, then **Clients → dossier-facile-api → Credentials**.
+Set `keycloak.server.client.id` to `dossier-facile-api` and copy its client secret into
+`keycloak.server.client.secret` in the same file.
 
 ## General Config
 
@@ -192,6 +173,7 @@ if (featureFlagService.isFeatureEnabledForUser(userId, "my_feature_key")) {
 ```
 
 Best practices:
+
 - Keep the key stable (`my_feature_key`) and explicit.
 - Check the feature flag close to the business decision point.
 - Keep a fallback (`existing behavior`) in the `else` branch.
@@ -200,6 +182,7 @@ Best practices:
 ### 3) Roll out progressively from BO
 
 In BO, go to **"Paramétrer les features flags"**:
+
 - Enable/disable globally with `active`.
 - Increase rollout (`rollout_pct`) progressively (e.g. `0 -> 5 -> 25 -> 50 -> 100`).
 - Use `only_for_new_user` when the feature must be limited to users created after `deployment_date`.
@@ -230,16 +213,9 @@ mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 
 ## Coding agent context (`AGENTS.md`)
 
-The team chose an agent-agnostic approach: [`AGENTS.md`](AGENTS.md) files, following the [open `AGENTS.md` standard](https://agents.md). It describes the domain model, modules, and cross-cutting concerns (sharing, permissions, partners, etc.) and is read by most AI coding assistants without tool-specific configuration.
+[`AGENTS.md`](AGENTS.md) provides coding agents with the domain model, module descriptions, and guidance on sharing, permissions and partner integrations, following the [open `AGENTS.md` standard](https://agents.md).
 
-### Special cases
-
-| Tool | Behavior | What to do in this repo |
-| --- | --- | --- |
-| **Claude Code** (Anthropic) | Uses `CLAUDE.md` by default, not `AGENTS.md` | Create a symlink to reuse the same content: `ln -s AGENTS.md CLAUDE.md` (at the repo root). Alternative: reference the file from `CLAUDE.md` with `@AGENTS.md`. |
-| **Gemini CLI** (Google) | Native format is `GEMINI.md` | Configure reading `AGENTS.md` in `.gemini/settings.json`: `{"contextFileName": "AGENTS.md"}`. |
-
-To avoid maintaining diverging copies, keep **`AGENTS.md` as the single source of truth** and add `CLAUDE.md` / `GEMINI.md` only via symlink or import, depending on the tool your team uses.
+Keep `AGENTS.md` as the single source of truth for coding agent instructions.
 
 ## Contributing
 
