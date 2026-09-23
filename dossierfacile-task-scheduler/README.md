@@ -69,7 +69,7 @@ Cette tâche remplace le DAG Airflow historique. Elle réplique et anonymise les
   - **Kill-Switch d'identité physique** : Le job vérifie la non-égalité des URLs source et destination et interroge PostgreSQL (`inet_server_addr()`, `inet_server_port()`, `current_database()`). Si la source et la destination résolvent vers la même base physique, le job s'interrompt immédiatement avec une erreur fatale avant toute opération.
 - **Zero-Downtime Swap** : Copie dans des tables temporaires (`tmp_<table>`), suivie d'une bascule atomique globale dans une transaction unique (`DROP TABLE IF EXISTS <table> CASCADE; ALTER TABLE tmp_<table> RENAME TO <table>;`).
 - **Conformité RGPD stricte** : Whitelist de 25 tables ([`AnalyticsTableMapping`](src/main/java/fr/dossierfacile/scheduler/tasks/analytics/AnalyticsTableMapping.java)). Exclusion de toutes les données personnelles (noms, emails, adresses, etc.) et hachage salé SHA-256 des tokens (`encode(sha256((token || '<salt>')::bytea), 'hex')`).
-- **Enchaînement dbt optionnel** : Déclenche le webhook POST vers dbt si configuré (sinon log `Pas de trigger DBT, skip.`).
+- **Enchaînement dbt optionnel** : Déclenche le webhook POST vers dbt dès lors que la réplication est activée (`ANALYTICS_REPLICATION_ENABLED=true`), y compris en cas d'échec de la réplication (sinon log `Pas de trigger DBT, skip.` si aucune URL n'est configurée). Si la tâche est désactivée (`ANALYTICS_REPLICATION_ENABLED=false`), dbt n'est pas déclenché.
 - **Code de sortie système** : `0` en cas de succès, `1` en cas d'erreur (remontée dans Scalingo et ELK via `TaskName.REPLICATE_ANALYTICS`).
 
 ### Génération du SALT secret
@@ -88,6 +88,7 @@ openssl rand -base64 32
 
 | Variable | Description | Obligatoire |
 |---|---|---|
+| `ANALYTICS_REPLICATION_ENABLED` | Active ou désactive la tâche de réplication (`true` / `false`). Si `false`, le job s'arrête immédiatement avec succès. | Non (défaut: `false`) |
 | `ANALYTICS_SALT` | Sel secret utilisé pour hacher les tokens RGPD | **Oui** |
 | `ANALYTICS_DEST_DB_URL` | URL JDBC de la base destination OVH (`jdbc:postgresql://...`) | **Oui** |
 | `ANALYTICS_DEST_DB_USER` | Utilisateur de la base destination | **Oui** |
@@ -110,36 +111,61 @@ mvn spring-boot:run -pl dossierfacile-task-scheduler \
   -Dspring-boot.run.arguments="--run-task=replicate-analytics"
 ```
 
-### Exécution sur Scalingo (Tâche planifiée)
+### Déploiement et planification sur Scalingo
 
-> **Pourquoi pas de `cron.json` dans le dépôt Git ?**  
-> Ce dépôt multi-modules déploie plusieurs applications Scalingo distinctes (`api-tenant`, `bo`, `api-owner`, `task-scheduler`...). Si un fichier `cron.json` était placé à la racine du dépôt, Scalingo l'enregistrerait automatiquement sur **l'ensemble des applications**, déclenchant des conteneurs inutiles sur les autres services.  
-> La tâche est donc configurée **uniquement sur l'application Scalingo `task-scheduler`**, sans fichier `cron.json`.
+Dans ce monorepo, l'application Scalingo dédiée au scheduler est configurée pour se déployer directement depuis le sous-dossier `dossierfacile-task-scheduler`. Cela permet d'isoler le planificateur de tâches (`cron.json`) et le `Procfile` sans impacter les autres applications du dépôt (`api-tenant`, `bo`, etc.).
 
-#### Configuration sur l'app Scalingo `task-scheduler`
+#### 1. Configuration des variables d'environnement Scalingo
 
-**Option A : Via le Dashboard Scalingo**
-1. Accéder à l'application **`task-scheduler`** sur Scalingo.
-2. Aller dans l'onglet **Scheduler** (ou Tâches planifiées).
-3. Ajouter une nouvelle tâche :
-   - **Taille du conteneur** : `L`
-   - **Fréquence (cron)** : `0 3 * * *` (ou l'heure souhaitée, ex. 03h00 UTC)
-   - **Commande** :
-     ```bash
-     java $JVM_OPTIONS -Djna.library.path=$JNA_LIBRARY_PATH -cp $APP_DIR/target/$APP_DIR.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher
-     ```
+Sur l'application Scalingo `<nom-app-task-scheduler>`, configurez :
 
-**Option B : Via la CLI Scalingo**
 ```shell
-scalingo --app <nom-app-task-scheduler> cron-jobs:add \
-  --cron "0 3 * * *" \
-  --size L \
-  --command "java \$JVM_OPTIONS -Djna.library.path=\$JNA_LIBRARY_PATH -cp \$APP_DIR/target/\$APP_DIR.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher"
+# 1. Définir le sous-dossier de déploiement
+scalingo --app <nom-app-task-scheduler> env-set PROJECT_DIR="dossierfacile-task-scheduler"
+
+# 2. Compiler les modules partagés du monorepo depuis la racine sans publication externe
+scalingo --app <nom-app-task-scheduler> env-set MAVEN_CUSTOM_OPTS="-f ../pom.xml -pl dossierfacile-task-scheduler -am -DskipTests"
+
+# 3. (Optionnel) Activer la tâche de réplication (désactivée par défaut)
+scalingo --app <nom-app-task-scheduler> env-set ANALYTICS_REPLICATION_ENABLED="true"
 ```
 
-#### Test manuel ponctuel (One-off container)
-Pour déclencher manuellement la réplication sur Scalingo sans attendre le cron :
+> **Comment fonctionne la compilation des librairies partagées ?**  
+> L'option Maven `-am` (`--also-make`) combinée avec `-f ../pom.xml` analyse l'arbre de dépendances du monorepo et compile automatiquement les librairies locales (`dossierfacile-common-library`, `dossier-facile-logging-library`, etc.) directement depuis les sources, sans nécessiter de serveur de packages externe.
+
+#### 2. Définition du job dans `cron.json`
+
+Le fichier [`cron.json`](cron.json) est placé à la racine du sous-dossier `dossierfacile-task-scheduler`. Scalingo Scheduler l'enregistre automatiquement lors du déploiement :
+
+```json
+{
+  "jobs": [
+    {
+      "command": "0 22 * * * java $JVM_OPTIONS -Djna.library.path=$JNA_LIBRARY_PATH -cp target/dossierfacile-task-scheduler.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher",
+      "size": "L"
+    }
+  ]
+}
+```
+
+> **Points d'attention Scalingo Scheduler :**  
+> - **Fuseau horaire UTC** : Scalingo Scheduler tourne **strictement en UTC**. Pour une exécution à **00h00 (minuit) heure de Paris** : en heure d'été (CEST, UTC+2), l'expression cron est `0 22 * * *` (22h00 UTC la veille) ; en heure d'hiver (CET, UTC+1), l'expression correspondante est `0 23 * * *`.  
+> - **Intervalle minimum** : Scalingo impose un intervalle minimum de 10 minutes pour toute tâche planifiée.  
+> - **Arrêt immédiat si désactivée** : Si `ANALYTICS_REPLICATION_ENABLED` n'est pas à `true`, le conteneur s'arrête immédiatement avec succès (`exit 0`) et logue : `Analytics task skipped. To activate it: analytics.replication.enabled = true`.
+
+#### 3. Fichier `Procfile`
+
+Le sous-dossier contient son propre [`Procfile`](Procfile) pour démarrer le service principal :
+
+```text
+web: java $JVM_OPTIONS -Djna.library.path=$JNA_LIBRARY_PATH -jar target/dossierfacile-task-scheduler.jar
+```
+
+#### 4. Test manuel ponctuel (One-off container)
+
+Pour déclencher manuellement la réplication sur Scalingo sans attendre le déclenchement du cron :
+
 ```shell
 scalingo --app <nom-app-task-scheduler> run --size L \
-  "java \$JVM_OPTIONS -Djna.library.path=\$JNA_LIBRARY_PATH -cp \$APP_DIR/target/\$APP_DIR.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher"
+  "java \$JVM_OPTIONS -Djna.library.path=\$JNA_LIBRARY_PATH -cp target/dossierfacile-task-scheduler.jar -Dloader.main=fr.dossierfacile.scheduler.AnalyticsReplicationApplication org.springframework.boot.loader.launch.PropertiesLauncher"
 ```

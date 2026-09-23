@@ -49,4 +49,14 @@ class AnalyticsPropertiesTest {
         assertThat(properties.getSourceUsername()).isEqualTo("default_user");
         assertThat(properties.getSourcePassword()).isEqualTo("default_pwd");
     }
+
+    @Test
+    @DisplayName("Devrait être désactivé par défaut et activable")
+    void should_default_to_disabled_and_be_toggleable() {
+        AnalyticsProperties properties = new AnalyticsProperties();
+        assertThat(properties.isEnabled()).isFalse();
+
+        properties.setEnabled(true);
+        assertThat(properties.isEnabled()).isTrue();
+    }
 }

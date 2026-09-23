@@ -39,7 +39,7 @@ public class DbtTriggerService {
             return;
         }
 
-        log.info("Déclenchement du webhook dbt vers {}", webhookUrl);
+        log.info("Déclenchement du webhook dbt ");
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

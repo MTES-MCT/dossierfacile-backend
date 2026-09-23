@@ -1,6 +1,7 @@
 package fr.dossierfacile.scheduler.cli;
 
 import fr.dossierfacile.logging.task.LogAggregator;
+import fr.dossierfacile.scheduler.tasks.analytics.AnalyticsProperties;
 import fr.dossierfacile.scheduler.tasks.analytics.AnalyticsReplicationService;
 import fr.dossierfacile.scheduler.tasks.analytics.DbtTriggerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,12 +29,15 @@ class AnalyticsReplicationRunnerTest {
     @Mock
     private LogAggregator logAggregator;
 
+    private AnalyticsProperties properties;
     private AnalyticsReplicationRunner runner;
     private AtomicInteger exitCode;
 
     @BeforeEach
     void setUp() {
-        runner = new AnalyticsReplicationRunner(replicationService, dbtTriggerService, logAggregator);
+        properties = new AnalyticsProperties();
+        properties.setEnabled(true);
+        runner = new AnalyticsReplicationRunner(properties, replicationService, dbtTriggerService, logAggregator);
         exitCode = new AtomicInteger(-1);
         runner.setExitHandler(exitCode::set);
     }
@@ -50,6 +54,19 @@ class AnalyticsReplicationRunnerTest {
     }
 
     @Test
+    @DisplayName("Doit ignorer la tâche et quitter avec exit 0 si analytics.replication.enabled est false")
+    void should_skip_task_when_disabled_and_exit_0() {
+        properties.setEnabled(false);
+
+        runner.run("--run-task=replicate-analytics");
+
+        verifyNoInteractions(replicationService);
+        verifyNoInteractions(dbtTriggerService);
+        verifyNoInteractions(logAggregator);
+        assertThat(exitCode.get()).isZero();
+    }
+
+    @Test
     @DisplayName("Doit exécuter la réplication, déclencher dbt, envoyer les logs et terminer avec exit 0")
     void should_run_successfully_and_exit_0() throws SQLException {
         runner.run("--run-task=replicate-analytics");
@@ -61,14 +78,14 @@ class AnalyticsReplicationRunnerTest {
     }
 
     @Test
-    @DisplayName("Doit envoyer les logs et terminer avec exit 1 en cas d'erreur de réplication")
-    void should_log_and_exit_1_on_failure() throws SQLException {
+    @DisplayName("Doit déclencher dbt, envoyer les logs et terminer avec exit 1 en cas d'erreur de réplication")
+    void should_trigger_dbt_log_and_exit_1_on_failure() throws SQLException {
         doThrow(new SQLException("Connection refused")).when(replicationService).replicateAll();
 
         runner.run("--run-task=replicate-analytics");
 
         verify(replicationService).replicateAll();
-        verifyNoInteractions(dbtTriggerService);
+        verify(dbtTriggerService).trigger();
         verify(logAggregator).sendLogs();
         assertThat(exitCode.get()).isEqualTo(1);
     }

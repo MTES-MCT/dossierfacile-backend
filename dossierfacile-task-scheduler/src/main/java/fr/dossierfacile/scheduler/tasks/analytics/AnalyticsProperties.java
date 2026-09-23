@@ -19,6 +19,9 @@ public class AnalyticsProperties {
     @Value("${spring.datasource.password:}")
     private String defaultSourcePassword;
 
+    @Value("${analytics.replication.enabled:false}")
+    private boolean enabled = false;
+
     private String sourceUrl;
     private String sourceUsername;
     private String sourcePassword;
