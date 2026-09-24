@@ -28,17 +28,17 @@ spring.datasource.password=your_very_secure_password
 # Keycloak Url
 keycloak.server.url=http://localhost:8085/auth
 # Keycloak Realm
-keycloak.server.realm=dossier-facile-bo
+keycloak.server.realm=dossier-facile
 # Keycloak Client Id for admin purpose => need to be inside the realm Master
-keycloak.server.client.id=dossier-facile-bo
+keycloak.server.client.id=dossier-facile-api
 # Keycloak secret that need to be retrieved from `keycloak > master realm > Clients > dossier-facile-api > Credentials > Client Secret`
-keycloak.server.client.secret=<REPLACE_ME_KEYCLOAK_SECRET>
+keycloak.server.client.secret=<REPLACE_ME_KEYCLOAK_ADMIN_SECRET>
 
 # SSO Keycloak
-spring.security.oauth2.client.provider.keycloak.issuer-uri=${keycloak.server.url}/realms/${keycloak.server.realm}
+spring.security.oauth2.client.provider.keycloak.issuer-uri=${keycloak.server.url}/realms/dossier-facile-bo
 spring.security.oauth2.client.registration.keycloak.provider=keycloak
-spring.security.oauth2.client.registration.keycloak.client-id=${keycloak.server.client.id}
-spring.security.oauth2.client.registration.keycloak.client-secret=${keycloak.server.client.secret}
+spring.security.oauth2.client.registration.keycloak.client-id=dossier-facile-bo
+spring.security.oauth2.client.registration.keycloak.client-secret=<REPLACE_ME_KEYCLOAK_BO_SECRET>
 spring.security.oauth2.client.registration.keycloak.authorization-grant-type=authorization_code
 spring.security.oauth2.client.registration.keycloak.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
 spring.security.oauth2.client.registration.keycloak.scope=openid,profile,email
