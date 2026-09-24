@@ -44,6 +44,9 @@ public class UserApi implements Serializable {
     @Column
     private boolean disabled;
 
+    @Column(name = "completed_status_supported", nullable = false)
+    private boolean completedStatusSupported;
+
     @Override
     public String toString() {
         return "user_api: " + id;

@@ -6,10 +6,8 @@ import fr.dossierfacile.api.front.model.tenant.*;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.MapDocumentCategories;
 import fr.dossierfacile.common.mapper.MasksCompletedStatusForPartner;
-import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +25,7 @@ import java.util.function.Predicate;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class TenantMapper implements MasksCompletedStatusForPartner {
+public abstract class TenantMapper extends MasksCompletedStatusForPartner {
     private static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
     protected static final String DOCUMENT_LINK_PATH = "api/application/links";
     private static final String PREVIEW_PATH = "api/file/preview";
@@ -44,22 +42,20 @@ public abstract class TenantMapper implements MasksCompletedStatusForPartner {
     protected String tenantBaseUrl;
 
     @Autowired
-    protected OperatorReviewPolicy operatorReviewPolicy;
-
-    @Autowired
     protected LotteryTicketService lotteryTicketService;
 
     @Mapping(target = "honorDeclaration", expression = "java(mapHonorDeclaration(tenant))")
-    @Mapping(target = "optInEligible", expression = "java(operatorReviewPolicy.canRequestOperatorReview(tenant))")
     @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 
-    // Lottery state: not shown to partners
+    // Opt-in state (eligibility, choice, lottery): never shown to partners
     @AfterMapping
-    protected void enrichWithLotteryStatus(Tenant tenant, @MappingTarget TenantModel tenantModel, @Context UserApi userApi) {
+    protected void enrichWithOptInState(Tenant tenant, @MappingTarget TenantModel tenantModel, @Context UserApi userApi) {
         if (userApi != null) {
+            tenantModel.setValidationRequested(null);
             return;
         }
+        tenantModel.setOptInEligible(operatorReviewPolicy.canRequestOperatorReview(tenant));
         lotteryTicketService.getPublicStatus(tenant.getId()).ifPresent(view -> {
             tenantModel.setLotteryStatus(view.status());
             tenantModel.setNextEligibleDate(view.nextEligibleDate());
@@ -211,8 +207,8 @@ public abstract class TenantMapper implements MasksCompletedStatusForPartner {
         String token = null;
         String tokenPublic = null;
 
-        // Only expose sharing tokens once the apartment dossier is fully validated
-        if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
+        // Only expose sharing tokens once the apartment dossier is submitted (TO_PROCESS, COMPLETED or VALIDATED)
+        if (apartmentSharingModel.getStatus() != null && apartmentSharingModel.getStatus().isCompletedOrBetter()) {
             List<ApartmentSharingLink> links = tenant.getApartmentSharing().getApartmentSharingLinks();
             if (links != null) {
                 // fullLink: PARTNER or LINK entry with fullData = true (full application)

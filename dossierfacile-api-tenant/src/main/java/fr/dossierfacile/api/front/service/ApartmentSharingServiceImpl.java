@@ -188,7 +188,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     // token is only used for logs and error reporting, null when the request does not come from a sharing link
     private void requestFullPdfGeneration(ApartmentSharing apartmentSharing, String token) {
-        checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(apartmentSharing.getId(), token);
+        checkAllTenantsSubmittedAndAllDocumentsNotNull(apartmentSharing.getId(), token);
 
         FileStatus pdfStatus = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
         switch (pdfStatus) {
@@ -393,7 +393,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         zos.closeEntry();
     }
 
-    private void checkAllTenantsCompletedOrValidatedAndAllDocumentsNotNull(long apartmentSharingId, String token) {
+    private void checkAllTenantsSubmittedAndAllDocumentsNotNull(long apartmentSharingId, String token) {
         int numberOfTenants = tenantRepository.countTenantsBlockingFullPdfGeneration(apartmentSharingId);
         if (numberOfTenants > 0) {
             if (token != null) {

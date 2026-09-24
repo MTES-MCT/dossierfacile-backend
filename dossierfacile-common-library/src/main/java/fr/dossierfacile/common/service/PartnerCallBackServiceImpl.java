@@ -12,6 +12,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.CallbackLogRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
+import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
@@ -45,6 +46,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final ObjectMapper objectMapper;
     private final CompletedDossierService completedDossierService;
+    private final OperatorReviewPolicy operatorReviewPolicy;
 
     public void registerTenant(Tenant tenant, UserApi userApi) {
         Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
@@ -53,10 +55,14 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 return;
             }
 
-            // A COMPLETED dossier must never be exposed to partners: linking one (DFC or
-            // owner) sends it back to the operator queue before any callback is emitted
-            // TODO(completed-optin): remove this switch once partners handle the COMPLETED status
-            completedDossierService.switchBackToProcessing(tenant, userApi);
+            // A COMPLETED dossier must never be exposed to a partner that did not opt in:
+            // linking one (DFC or owner) sends it back to the operator queue before any
+            // callback is emitted. An opted-in partner sees the COMPLETED status instead.
+            // TODO(partner-completed-optin-100): remove this switch once every partner has integrated COMPLETED
+            // (the owner link still needs it as long as the owner space is excluded)
+            if (!operatorReviewPolicy.isPartnerOptedIn(userApi)) {
+                completedDossierService.switchBackToProcessing(tenant, userApi);
+            }
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
             createPartnerLinksIfNeeded(tenant, userApi, apartmentSharing);
             sendCallbackIfEligible(tenant, userApi);
@@ -104,12 +110,9 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     }
 
     private void sendCallbackIfEligible(Tenant tenant, UserApi userApi) {
-        if (userApi.getUrlCallback() != null && (
-                tenant.getStatus() == TenantFileStatus.VALIDATED
-                        || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
-            PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
-                    PartnerCallBackType.VERIFIED_ACCOUNT :
-                    PartnerCallBackType.CREATED_ACCOUNT;
+        // Submitted dossiers only (TO_PROCESS, COMPLETED, VALIDATED);
+        if (userApi.getUrlCallback() != null && tenant.getStatus() != null && tenant.getStatus().isCompletedOrBetter()) {
+            PartnerCallBackType partnerCallBackType = PartnerCallBackType.forTenantStatus(tenant.getStatus());
             ApplicationModel webhookDTO = getWebhookDTO(tenant, userApi, partnerCallBackType);
             sendCallBack(tenant, userApi, webhookDTO);
         }
@@ -210,6 +213,14 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     public ApplicationModel getWebhookDTO(Tenant tenant, UserApi userApi, PartnerCallBackType partnerCallBackType) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing, userApi);
+        // TODO(partner-completed-optin-100): remove this defensive downgrade once every partner has integrated COMPLETED
+        if (partnerCallBackType == PartnerCallBackType.COMPLETED_ACCOUNT && !operatorReviewPolicy.isPartnerOptedIn(userApi)) {
+            // Same invariant as the status masking in the mappers: a partner that did not
+            // opt in must never learn about COMPLETED. Should not happen (the dossier would
+            // not be COMPLETED); if it does, investigate
+            log.error("Defensive callback type downgrade for partner {}: COMPLETED_ACCOUNT sent as CREATED_ACCOUNT", userApi.getName());
+            partnerCallBackType = PartnerCallBackType.CREATED_ACCOUNT;
+        }
         applicationModel.setPartnerCallBackType(partnerCallBackType);
         applicationModel.setOnTenantId(tenant.getId());
         return applicationModel;

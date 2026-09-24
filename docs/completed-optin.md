@@ -2,13 +2,13 @@
 
 ## 1. Vue d'ensemble
 
-Le module **Opt-in COMPLETED** introduit un nouveau statut de dossier `COMPLETED` : un dossier complet et soumis (déclaration sur l'honneur signée), **utilisable immédiatement par le locataire sans vérification opérateur**. Le locataire peut le partager par téléchargement ZIP des justificatifs filigranés, ainsi que par lien et par mail (itération « partage COMPLETED » : page publique et full PDF au design « dossier complété, non vérifié », cf. §7.2) ; l'espace propriétaire et DossierFacile Connect restent réservés aux dossiers `VALIDATED`.
+Le module **Opt-in COMPLETED** introduit un nouveau statut de dossier `COMPLETED` : un dossier complet et soumis (déclaration sur l'honneur signée), **utilisable immédiatement par le locataire sans vérification opérateur**. Le locataire peut le partager par téléchargement ZIP des justificatifs filigranés, ainsi que par lien et par mail (page publique et full PDF au design « dossier non vérifié », cf. §7.2). Depuis l'itération « partage en TO_PROCESS », un dossier `TO_PROCESS` se partage exactement comme un `COMPLETED`; les partenaires (DFC, api-partner) voient `COMPLETED` s'ils ont **intégré ce statut** (cf. [partner-completed-optin.md](partner-completed-optin.md)).
 
 Objectif : réduire la charge opérateur en laissant, par défaut, les dossiers éligibles hors de la file de traitement — la vérification devient un choix explicite du locataire.
 
 Ce système garantit :
 - **Un comportement strictement inchangé hors rollout** : la machine à états (`Tenant.computeStatus()`) n'est pas modifiée ; le passage en `COMPLETED` est une surcouche conditionnée par un feature flag.
-- **L'invisibilité totale du statut pour les partenaires** (DFC, api-partner, espace propriétaire) via trois verrous complémentaires (§7).
+- **L'invisibilité du statut pour les partenaires n'ayant pas intégré le statut COMPLETED** (DFC, api-partner) et pour l'espace propriétaire, via trois verrous complémentaires (§7) ; les partenaires ayant intégré `COMPLETED` le voient (cf. [partner-completed-optin.md](partner-completed-optin.md)).
 - **Un seul fait persisté : le choix explicite de l'utilisateur** (`validation_requested`) — l'éligibilité est toujours recalculée, jamais stockée.
 - **Un rollback maîtrisé** : action BO explicite qui rebascule tous les dossiers `COMPLETED` en file de traitement.
 
@@ -52,7 +52,7 @@ Toujours **calculé à la volée, jamais stocké** (dépend d'états qui changen
 
 Condition dans l'ordre :
 1. `application_type = ALONE` ;
-2. **aucune** ligne `tenant_userapi` — règle stricte : tout lien partenaire (DFC ou propriétaire via `dfconnect-proprietaire`), même résiduel après suppression de la candidature, désactive l'opt-in ;
+2. **tous** les liens `tenant_userapi` pointent vers un partenaire ayant intégré `COMPLETED`;
 3. **en dernier** : `FeatureFlagService.isFeatureEnabledForUser(tenantId, "tenant_completed_optin")` — la première évaluation persiste l'assignation de bucket du user ; en le plaçant en dernier, seuls les candidats réels entrent dans le dénominateur des métriques, et les candidats hors rollout (`enabled = false`) forment le groupe contrôle.
 
 Quatre méthodes publiques :
@@ -102,7 +102,7 @@ Quatre méthodes publiques :
 ## 5. Transitions de statut
 
 ### 5.1 Entrée : passage en COMPLETED à la soumission (api-tenant)
-`TenantStatusServiceImpl.updateTenantStatus()` — appelé par tous les `SaveStep`, dont la déclaration sur l'honneur — applique `OperatorReviewPolicy.resolveStatus(tenant, computeStatus())` : un `TO_PROCESS` calculé est persisté en `COMPLETED` ou `TO_PROCESS` selon la policy. `Tenant.computeStatus()` est inchangé. Aucun webhook partenaire n'est émis (un dossier passé en `COMPLETED` n'a par définition aucun partenaire lié).
+`TenantStatusServiceImpl.updateTenantStatus()` — appelé par tous les `SaveStep`, dont la déclaration sur l'honneur — applique `OperatorReviewPolicy.resolveStatus(tenant, computeStatus())` : un `TO_PROCESS` calculé est persisté en `COMPLETED` ou `TO_PROCESS` selon la policy. `Tenant.computeStatus()` est inchangé. À la soumission en `COMPLETED` (depuis `INCOMPLETE`), le webhook **`COMPLETED_ACCOUNT`** est émis à tous les partenaires liés — tous ayant intégré `COMPLETED` par construction, sinon le dossier serait `TO_PROCESS`. Les passages `COMPLETED → TO_PROCESS` et `TO_PROCESS → COMPLETED` n'émettent aucun webhook (cf. partner-completed-optin.md §5).
 
 ### 5.2 Même règle côté BO
 `fr.gouv.bo.service.TenantService.updateTenantStatus()` (re-synchronisation après suppression/modification de document par un opérateur) applique la même règle via `OperatorReviewPolicy.resolveStatus()` — la logique n'existe qu'à un seul endroit.
@@ -115,12 +115,12 @@ Quatre méthodes publiques :
 |---|---|---|
 | Le locataire demande une vérification | endpoint §6 → `TO_PROCESS`, `last_update_date = now` (position en file = moment du choix) | `true` (son choix) |
 | Le locataire annule sa demande (sens inverse : `TO_PROCESS → COMPLETED`) | endpoint §6 → `switchToCompleted()` (§3.3), seule sortie de file à l'initiative du locataire | `false` (son choix) |
-| Connexion à un partenaire ou candidature propriétaire | bascule automatique §7.1 | inchangé |
+| Connexion à un partenaire **n'ayant pas intégré COMPLETED**, ou candidature propriétaire | bascule automatique §7.1 | inchangé |
 | Rollback | action BO §9 | inchangé |
 | Modification du dossier | `computeStatus()` → `INCOMPLETE`, puis retour possible en `COMPLETED` à la re-signature | inchangé |
 | Changement de type ALONE → COUPLE/GROUP | purge + recalcul (§8) | remis à `null` |
 
-Toute sortie de `COMPLETED` invalide le full PDF (design « non vérifié », §7.2) via `resetDossierPdfGenerated` ; les liens de partage existants survivent.
+Les liens de partage existants survivent à toute sortie de `COMPLETED`. Le full PDF aussi : `TO_PROCESS` et `COMPLETED` partagent le même design « non vérifié » (§7.2). Le full PDF n'est invalidé qu'à l'entrée en `VALIDATED` (`TenantCommonServiceImpl.changeTenantStatusToValidated`), où il est régénéré paresseusement au design historique.
 
 ---
 
@@ -140,21 +140,21 @@ Toute sortie de `COMPLETED` invalide le full PDF (design « non vérifié », §
 
 ## 7. Invisibilité partenaires — les trois verrous
 
-Un dossier `COMPLETED` ne doit jamais être vu d'un partenaire (DFC, api-partner) ni d'un propriétaire. Trois mécanismes complémentaires (§7.1, §7.3, §7.4) — le §7.2 décrit le régime des liens de partage, qui ne créent aucun lien partenaire :
+Un dossier `COMPLETED` ne doit jamais être vu d'un partenaire **n'ayant pas intégré ce statut** (DFC, api-partner) ni d'un propriétaire. Les partenaires ayant intégré `COMPLETED` (listés dans le flag `partner_completed_optin`, cf. [partner-completed-optin.md](partner-completed-optin.md)) le voient : les trois verrous ci-dessous sont conditionnés à `OperatorReviewPolicy.isPartnerOptedIn(userApi)`. Le §7.2 décrit le régime des liens de partage, qui ne créent aucun lien partenaire :
 
 ### 7.1 Bascule automatique à la liaison partenaire
-`PartnerCallBackServiceImpl.registerTenant()` — point de passage unique de toute création de lien `tenant_userapi` (connexion DFC, candidature propriétaire via `dfconnect-proprietaire`, propagation aux colocataires) — délègue à **`CompletedDossierService.switchBackToProcessing()`** (logique de bascule unique, partagée avec le rollback) : si le tenant est `COMPLETED`, il repasse `TO_PROCESS` **avant** l'envoi du callback (le webhook `CREATED_ACCOUNT` part donc avec un statut connu des partenaires), avec `last_update_date = now`, log `COMPLETED_SWITCHED_TO_PROCESS` et mail au locataire (template `brevo.template.id.completed.switched.to.processing`) après commit.
+`PartnerCallBackServiceImpl.registerTenant()` — point de passage unique de toute création de lien `tenant_userapi` (connexion DFC, candidature propriétaire via `dfconnect-proprietaire`, propagation aux colocataires) — délègue, **si le partenaire n'a pas intégré le statut COMPLETED**, à **`CompletedDossierService.switchBackToProcessing()`** (logique de bascule unique, partagée avec le rollback) : si le tenant est `COMPLETED`, il repasse `TO_PROCESS` **avant** l'envoi du callback (le webhook `CREATED_ACCOUNT` part donc avec un statut connu du partenaire), avec `last_update_date = now`, log `COMPLETED_SWITCHED_TO_PROCESS` et mail au locataire (template `brevo.template.id.completed.switched.to.processing`) après commit. Pour un partenaire ayant intégré `COMPLETED`, pas de bascule : le webhook `COMPLETED_ACCOUNT` part avec `status = COMPLETED`.
 
-### 7.2 Liens de partage & full PDF (itération « partage COMPLETED »)
-Le partage par lien/mail est ouvert aux dossiers `VALIDATED` **et** `COMPLETED` (`TenantFileStatus.isCompletedOrValidated()`, contrôlé par `TenantServiceImpl.requireCompletedOrValidatedDossier()` et `ApartmentSharingLinkController`, `409` sinon). Les liens LINK/MAIL peuvent donc coexister avec un dossier `COMPLETED` ; ils ne créent aucune ligne `tenant_userapi` et n'entament pas l'invisibilité partenaires. La page publique d'un dossier `COMPLETED` affiche un design « dossier complété, non vérifié par un agent » distinct du rendu `VALIDATED`. Le full PDF `COMPLETED` est un rendu neutre : uniquement les pages de justificatifs (pas de page de garde ni de « mot du locataire ») et sans les logos République Française / DossierFacile dans l'en-tête des pages ; le full PDF `VALIDATED` reste le rendu historique inchangé. La génération du full PDF exige un dossier `VALIDATED` ou `COMPLETED` avec tous les watermarks présents (`countTenantsBlockingFullPdfGeneration`, `417` sinon). À toute sortie de `COMPLETED` (opt-in « oui » §6, bascule partenaire §7.1, rollback §9), les liens **survivent** (la page publique bascule sur le rendu du nouveau statut) mais le full PDF est **invalidé** (`resetDossierPdfGenerated`) — il sera régénéré paresseusement au design du statut courant ; `complete()` (pdf-generator) jette par ailleurs tout fichier généré pendant une invalidation concurrente. Le ZIP (`GET /api/application/zip`) reste accessible quel que soit le statut.
+### 7.2 Liens de partage & full PDF (itérations « partage COMPLETED » + « partage en TO_PROCESS »)
+Le partage par lien/mail est ouvert à tout dossier **soumis** : `TO_PROCESS`, `COMPLETED` ou `VALIDATED` (`TenantFileStatus.isCompletedOrBetter()`, contrôlé par `TenantServiceImpl.requireShareableDossier()` et `ApartmentSharingLinkController`, `409` sinon). Les liens LINK/MAIL ne créent aucune ligne `tenant_userapi` et n'entament pas l'invisibilité partenaires. Un dossier **non vérifié** (`TO_PROCESS` ou `COMPLETED`) a un rendu unique, distinct du rendu `VALIDATED` : page publique « dossier complet, non vérifié par un agent », badges de documents « Document déposé », total des revenus masqué ; full PDF neutre — uniquement les pages de justificatifs (pas de page de garde ni de « mot du locataire ») et sans les logos République Française / DossierFacile dans l'en-tête (`ApartmentSharingPdfDocumentTemplate`, `unverifiedDossier = status != VALIDATED`) ; le full PDF `VALIDATED` reste le rendu historique inchangé. La génération du full PDF exige un dossier soumis avec tous les watermarks présents (`countTenantsBlockingFullPdfGeneration`, `417` sinon). `TO_PROCESS` et `COMPLETED` étant équivalents, aucune sortie de `COMPLETED` n'invalide le full PDF ; il n'est invalidé qu'à l'entrée en `VALIDATED` (`changeTenantStatusToValidated`), et `complete()` (pdf-generator) jette tout fichier généré pendant une invalidation concurrente. Le ZIP (`GET /api/application/zip`) reste accessible quel que soit le statut.
 
 ### 7.3 Filet défensif dans les mappers
-`PartnerVisibleStatus.mask(status, source)` (common-library) : convertit `COMPLETED → TO_PROCESS` et émet un **`log.error`** — « *Defensive status masking triggered in {source}…* ». Ce cas ne doit jamais se produire : toute occurrence dans ELK signale un invariant cassé, à investiguer (les dossiers concernés se retrouvent via `status = 'COMPLETED' AND EXISTS tenant_userapi`). Branché dans six mappers :
-- conditionnel au contexte partenaire (`userApi != null`) là où le mapper sert aussi le locataire : `ApplicationFullMapper` (webhooks, api-partner), `TenantMapper` (profil + DFC) ;
+`PartnerVisibleStatus.mask(status, source)` (common-library) : convertit `COMPLETED → TO_PROCESS` et émet un **`log.error`** — « *Defensive status masking triggered in {source}…* ». Ce cas ne doit jamais se produire : toute occurrence dans ELK signale un invariant cassé, à investiguer (les dossiers concernés se retrouvent via la requête de partner-completed-optin.md §8). Branché dans six mappers :
+- conditionnel au contexte d'un partenaire **n'ayant pas intégré COMPLETED** (`userApi != null && !isPartnerOptedIn(userApi)`, classe de base `MasksCompletedStatusForPartner`) là où le mapper sert aussi le locataire : `ApplicationFullMapper` (webhooks, api-partner), `TenantMapper` (profil + DFC) — ce dernier cache aussi `optInEligible` et `validationRequested` en contexte partenaire ;
 - inconditionnel dans le module api-owner, dont tous les lecteurs sont externes : `PropertyMapper`, `OwnerPropertyMapper`, `ApartmentSharingModelMapper`, `OwnerMapper`.
 
-### 7.4 Règle d'éligibilité stricte
-Toute ligne `tenant_userapi`, même résiduelle, rend le dossier inéligible (§3.2) : un dossier lié à un partenaire ne peut pas *devenir* `COMPLETED`, la bascule 7.1 garantissant qu'il ne peut pas le *rester*.
+### 7.4 Règle d'éligibilité
+Toute ligne `tenant_userapi` vers un partenaire n'ayant pas intégré COMPLETED, même résiduelle, rend le dossier inéligible (§3.2) : un dossier lié à un tel partenaire ne peut pas *devenir* `COMPLETED`, la bascule 7.1 garantissant qu'il ne peut pas le *rester*.
 
 ---
 
@@ -201,7 +201,7 @@ Le branchement du mail de soumission se fait sur le **statut résultant** (dans 
 - Nouveaux `LogType` dans `tenant_log` : `VALIDATION_REQUESTED`, `VALIDATION_DECLINED` (choix utilisateur), `COMPLETED_SWITCHED_TO_PROCESS` (toute bascule automatique ou rollback).
 - Métriques du MVP par simple SQL : répartition de `validation_requested` (`null` = jamais répondu / `false` = complété par défaut ou décliné / `true` = vérification demandée) sur la cohorte assignée (`user_feature_assignment`, flag `tenant_completed_optin`), croisée avec les logs.
 - Point de surveillance ELK post-activation : le message « `Defensive status masking triggered` » (§7.3) — zéro occurrence attendue.
-- `callback_log.tenant_status` ne doit jamais contenir `COMPLETED`.
+- `callback_log.tenant_status` ne contient `COMPLETED` que pour des `partner_id` de partenaires ayant intégré `COMPLETED` (requête dans partner-completed-optin.md §8).
 
 ## 12. Non-impacts vérifiés
 
@@ -222,9 +222,9 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 |---|---|---|
 | A1 | Funnel ALONE complet → signature déclaration sur l'honneur | Statut `TO_PROCESS`, mail template 56, badge « en cours de traitement », **pas d'encart** opt-in |
 | A2 | Dossier A1 dans le BO | Présent dans la file (`ranked_tenant`), compteurs inchangés, traitable (validation → VALIDATED + mail ; refus → DECLINED + mail) |
-| A3 | Partage pendant TO_PROCESS | `/partages` sans formulaire ; bloc « documents non vérifiés » + ZIP OK ; après VALIDATED : création lien/mail OK |
+| A3 | Partage pendant TO_PROCESS | `/partages` avec formulaire : création lien/mail OK ; tableau de bord : callout « en cours de traitement » + section de partage (badge « Dossier complet », « non vérifié par un agent ») ; page publique et full PDF au rendu « non vérifié », identiques à B3 |
 | A4 | COUPLE : signature | Les deux passent TO_PROCESS, mail au signataire seul (comportement actuel), pas d'encart |
-| A5 | Compte créé via partenaire DFC → funnel → signature | TO_PROCESS, webhook `CREATED_ACCOUNT`, pas d'encart |
+| A5 | Compte créé via partenaire DFC **n'ayant pas intégré COMPLETED** → funnel → signature | TO_PROCESS, webhook `CREATED_ACCOUNT`, pas d'encart (partenaire ayant intégré COMPLETED : voir partner-completed-optin.md §7) |
 | A6 | Vérif SQL `user_feature_assignment` | Le user A1 (candidat réel) est assigné `enabled=false` (groupe contrôle) ; les users A4/A5 ne sont **pas** assignés (conditions 1-2 échouent avant le flag) |
 
 ### B. Dans le rollout (rollout 100 % en préprod)
@@ -234,15 +234,15 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 | B1 | Funnel ALONE complet → signature | Statut `COMPLETED`, badge « Complété », mail template 173, encart affiché sans réponse (`validation_requested = null`) |
 | B2 | Dossier B1 côté BO | Absent de la file et des compteurs ; trouvable par recherche directe, libellé « complété » ; `processFile` impossible |
 | B3 | Partage B1 | ZIP OK ; création lien/mail et lien par défaut **OK** ; page publique au design « dossier complété, non vérifié » (badges info, documents consultables) ; full PDF généré paresseusement au design COMPLETED |
-| B3bis | Lien créé pendant B1 puis sortie de COMPLETED (opt-in « oui » ou liaison partenaire) | Le lien reste actif et la page publique bascule sur le rendu TO_PROCESS ; le full PDF est invalidé (409/417) puis régénéré au design du nouveau statut |
+| B3bis | Lien créé pendant B1 puis sortie de COMPLETED (opt-in « oui » ou liaison partenaire n'ayant pas intégré COMPLETED) | Le lien reste actif, la page publique et le full PDF sont **inchangés** (même rendu « non vérifié » en TO_PROCESS) ; après validation opérateur : rendu « vérifié », full PDF régénéré (409/417 pendant la régénération) |
 | B4 | Encart : répondre « oui » | `validation_requested=true`, statut TO_PROCESS, entre en file (position = maintenant), badge « en cours », log `VALIDATION_REQUESTED`, mail template 56 reçu |
 | B5 | B4 puis annuler | Retour `COMPLETED`, `validation_requested=false`, sort de la file (`switchToCompleted`) |
-| B6 | B1 → connexion à un partenaire DFC | Bascule immédiate TO_PROCESS, `validation_requested` reste `null`, mail de bascule, webhook `CREATED_ACCOUNT` avec `status=TO_PROCESS` (payload + `callback_log` : jamais COMPLETED), encart disparu, dossier en file |
+| B6 | B1 → connexion à un partenaire DFC **n'ayant pas intégré COMPLETED** | Bascule immédiate TO_PROCESS, `validation_requested` reste `null`, mail de bascule, webhook `CREATED_ACCOUNT` avec `status=TO_PROCESS` (payload + `callback_log` : jamais COMPLETED), encart disparu, dossier en file. Partenaire ayant intégré COMPLETED : pas de bascule, `COMPLETED_ACCOUNT` avec `status=COMPLETED` (partner-completed-optin.md §7) |
 | B7 | B1 → candidature propriétaire (`/candidater/:token`) | Même bascule que B6 ; écran de confirmation owner = wording TO_PROCESS standard ; mail owner « candidat non validé », **pas** le « validé » |
 | B8 | B1 → modification d'un document | INCOMPLETE → re-signature → re-COMPLETED (choix inchangé, pas de nouvelle question) |
 | B9 | B4 → validé par un opérateur → modification d'un document | Le choix `validation_requested=true` de B4 persiste → re-soumission en TO_PROCESS, **encart présent** (« annuler ma demande ») ; l'annulation bascule le dossier en COMPLETED. Un dossier examiné (validé ou refusé) dont le choix est `null`/`false` re-soumet **directement en COMPLETED** |
 | B10 | B1 → ajout d'un conjoint (ALONE → COUPLE) | `validation_requested` purgé, dossier INCOMPLETE ; après signature des deux → TO_PROCESS (plus ALONE), pas d'encart |
-| B11 | Compte rollout mais connecté DFC avant soumission | Signature → TO_PROCESS direct, mail 56 classique, pas d'encart |
+| B11 | Compte rollout mais connecté avant soumission à un partenaire DFC **n'ayant pas intégré COMPLETED** | Signature → TO_PROCESS direct, mail 56 classique, pas d'encart |
 | B12 | Vérif exposition B1 | Profil : `optInEligible=true`, `validationRequested` absent ; `apartmentSharing.status` ≠ VALIDATED (tokens de partage absents du JSON) |
 | B13 | BO : regroupement impliquant B1 | Bloqué avec message |
 | B14 | Dossier A1 (hors rollout, en file) → passage du rollout à 100 % → suppression d'un fichier par un opérateur dans le BO, ou ajout d'un document par le locataire | Reste `TO_PROCESS` et en file ; le verdict opérateur fonctionne (§3.3). Après refus puis correction : re-soumission directement en `COMPLETED` (B9) |
@@ -255,7 +255,7 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 | C1 | Rollout 100 → 0 % | Nouvelles soumissions → TO_PROCESS ; dossiers COMPLETED existants **inchangés** tant que l'action de rollback n'est pas lancée |
 | C2 | Action « Rebasculer les dossiers COMPLETED » | Tous → TO_PROCESS, `last_update_date=now` (fin de file), `validation_requested` intact, mail de bascule, logs `COMPLETED_SWITCHED_TO_PROCESS` |
 | C3 | Métriques | Répartition `validation_requested` sur la cohorte assignée ; comptage des logs |
-| C4 | Partenaires | `callback_log.tenant_status` : aucune ligne COMPLETED ; API DFC/api-partner : jamais COMPLETED dans les payloads |
+| C4 | Partenaires | `callback_log.tenant_status = COMPLETED` uniquement pour des `partner_id` de partenaires ayant intégré COMPLETED ; API DFC/api-partner : jamais COMPLETED dans les payloads d'un partenaire n'ayant pas intégré COMPLETED |
 | C5 | ELK | Aucune occurrence de « Defensive status masking triggered » |
 
 ---
@@ -263,7 +263,8 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 ## 14. Limites du MVP & évolutions envisagées
 
 - **Colocs/couples exclus** (76-77 % du volume est ALONE) : l'extension passera par l'agrégat `ApartmentSharing.getStatus()` déjà en place (« pire statut gagne » : un seul tenant sans opt-in maintient le dossier global en `TO_PROCESS`).
-- ~~**Partage ZIP uniquement**~~ : levé par l'itération « partage COMPLETED » (§7.2) — liens LINK/MAIL, page publique et full PDF au design dédié.
+- ~~**Partage ZIP uniquement**~~ : levé par l'itération « partage COMPLETED » (§7.2) — liens LINK/MAIL, page publique et full PDF au design dédié ; puis étendu aux dossiers `TO_PROCESS` (itération « partage en TO_PROCESS »).
+- ~~**Invisibilité totale pour les partenaires**~~ : levée partenaire par partenaire par le module [partner-completed-optin.md](partner-completed-optin.md) (flag `partner_completed_optin`, webhook `COMPLETED_ACCOUNT`).
 - ~~**Plafond journalier**~~ : réalisé par le module tirage au sort ([tenant-lottery.md](tenant-lottery.md)) — quand le flag `tenant_lottery` est actif, l'opt-in « oui » enregistre une candidature au tirage quotidien au lieu d'entrer directement en file, et `validation_requested` devient purement déclaratif dans la formule du statut (remplacé par « ticket `DRAWN` »).
 - **Upgrade auto-validation** : laisser le bot Visale valider silencieusement les dossiers `COMPLETED` éligibles (coût opérateur nul, bénéfice usager).
 - Le **frontend** (badge, bloc ZIP, encart de choix — monorepo Dossier-Facile-Frontend) fait l'objet d'une PR séparée consommant `optInEligible` / `validationRequested` / `POST /api/tenant/validation-request`.

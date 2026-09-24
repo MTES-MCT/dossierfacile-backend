@@ -25,22 +25,32 @@ alert:
   - slack
 
 slack_webhook_url: "{{mattermost_webhook_elk_alert_url}}"
-slack_msg_pretext: "📛 **ALERTE PROD** : Erreur détectée sur une tâche planifiée"
-
 slack_msg_color: danger
+slack_title: "🚨 **ALERTE PROD** : Erreur détectée sur une tâche planifiée"
 slack_username_override: "AlerteFacile"
 slack_emoji_override: ":no_entry_sign:"
 
+# Empêche ElastAlert de dumper tout le document brut
+alert_text_type: alert_text_only
+
+alert_text: |
+  **Détail de l'incident** :
+  La tâche `{0}` de l'application `{1}` a échoué avec le statut `{2}`.
+alert_text_args:
+  - task_name
+  - application
+  - task_status
+
 slack_alert_fields:
-  - title: Application
-    value: "application"
-    short: true
   - title: Environnement
     value: "environment"
+    short: true
+  - title: Application
+    value: "application"
     short: true
   - title: Tâche
     value: "task_name"
     short: true
-  - title: Heure
+  - title: Dernière détection
     value: "@timestamp"
-    short: false
+    short: true

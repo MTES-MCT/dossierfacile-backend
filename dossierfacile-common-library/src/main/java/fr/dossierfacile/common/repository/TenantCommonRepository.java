@@ -219,14 +219,14 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     )
     List<Tenant> findAllDeclinedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    // The full dossier PDF can only be generated for COMPLETED or VALIDATED dossiers whose documents
-    // (including guarantor ones) all have their watermarked file available
+    // The full dossier PDF can only be generated for submitted dossiers (TO_PROCESS, COMPLETED or
+    // VALIDATED) whose documents (including guarantor ones) all have their watermarked file available
     @Query(value = """
             SELECT COUNT(t.id)
             FROM tenant t
             WHERE t.apartment_sharing_id = :apartmentSharingId
               AND (
-                t.status NOT IN ('VALIDATED', 'COMPLETED')
+                t.status NOT IN ('VALIDATED', 'COMPLETED', 'TO_PROCESS')
                 OR EXISTS (
                     SELECT 1
                     FROM document d

@@ -20,7 +20,7 @@ services:
       POSTGRES_PASSWORD: your_very_secure_password
       POSTGRES_DB: dossierfacile
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped

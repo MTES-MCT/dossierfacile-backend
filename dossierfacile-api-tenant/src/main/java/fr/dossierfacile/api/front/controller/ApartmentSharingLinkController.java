@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.model.ExpirationDateRequest;
 import fr.dossierfacile.api.front.model.TitleRequest;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
@@ -48,9 +47,7 @@ public class ApartmentSharingLinkController {
     @PutMapping("/default")
     public ResponseEntity<ApartmentSharingLinkModel> updateApartmentSharingLinksStatus( @RequestParam boolean isFullData) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
-        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        requireCompletedOrValidatedDossier(apartmentSharing);
-        ApartmentSharingLinkModel defaultLink = apartmentSharingLinkService.getDefaultLink(apartmentSharing, tenant, isFullData);
+        ApartmentSharingLinkModel defaultLink = tenantService.getDefaultSharingLink(tenant, isFullData);
         return ResponseEntity.ok(defaultLink);
     }
 
@@ -115,14 +112,6 @@ public class ApartmentSharingLinkController {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         apartmentSharingLinkService.enableValidLinks(tenant);
         return ResponseEntity.ok().build();
-    }
-
-    // Sharing by link is reserved to complete, submitted dossiers:
-    // VALIDATED (operator-verified) or COMPLETED (non verified, opt-in flow)
-    private void requireCompletedOrValidatedDossier(ApartmentSharing apartmentSharing) {
-        if (apartmentSharing == null || !apartmentSharing.getStatus().isCompletedOrValidated()) {
-            throw new TenantIllegalStateException("Sharing a dossier by link requires a validated or completed dossier");
-        }
     }
 
     @ApiOperation(value = "Update apartment sharing link expiration date", notes = "Updates the expiration date of an apartment sharing link.")
