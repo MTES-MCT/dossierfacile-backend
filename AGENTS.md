@@ -34,7 +34,7 @@ Hiérarchie : `apartment_sharing` -> `tenant` -> `guarantor` ; `document` -> `fi
 
 - **`apartment_sharing` (dossier de candidature)** : concept central regroupant les dossiers locataires. `type` (`ApplicationType`) = `ALONE` / `COUPLE` / `GROUP`. Validé quand **tous** ses tenants le sont.
 - **`tenant` (dossier locataire)** : **1 seul par compte utilisateur**. `type` = `CREATE` (principal) / `JOIN` (invité d'un `COUPLE`/`GROUP`). Le principal invite par mail ; il complète le dossier joint **en `COUPLE` uniquement**. Complet = infos (nom/prénom) + 5 documents + déclaration sur l'honneur.
-- **`guarantor` (dossier garant)** : 0..n par tenant. `TypeGuarantor` = `NATURAL_PERSON` (≤2) / `ORGANISM` (ex. Visale).
+- **`guarantor` (dossier garant)** : 0..n par tenant. `TypeGuarantor` = `NATURAL_PERSON` (≤2) / `ORGANISM` (ex. Visale). Un garant personne physique porte aussi un email, collecté côté locataire, visible au BO et notifié par mail lorsque cet email est renseigné ou modifié.
 - **`document`** : rattaché à un `tenant` **ou** un `guarantor` (FK exclusives `tenant_id` / `guarantor_id`). `category` (5 : `IDENTIFICATION`, `RESIDENCY`, `PROFESSIONAL`, `FINANCIAL`, `TAX`) + `subCategory`. = **fusion filigranée de plusieurs `file`**.
 - **`file`** : fichier brut (JPG/PNG/PDF). Fusion + filigrane via **traitement asynchrone**.
 
