@@ -26,6 +26,7 @@ public class TenantLog implements Serializable {
     private static final String DOCUMENT_SUB_CATEGORY = "documentSubCategory";
     private static final String OLD_SUM = "oldSum";
     private static final String NEW_SUM = "newSum";
+    private static final String SOURCE = "source";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -101,6 +102,13 @@ public class TenantLog implements Serializable {
             builder.append(this.getOperatorId());
         } else {
             builder.append(this.getLogType());
+            // Automatic deletion (neither tenant nor operator): show its origin. Guarded by the log type,
+            // QUEUE_ENTERED also carries a "source" detail with another meaning
+            if (this.getLogType() == LogType.DOCUMENT_DELETED
+                    && this.getLogDetails() != null
+                    && this.getLogDetails().get(SOURCE) != null) {
+                builder.append(" (auto: ").append(this.getLogDetails().get(SOURCE).asText()).append(")");
+            }
         }
         if (isLegacyEdit) {
             String subject = this.getLogDetails().get("fileId") != null ? " : FILE " : " : DOCUMENT ";
