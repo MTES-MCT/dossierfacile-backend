@@ -12,6 +12,7 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
+import fr.dossierfacile.common.service.interfaces.DocumentDeletionCommonService;
 import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
@@ -81,6 +82,7 @@ public class TenantService {
     private final OperatorReviewPolicy operatorReviewPolicy;
     private final FeatureFlagService featureFlagService;
     private final LotteryTicketService lotteryTicketService;
+    private final DocumentDeletionCommonService documentDeletionCommonService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
@@ -1028,26 +1030,10 @@ public class TenantService {
     @Transactional
     public Tenant deleteDocument(Long id, User operator) {
         Document document = documentService.findDocumentById(id);
-        Tenant tenant = documentService.deleteDocument(id);
-        detachDocumentFromOwner(document);
-        tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
-        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
+        // Shared invariants: DOCUMENT_DELETED log, owner list, auto-validation flag, full dossier PDF
+        Tenant tenant = documentDeletionCommonService.deleteDocument(document, operator.getId(), null);
         updateTenantStatus(tenant, operator);
         return tenant;
-    }
-
-    // Keep the in-memory model consistent with the scheduled deletion: the eligibility
-    // queries in updateTenantStatus trigger an auto-flush
-    private void detachDocumentFromOwner(Document document) {
-        List<Document> ownerDocuments;
-        if (document.getGuarantor() != null) {
-            ownerDocuments = document.getGuarantor().getDocuments();
-        } else if (document.getTenant() != null) {
-            ownerDocuments = document.getTenant().getDocuments();
-        } else {
-            return;
-        }
-        ownerDocuments.removeIf(d -> Objects.equals(d.getId(), document.getId()));
     }
 
     @Transactional
@@ -1067,16 +1053,16 @@ public class TenantService {
         sharedFileRepository.delete(file);
 
         if (document.getFiles().isEmpty()) {
-            documentService.deleteDocument(document.getId());
-            detachDocumentFromOwner(document);
-            tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
+            documentDeletionCommonService.deleteDocument(document, operator.getId(), null);
         } else {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
             documentRepository.save(document);
             documentService.regeneratePdf(document);
+            // Any file removal invalidates the auto-validation queue entry
+            tenant.setReadyForAutoValidation(false);
+            apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         }
 
-        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         updateTenantStatus(tenant, operator);
         return tenant;
     }

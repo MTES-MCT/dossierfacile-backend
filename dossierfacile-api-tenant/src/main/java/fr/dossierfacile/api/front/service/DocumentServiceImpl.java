@@ -22,6 +22,7 @@ import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
+import fr.dossierfacile.common.service.interfaces.DocumentDeletionCommonService;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -56,6 +57,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final Producer producer;
     private final DocumentIAService documentIAService;
     private final TenantMapper tenantMapper;
+    private final DocumentDeletionCommonService documentDeletionCommonService;
 
     // There is a dependency cycle between DocumentServiceImpl and TenantStatusService / ApartmentSharingService, so we need to inject them lazily
     public DocumentServiceImpl(DocumentRepository documentRepository,
@@ -69,7 +71,8 @@ public class DocumentServiceImpl implements DocumentService {
                                TenantCommonRepository tenantRepository,
                                Producer producer,
                                DocumentIAService documentIAService,
-                               TenantMapper tenantMapper) {
+                               TenantMapper tenantMapper,
+                               DocumentDeletionCommonService documentDeletionCommonService) {
         this.documentRepository = documentRepository;
         this.documentAnalysisReportRepository = documentAnalysisReportRepository;
         this.documentIAFileAnalysisRepository = documentIAFileAnalysisRepository;
@@ -82,6 +85,7 @@ public class DocumentServiceImpl implements DocumentService {
         this.producer = producer;
         this.documentIAService = documentIAService;
         this.tenantMapper = tenantMapper;
+        this.documentDeletionCommonService = documentDeletionCommonService;
     }
 
     @Override
@@ -110,19 +114,17 @@ public class DocumentServiceImpl implements DocumentService {
     @Transactional
     public void delete(Document document) {
         Person ownerOfDocument = Optional.<Person>ofNullable(document.getTenant()).orElse(document.getGuarantor());
-        Tenant tenantOfDocument = Optional.ofNullable(document.getTenant()).orElseGet(() -> document.getGuarantor().getTenant());
 
+        // Tenant-side rule: sibling PRO/FIN/TAX documents go back to review, before the shared deletion
+        // TODO (mutualize deletion logic) : sibling documents should be reset also in BO
         List<DocumentCategory> categoriesToChange = List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX);
         if (categoriesToChange.contains(document.getDocumentCategory())) {
             List<Document> documentList = ownerOfDocument.getDocuments();
             resetValidatedOrInProgressDocumentsAccordingCategories(documentList, categoriesToChange);
         }
 
-        ownerOfDocument.getDocuments().removeIf(d -> Objects.equals(d.getId(), document.getId()));
-        documentRepository.delete(document);
-        tenantOfDocument.setReadyForAutoValidation(false);
+        Tenant tenantOfDocument = documentDeletionCommonService.deleteDocument(document, null, null);
         tenantStatusService.updateTenantStatus(tenantOfDocument);
-        apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
     }
 
     @Override
@@ -137,7 +139,6 @@ public class DocumentServiceImpl implements DocumentService {
         delete(document);
         tenantOfDocument.lastUpdateDateProfile(LocalDateTime.now(), null);
         tenantRepository.save(tenantOfDocument);
-        logService.saveDocumentDeletedLog(document, tenantOfDocument);
     }
 
     @Override

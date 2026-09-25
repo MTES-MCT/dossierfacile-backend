@@ -52,7 +52,6 @@ public class FileServiceImpl implements FileService {
         documentService.markDocumentAsEdited(document);
 
         if (document.getFiles().isEmpty()) {
-            logService.saveDocumentDeletedLog(document, tenantFileOwner);
             documentService.delete(document);
             return null;
         }

@@ -7,8 +7,10 @@ import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.DocumentDeletionSource;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.OwnerLogType;
+import jakarta.annotation.Nullable;
 
 import java.util.List;
 
@@ -27,6 +29,8 @@ public interface LogService {
     void saveDocumentAddedLog(Document document, Tenant editor);
 
     void saveDocumentDeletedLog(Document document, Tenant editor);
+
+    void saveDocumentDeletedLog(Document document, Tenant owner, @Nullable Long operatorId, @Nullable DocumentDeletionSource source);
 
     void saveFileAddedLog(File file, Tenant editor);
 

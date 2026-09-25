@@ -33,6 +33,16 @@ class TenantLogTest {
     }
 
     @Test
+    void should_render_automatic_document_deletion_with_its_source() {
+        TenantLog log = TenantLog.builder()
+                .logType(LogType.DOCUMENT_DELETED)
+                .logDetails(details("documentId", 5, "source", "FAILED_PDF_CLEANUP"))
+                .build();
+
+        assertThat(log.getTitle()).isEqualTo("DOCUMENT_DELETED (auto: FAILED_PDF_CLEANUP)");
+    }
+
+    @Test
     void should_render_legacy_file_deleted_log_from_operator() {
         TenantLog log = TenantLog.builder()
                 .logType(LogType.ACCOUNT_EDITED)
