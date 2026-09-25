@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentDeletionSource;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.repository.TenantLogRepository;
@@ -57,6 +58,41 @@ class LogServiceImplTest {
         assertThat(savedLog.getTenantId()).isEqualTo(2L);
         assertThat(savedLog.getLogDetails()).hasToString("""
                 {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","guarantorId":3}""");
+    }
+
+    @Test
+    void should_save_deleted_log_with_operator() {
+        Document document = Document.builder()
+                .documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.SALARY)
+                .guarantor(Guarantor.builder().id(3L).build())
+                .build();
+
+        logService.saveDocumentDeletedLog(document, tenantWithId(2L), 4L, null);
+
+        TenantLog savedLog = getSavedLog();
+        assertThat(savedLog.getLogType()).isEqualTo(LogType.DOCUMENT_DELETED);
+        assertThat(savedLog.getTenantId()).isEqualTo(2L);
+        assertThat(savedLog.getOperatorId()).isEqualTo(4L);
+        assertThat(savedLog.getLogDetails()).hasToString("""
+                {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","guarantorId":3}""");
+    }
+
+    @Test
+    void should_save_deleted_log_with_automatic_source() {
+        Document document = Document.builder()
+                .documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.SALARY)
+                .guarantor(Guarantor.builder().id(3L).build())
+                .build();
+
+        logService.saveDocumentDeletedLog(document, tenantWithId(2L), null, DocumentDeletionSource.FAILED_PDF_CLEANUP);
+
+        TenantLog savedLog = getSavedLog();
+        assertThat(savedLog.getLogType()).isEqualTo(LogType.DOCUMENT_DELETED);
+        assertThat(savedLog.getOperatorId()).isNull();
+        assertThat(savedLog.getLogDetails()).hasToString("""
+                {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","guarantorId":3,"source":"FAILED_PDF_CLEANUP"}""");
     }
 
     @Test

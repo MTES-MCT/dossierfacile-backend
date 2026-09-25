@@ -9,7 +9,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.model.log.DocumentLogDetails;
 import fr.dossierfacile.common.model.log.FileLogDetails;
 import fr.dossierfacile.common.model.log.UpdateMonthlySum;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -84,17 +83,6 @@ public class TenantLogService {
                 .creationDateTime(LocalDateTime.now())
                 .logDetails(writeAsObjectNode(Map.of("comment", operatorComment)))
                 .build();
-        tenantLogCommonService.saveTenantLog(log);
-    }
-
-    public void addDeleteDocumentLog(Long tenantId, Long operatorId, Document document) {
-        TenantLog log = TenantLog.builder()
-            .logType(LogType.DOCUMENT_DELETED)
-            .tenantId(tenantId)
-            .operatorId(operatorId)
-            .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(DocumentLogDetails.from(document)))
-            .build();
         tenantLogCommonService.saveTenantLog(log);
     }
 
