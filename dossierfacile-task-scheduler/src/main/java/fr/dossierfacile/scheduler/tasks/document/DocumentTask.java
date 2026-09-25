@@ -1,7 +1,6 @@
 package fr.dossierfacile.scheduler.tasks.document;
 
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
@@ -17,7 +16,6 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.DELETE_FAILED_DOCUMENT;
@@ -31,6 +29,7 @@ public class DocumentTask extends AbstractTask {
     private final PartnerCallbackService partnerCallbackService;
     private final DocumentDeleteMailService documentDeleteMailService;
     private final QueueMessageRepository queueMessageRepository;
+    private final FailedPdfDocumentCleanupService failedPdfDocumentCleanupService;
     @Value("${document.pdf.failed.delay.before.delete.hours}")
     private Long delayBeforeDeleteHours;
 
@@ -54,30 +53,65 @@ public class DocumentTask extends AbstractTask {
     @Scheduled(cron = "${cron.delete.document.with.failed.pdf}")
     public void deleteDocumentWithFailedPdfGeneration() {
         super.startTask(DELETE_FAILED_DOCUMENT);
-
         try {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime toDateTime = now.minusHours(delayBeforeDeleteHours);
-
+            LocalDateTime toDateTime = LocalDateTime.now().minusHours(delayBeforeDeleteHours);
             List<Document> documents = documentRepository.findDocumentWithoutPDFToDate(toDateTime);
             if (CollectionUtils.isEmpty(documents)) {
                 log.info("There is no file with empty pdf");
-            } else {
-                countDocumentIdForLogging(documents);
-                Map<Tenant, List<Document>> tenantDocuments = documents.stream()
-                        .collect(Collectors.groupingBy(d ->
-                                Optional.ofNullable(d.getTenant())
-                                        .orElseGet(() -> d.getGuarantor().getTenant())
-                        ));
-                tenantDocuments.forEach((tenant, docs) -> documentDeleteMailService.sendMailWithDocumentFailed(tenant.getId(), docs));
-                documentRepository.deleteAll(documents);
-                tenantDocuments.forEach((tenant, docs) -> partnerCallbackService.sendPartnerCallback(tenant.getId()));
+                return;
             }
+            countDocumentIdForLogging(documents);
+
+            // Orphans (no tenant, no guarantor) cannot be logged nor notified: raw delete, apart
+            Map<Boolean, List<Document>> byOrphan = documents.stream()
+                    .collect(Collectors.partitioningBy(d -> resolveTenantId(d) == null));
+            deleteOrphans(byOrphan.get(true));
+
+            Map<Long, List<Long>> documentIdsByTenant = byOrphan.get(false).stream()
+                    .collect(Collectors.groupingBy(DocumentTask::resolveTenantId,
+                            Collectors.mapping(Document::getId, Collectors.toList())));
+            documentIdsByTenant.forEach(this::cleanupTenant);
         } catch (Exception e) {
             log.error("Error during deleting documents with failed pdf generation", e);
         } finally {
             super.endTask();
         }
+    }
+
+    // One transaction per tenant; notifications only once it is committed
+    private void cleanupTenant(Long tenantId, List<Long> documentIds) {
+        try {
+            FailedPdfCleanupResult result = failedPdfDocumentCleanupService.cleanupTenantDocuments(tenantId, documentIds);
+            if (result.nothingDeleted()) {
+                return;
+            }
+            documentDeleteMailService.sendMailWithDocumentFailed(tenantId, result.deletedDocuments());
+            // Reloads the tenant: the callback carries the recomputed status
+            partnerCallbackService.sendPartnerCallback(tenantId);
+        } catch (Exception e) {
+            log.error("Failed to clean up documents with failed pdf for tenant [{}]: {}", tenantId, documentIds, e);
+        }
+    }
+
+    private void deleteOrphans(List<Document> orphans) {
+        if (orphans.isEmpty()) {
+            return;
+        }
+        try {
+            failedPdfDocumentCleanupService.deleteOrphanDocuments(orphans.stream().map(Document::getId).toList());
+        } catch (Exception e) {
+            log.error("Failed to delete orphan documents with failed pdf", e);
+        }
+    }
+
+    private static Long resolveTenantId(Document document) {
+        if (document.getTenant() != null) {
+            return document.getTenant().getId();
+        }
+        if (document.getGuarantor() != null && document.getGuarantor().getTenant() != null) {
+            return document.getGuarantor().getTenant().getId();
+        }
+        return null;
     }
 
     private void sendForPDFGeneration(Document document) {

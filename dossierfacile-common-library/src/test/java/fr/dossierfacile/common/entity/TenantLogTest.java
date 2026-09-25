@@ -33,6 +33,37 @@ class TenantLogTest {
     }
 
     @Test
+    void should_render_automatic_document_deletion_with_its_source() {
+        TenantLog log = TenantLog.builder()
+                .logType(LogType.DOCUMENT_DELETED)
+                .logDetails(details("documentId", 5, "source", "ASYNC_FAILED_PDF_GENERATION"))
+                .build();
+
+        assertThat(log.getTitle()).isEqualTo("DOCUMENT_DELETED (auto: ASYNC_FAILED_PDF_GENERATION)");
+    }
+
+    @Test
+    void should_prefer_the_operator_over_the_source() {
+        TenantLog log = TenantLog.builder()
+                .logType(LogType.DOCUMENT_DELETED)
+                .operatorId(4L)
+                .logDetails(details("documentId", 5, "source", "ASYNC_FAILED_PDF_GENERATION"))
+                .build();
+
+        assertThat(log.getTitle()).isEqualTo("DOCUMENT_DELETED by opId: 4");
+    }
+
+    @Test
+    void should_ignore_the_source_of_other_log_types() {
+        TenantLog log = TenantLog.builder()
+                .logType(LogType.QUEUE_ENTERED)
+                .logDetails(details("source", "SUBMISSION"))
+                .build();
+
+        assertThat(log.getTitle()).isEqualTo("QUEUE_ENTERED");
+    }
+
+    @Test
     void should_render_legacy_file_deleted_log_from_operator() {
         TenantLog log = TenantLog.builder()
                 .logType(LogType.ACCOUNT_EDITED)
