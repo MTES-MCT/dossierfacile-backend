@@ -96,10 +96,7 @@ public class TenantService {
             return new PageImpl<>(result, pageable, result.size());
         }
         if (email.contains("@")) {
-            List<Tenant> result = tenantRepository.findByEmailIgnoreCase(email)
-                    .map(Collections::singletonList)
-                    .orElse(Collections.emptyList());
-            return new PageImpl<>(result, pageable, result.size());
+            return tenantRepository.findByTenantOrGuarantorEmailIgnoreCase(email.trim(), pageable);
         }
         String[] searchWords = Arrays.stream(email.trim().toLowerCase().split("\\s+"))
                 .map(word -> "%" + word + "%")
