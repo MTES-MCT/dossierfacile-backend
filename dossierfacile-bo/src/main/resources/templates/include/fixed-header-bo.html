@@ -17,7 +17,11 @@
         <form th:method="get" th:action="@{/bo/searchTenant}">
           <div class="wrap">
             <div class="search">
+              <label for="tenant-search" class="visually-hidden">
+                Rechercher un locataire
+              </label>
               <input
+                id="tenant-search"
                 required
                 oninvalid="this.setCustomValidity('Recherche locataire...')"
                 oninput="setCustomValidity('')"
