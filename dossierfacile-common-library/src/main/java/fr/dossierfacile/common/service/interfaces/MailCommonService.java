@@ -25,5 +25,7 @@ public interface MailCommonService {
 
     void sendEmailLotteryCooldownEnded(TenantDto tenant);
 
+    void sendEmailValidationReminder(TenantDto tenant);
+
 }
 

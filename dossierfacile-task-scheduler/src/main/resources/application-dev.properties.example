@@ -73,6 +73,15 @@ lottery.draw.allow-multiple-per-day=true
 # Brevo template of the end-of-cooldown mail (default: 176)
 #brevo.template.id.lottery.cooldown.ended=
 
+# Reminder to COMPLETED tenants who did not ask for a verification (see docs/completed-optin.md)
+# Cron of the daily reminder (default: 0 0 10 * * *, Europe/Paris); "-" to disable
+#cron.validation.reminder=0 0 10 * * *
+# Age window of the last submission (defaults: 24 and 72). Local/preprod only: 0 = remind at the next run
+#tenant.validation.reminder.min-age-hours=0
+#tenant.validation.reminder.max-age-hours=72
+# Brevo template of the reminder mail (default: 177)
+#brevo.template.id.validation.reminder=
+
 environment=local
 
 #Ademe api configuration 

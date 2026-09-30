@@ -191,21 +191,22 @@ Le choix (`validation_requested`) n'est pas modifié : si le flag est réactivé
 | Bascule partenaire (§7.1) | 174 (« votre dossier va être vérifié par notre équipe », paramètre `PARTENAIRE`) | `brevo.template.id.completed.switched.to.processing` |
 | Rollback (§9) | aucun mail (template dédié à créer si besoin) | — |
 | Validation après opt-out | mails de validation existants, inchangés | — |
+| Relance J+24h, vérification non demandée (§10.1) | 177 (« Demander une vérification », CTA vers le tableau de bord) | `brevo.template.id.validation.reminder` |
 
 Le branchement du mail de soumission se fait sur le **statut résultant** (dans `HonorDeclaration.saveStep`), jamais sur le feature flag.
-
 ---
 
 ## 11. Journalisation & observabilité
 
-- Nouveaux `LogType` dans `tenant_log` : `VALIDATION_REQUESTED`, `VALIDATION_DECLINED` (choix utilisateur), `COMPLETED_SWITCHED_TO_PROCESS` (toute bascule automatique ou rollback).
+- Nouveaux `LogType` dans `tenant_log` : `VALIDATION_REQUESTED`, `VALIDATION_DECLINED` (choix utilisateur), `COMPLETED_SWITCHED_TO_PROCESS` (toute bascule automatique ou rollback), `VALIDATION_REMINDER_SENT` (relance J+24h, §10.1).
+- Efficacité de la relance par simple SQL : part des locataires ayant un log `VALIDATION_REQUESTED` postérieur à leur log `VALIDATION_REMINDER_SENT`. Suivi de la tâche dans ELK : `TENANT_VALIDATION_REMINDER`.
 - Métriques du MVP par simple SQL : répartition de `validation_requested` (`null` = jamais répondu / `false` = complété par défaut ou décliné / `true` = vérification demandée) sur la cohorte assignée (`user_feature_assignment`, flag `tenant_completed_optin`), croisée avec les logs.
 - Point de surveillance ELK post-activation : le message « `Defensive status masking triggered` » (§7.3) — zéro occurrence attendue.
 - `callback_log.tenant_status` ne contient `COMPLETED` que pour des `partner_id` de partenaires ayant intégré `COMPLETED` (requête dans partner-completed-optin.md §8).
 
 ## 12. Non-impacts vérifiés
 
-- **Relances mails** (api-tenant `ScheduledTasksServiceImpl`, task-scheduler `TenantWarningTask`) : aucune ne filtre sur le statut `TO_PROCESS` → comportement identique pour un dossier `COMPLETED`.
+- **Relances mails historiques** (api-tenant `ScheduledTasksServiceImpl`, task-scheduler `TenantWarningTask`) : aucune ne filtre sur le statut `TO_PROCESS` → comportement identique pour un dossier `COMPLETED`.
 - **Archivage / suppression** : filtres sur `last_login_date` / `warnings`, insensibles au nouveau statut.
 - **Auto-validation Visale** : le garde-fou existant (`status = TO_PROCESS` exigé) fait que le bot ignore les dossiers `COMPLETED`. Un opt-out Visale-éligible sera auto-validé gratuitement. Évolution possible post-MVP : upgrade silencieux `COMPLETED → VALIDATED` par le bot.
 - **File BO** (`ranked_tenant`, `findMyNextApplication`, compteurs) : requêtes inchangées, exclusion par construction.

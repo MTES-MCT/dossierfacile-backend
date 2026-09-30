@@ -44,6 +44,8 @@ public class MailCommonServiceImpl implements MailCommonService {
     private Long templateIdCompletedSwitchedToProcessing;
     @Value("${brevo.template.id.lottery.cooldown.ended:176}")
     private Long templateIdLotteryCooldownEnded;
+    @Value("${brevo.template.id.validation.reminder:177}")
+    private Long templateIdValidationReminder;
 
     @Override
     public void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
@@ -114,6 +116,13 @@ public class MailCommonServiceImpl implements MailCommonService {
         }
         Map<String, String> params = createBaseParams(tenant, true);
         sendEmailToTenant(tenant, params, templateIdLotteryCooldownEnded);
+    }
+
+    @Async
+    @Override
+    public void sendEmailValidationReminder(TenantDto tenant) {
+        Map<String, String> params = createBaseParams(tenant, true);
+        sendEmailToTenant(tenant, params, templateIdValidationReminder);
     }
 
     @Override
