@@ -9,8 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,14 +46,15 @@ class ValidationReminderTaskTest {
     void should_select_the_tenants_submitted_between_72_and_24_hours_ago() {
         when(tenantRepository.findTenantIdsToRemindForValidation(any(), any())).thenReturn(List.of());
 
+        LocalDateTime before = LocalDateTime.now(ZoneId.systemDefault());
         task.sendValidationReminders();
+        LocalDateTime after = LocalDateTime.now(ZoneId.systemDefault());
 
         ArgumentCaptor<LocalDateTime> submittedFrom = ArgumentCaptor.forClass(LocalDateTime.class);
         ArgumentCaptor<LocalDateTime> submittedBefore = ArgumentCaptor.forClass(LocalDateTime.class);
         verify(tenantRepository).findTenantIdsToRemindForValidation(submittedFrom.capture(), submittedBefore.capture());
-        assertThat(Duration.between(submittedFrom.getValue(), submittedBefore.getValue())).isEqualTo(Duration.ofHours(48));
-        assertThat(Duration.between(submittedBefore.getValue(), LocalDateTime.now()))
-                .isBetween(Duration.ofHours(24), Duration.ofHours(24).plusMinutes(1));
+        assertThat(submittedBefore.getValue()).isBetween(before.minusHours(24), after.minusHours(24));
+        assertThat(submittedFrom.getValue()).isBetween(before.minusHours(72), after.minusHours(72));
     }
 
     @Test

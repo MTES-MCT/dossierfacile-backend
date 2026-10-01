@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class CompletedSurveyTask extends AbstractTask {
     public void sendCompletedSurveys() {
         super.startTask(TaskName.TENANT_COMPLETED_SURVEY);
         try {
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
             List<Long> tenantIds = tenantRepository.findTenantIdsForCompletedSurvey(
                     now.minusDays(maxAgeDays), now.minusDays(minAgeDays));
             log.info("Found {} tenants to send the completed dossier survey to", tenantIds.size());

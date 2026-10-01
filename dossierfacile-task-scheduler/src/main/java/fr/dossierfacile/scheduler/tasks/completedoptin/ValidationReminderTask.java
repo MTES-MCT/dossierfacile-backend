@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class ValidationReminderTask extends AbstractTask {
     public void sendValidationReminders() {
         super.startTask(TaskName.TENANT_VALIDATION_REMINDER);
         try {
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
             List<Long> tenantIds = tenantRepository.findTenantIdsToRemindForValidation(
                     now.minusHours(maxAgeHours), now.minusHours(minAgeHours));
             log.info("Found {} tenants to remind about the operator verification", tenantIds.size());

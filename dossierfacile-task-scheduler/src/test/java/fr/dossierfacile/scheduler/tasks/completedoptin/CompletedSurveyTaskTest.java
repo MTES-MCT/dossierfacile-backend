@@ -9,8 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,14 +46,15 @@ class CompletedSurveyTaskTest {
     void should_select_the_tenants_submitted_between_45_and_42_days_ago() {
         when(tenantRepository.findTenantIdsForCompletedSurvey(any(), any())).thenReturn(List.of());
 
+        LocalDateTime before = LocalDateTime.now(ZoneId.systemDefault());
         task.sendCompletedSurveys();
+        LocalDateTime after = LocalDateTime.now(ZoneId.systemDefault());
 
         ArgumentCaptor<LocalDateTime> submittedFrom = ArgumentCaptor.forClass(LocalDateTime.class);
         ArgumentCaptor<LocalDateTime> submittedBefore = ArgumentCaptor.forClass(LocalDateTime.class);
         verify(tenantRepository).findTenantIdsForCompletedSurvey(submittedFrom.capture(), submittedBefore.capture());
-        assertThat(Duration.between(submittedFrom.getValue(), submittedBefore.getValue())).isEqualTo(Duration.ofDays(3));
-        assertThat(Duration.between(submittedBefore.getValue(), LocalDateTime.now()))
-                .isBetween(Duration.ofDays(42), Duration.ofDays(42).plusMinutes(1));
+        assertThat(submittedBefore.getValue()).isBetween(before.minusDays(42), after.minusDays(42));
+        assertThat(submittedFrom.getValue()).isBetween(before.minusDays(45), after.minusDays(45));
     }
 
     @Test
