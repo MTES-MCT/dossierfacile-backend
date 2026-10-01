@@ -5,7 +5,9 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentDeletionSource;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +27,8 @@ public class DocumentLogDetails {
     private Long tenantId;
     private Long guarantorId;
     private Long documentId;
+    /** Automatic deletion origin; null for user and operator deletions (omitted from the JSON). */
+    private DocumentDeletionSource source;
 
     public static DocumentLogDetails from(Document document) {
         return DocumentLogDetails.builder()
@@ -36,6 +40,12 @@ public class DocumentLogDetails {
                 .guarantorId(Optional.ofNullable(document.getGuarantor())
                         .map(Guarantor::getId).orElse(null))
                 .build();
+    }
+
+    public static DocumentLogDetails from(Document document, @Nullable DocumentDeletionSource source) {
+        DocumentLogDetails details = from(document);
+        details.setSource(source);
+        return details;
     }
 
 }

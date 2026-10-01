@@ -54,7 +54,8 @@ class TenantServiceRegroupTenantTest {
                 null,   // completedDossierService
                 null,   // operatorReviewPolicy
                 null,   // featureFlagService
-                mock()  // lotteryTicketService
+                mock(),  // lotteryTicketService
+                null    // documentDeletionCommonService
         );
     }
 

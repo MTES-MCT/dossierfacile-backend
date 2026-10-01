@@ -12,6 +12,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.DocumentDeletionSource;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.OwnerLogType;
 import fr.dossierfacile.common.mapper.log.DeletedOwnerMapper;
@@ -103,7 +104,19 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public void saveDocumentDeletedLog(Document document, Tenant editor) {
-        saveDocumentLog(LogType.DOCUMENT_DELETED, document, editor);
+        saveDocumentDeletedLog(document, editor, null, null);
+    }
+
+    @Override
+    public void saveDocumentDeletedLog(Document document, Tenant owner, Long operatorId, DocumentDeletionSource source) {
+        TenantLog log = TenantLog.builder()
+                .logType(LogType.DOCUMENT_DELETED)
+                .tenantId(owner.getId())
+                .operatorId(operatorId)
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsObjectNode(DocumentLogDetails.from(document, source)))
+                .build();
+        saveLog(log);
     }
 
     @Override

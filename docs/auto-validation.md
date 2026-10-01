@@ -88,8 +88,9 @@ Le drapeau `ready_for_auto_validation` est automatiquement réinitialisé à `fa
 | `dossierfacile-common-library` | `TenantAutoValidationServiceImpl` | Implémentation du calcul d'éligibilité, de l'évaluation des rapports d'analyse et du processus d'auto-validation transactionnel. |
 | `dossierfacile-common-library` | `TenantCommonRepository` | Requêtes d'exclusion BO et méthode `findTenantsToAutoValidate`. |
 | `dossierfacile-api-tenant` | `AbstractDocumentSaveStep` | Recalcule et met à jour `ready_for_auto_validation` lors du dépôt de document. |
-| `dossierfacile-api-tenant` | `DocumentServiceImpl` / `FileServiceImpl` | Réinitialise `ready_for_auto_validation = false` lors de la suppression de pièces/fichiers. |
-| `dossierfacile-bo` | `TenantService` | Exclut les dossiers flaggués des compteurs et de la distribution aux opérateurs humains. |
+| `dossierfacile-common-library` | `DocumentDeletionCommonService` | Réinitialise `ready_for_auto_validation = false` pour toute suppression de document (api-tenant, BO, task-scheduler). |
+| `dossierfacile-api-tenant` | `FileServiceImpl` | Réinitialise `ready_for_auto_validation = false` lors de la suppression d'un fichier. |
+| `dossierfacile-bo` | `TenantService` | Exclut les dossiers flaggués des compteurs et de la distribution aux opérateurs humains ; réinitialise le drapeau lors de la suppression d'un fichier. |
 | `dossierfacile-task-scheduler` | `TenantAutoValidationTask` | Tâche planifiée périodique qui récupère et traite les dossiers prêts. |
 
 ---

@@ -19,5 +19,7 @@ public enum QueueEntrySource {
     /** Lottery draw, or flush of pending tickets when the flag is deactivated. */
     LOTTERY_DRAW,
     /** Operator reprocessed a declined dossier. */
-    BO_REPROCESS
+    BO_REPROCESS,
+    /** Status recomputation by a scheduled task (e.g. failed-PDF document cleanup): no user, no operator. */
+    SYSTEM_RECOMPUTE
 }

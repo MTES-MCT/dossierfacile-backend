@@ -15,6 +15,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
+import fr.dossierfacile.common.service.interfaces.DocumentDeletionCommonService;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,6 +74,8 @@ class FileServiceImplTest {
     private DocumentHelperService documentHelperService;
     @Mock
     private fr.dossierfacile.api.front.mapper.TenantMapper tenantMapper;
+    @Mock
+    private DocumentDeletionCommonService documentDeletionCommonService;
 
     @BeforeEach
     void setUp() {
@@ -87,7 +91,8 @@ class FileServiceImplTest {
                 tenantRepository,
                 producer,
                 documentIAService,
-                tenantMapper
+                tenantMapper,
+                documentDeletionCommonService
         );
         fileService = new FileServiceImpl(fileRepository, documentService, logService, tenantRepository, producer, documentIAService);
     }
@@ -226,11 +231,15 @@ class FileServiceImplTest {
                 document.getFiles().add(file);
 
                 when(fileRepository.findByIdForTenant(1L, 1L)).thenReturn(Optional.of(file));
+                when(documentDeletionCommonService.deleteDocument(document, null, null)).thenReturn(tenant);
 
                 assertThatCode(() -> fileService.delete(1L, tenant)).doesNotThrowAnyException();
 
                 verify(fileRepository).delete(file);
                 verify(logService).saveFileDeletedLog(file, tenant);
+                verify(documentDeletionCommonService).deleteDocument(document, null, null);
+                verify(logService, never()).saveDocumentDeletedLog(any(), any());
+                verify(tenantStatusService).updateTenantStatus(tenant);
             }
         }
 

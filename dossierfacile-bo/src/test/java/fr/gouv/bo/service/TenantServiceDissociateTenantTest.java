@@ -83,7 +83,8 @@ class TenantServiceDissociateTenantTest {
                 null,
                 null, // operatorReviewPolicy
                 null, 
-                null 
+                null, // lotteryTicketService
+                null    // documentDeletionCommonService
         );
     }
 

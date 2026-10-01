@@ -9,8 +9,11 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
+import fr.dossierfacile.common.service.interfaces.DocumentDeletionCommonService;
 import org.junit.jupiter.api.BeforeEach;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentStatus;
+import org.mockito.InOrder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +31,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,6 +65,8 @@ class DocumentServiceImplTest {
     private fr.dossierfacile.common.repository.TenantCommonRepository tenantRepository;
     @Mock
     private fr.dossierfacile.api.front.amqp.Producer producer;
+    @Mock
+    private DocumentDeletionCommonService documentDeletionCommonService;
 
     private static final String DOCUMENT_NAME = "test-document.pdf";
     @Mock
@@ -266,10 +273,11 @@ class DocumentServiceImplTest {
                 tenant1.getDocuments().add(document);
 
                 when(documentRepository.findByIdForApartmentSharing(1L, 1L)).thenReturn(Optional.of(document));
+                when(documentDeletionCommonService.deleteDocument(document, null, null)).thenReturn(tenant1);
                 when(tenantRepository.save(any(Tenant.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
                 assertDoesNotThrow(() -> documentService.delete(1L, tenant1));
-                verify(documentRepository).delete(document);
+                verify(documentDeletionCommonService).deleteDocument(document, null, null);
                 ArgumentCaptor<Tenant> tenantCaptor = ArgumentCaptor.forClass(Tenant.class);
                 verify(tenantRepository).save(tenantCaptor.capture());
                 assertThat(tenantCaptor.getValue().getId()).isEqualTo(tenant1.getId());
@@ -298,10 +306,13 @@ class DocumentServiceImplTest {
                 tenant2.getDocuments().add(document);
 
                 when(documentRepository.findByIdForApartmentSharing(1L, 1L)).thenReturn(Optional.of(document));
+                when(documentDeletionCommonService.deleteDocument(document, null, null)).thenReturn(tenant2);
 
                 assertDoesNotThrow(() -> documentService.delete(1L, tenant1));
-                verify(documentRepository).delete(document);
-                verify(logService).saveDocumentDeletedLog(document, tenant2);
+                // The shared deletion owns the DOCUMENT_DELETED log
+                verify(documentDeletionCommonService).deleteDocument(document, null, null);
+                verify(logService, never()).saveDocumentDeletedLog(any(), any());
+                verify(tenantStatusService).updateTenantStatus(tenant2);
             }
         }
     }
@@ -478,16 +489,38 @@ class DocumentServiceImplTest {
     @Nested
     class DeleteDocument {
         @Test
-        void shouldResetReadyForAutoValidationToFalseOnTenant() {
+        void shouldRecomputeTheResolvedTenantAfterDeletion() {
             ApartmentSharing sharing = ApartmentSharing.builder().id(1L).build();
-            Tenant tenant = Tenant.builder().id(1L).readyForAutoValidation(true).apartmentSharing(sharing).documents(new java.util.ArrayList<>()).build();
-            Document document = Document.builder().id(10L).tenant(tenant).documentCategory(DocumentCategory.RESIDENCY).build();
-            tenant.getDocuments().add(document);
+            Tenant tenant = Tenant.builder().id(1L).apartmentSharing(sharing).build();
+            Guarantor guarantor = Guarantor.builder().id(5L).tenant(tenant).build();
+            Document document = Document.builder().id(10L).guarantor(guarantor).documentCategory(DocumentCategory.RESIDENCY).build();
+            when(documentDeletionCommonService.deleteDocument(document, null, null)).thenReturn(tenant);
 
             documentService.delete(document);
 
-            assertThat(tenant.getReadyForAutoValidation()).isFalse();
-            verify(documentRepository).delete(document);
+            InOrder inOrder = inOrder(documentDeletionCommonService, tenantStatusService);
+            inOrder.verify(documentDeletionCommonService).deleteDocument(document, null, null);
+            inOrder.verify(tenantStatusService).updateTenantStatus(tenant);
+        }
+
+        // Tenant-side rule: deleting a financial-like document sends its validated siblings back to review
+        // TODO : should be generalized to BO as well
+        @Test
+        void shouldResetSiblingCategoriesBeforeTheDeletion() {
+            ApartmentSharing sharing = ApartmentSharing.builder().id(1L).build();
+            Tenant tenant = Tenant.builder().id(1L).apartmentSharing(sharing).documents(new java.util.ArrayList<>()).build();
+            Document deleted = Document.builder().id(10L).tenant(tenant).documentCategory(DocumentCategory.FINANCIAL).documentStatus(DocumentStatus.TO_PROCESS).build();
+            Document sibling = Document.builder().id(11L).tenant(tenant).documentCategory(DocumentCategory.TAX).documentStatus(DocumentStatus.VALIDATED).build();
+            tenant.getDocuments().add(deleted);
+            tenant.getDocuments().add(sibling);
+            when(documentDeletionCommonService.deleteDocument(deleted, null, null)).thenReturn(tenant);
+
+            documentService.delete(deleted);
+
+            assertThat(sibling.getDocumentStatus()).isEqualTo(DocumentStatus.TO_PROCESS);
+            InOrder inOrder = inOrder(documentRepository, documentDeletionCommonService);
+            inOrder.verify(documentRepository).save(sibling);
+            inOrder.verify(documentDeletionCommonService).deleteDocument(deleted, null, null);
         }
     }
 }

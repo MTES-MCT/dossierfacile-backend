@@ -18,7 +18,6 @@ import fr.gouv.bo.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -40,21 +39,6 @@ public class DocumentService {
 
     public Document findDocumentByName(String documentName) {
         return documentRepository.findByName(documentName).orElseThrow(() -> new DocumentNotFoundException(documentName));
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public Tenant deleteDocument(Long documentId) {
-        Document document = findDocumentById(documentId);
-
-        Tenant tenant;
-        if (document.getGuarantor() != null) {
-            tenant = document.getGuarantor().getTenant();
-        } else {
-            tenant = document.getTenant();
-        }
-
-        documentRepository.delete(document);
-        return tenant;
     }
 
     public void saveDocument(Document document) {
