@@ -38,6 +38,7 @@
                     <td>First name</td>
                     <td>Last Name</td>
                     <td>Email</td>
+                    <td>Emails des garants</td>
                 </tr>
                 </thead>
                 <tr th:each="tenant : ${tenants}">
@@ -51,6 +52,13 @@
                     <td class="to-highlight" th:text="${tenant.getFirstName()}"></td>
                     <td class="to-highlight" th:text="${tenant.getLastName()}"></td>
                     <td th:text="${tenant.getEmail()}"></td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            <li th:each="guarantor : ${tenant.getGuarantors()}"
+                                th:if="${!#strings.isEmpty(guarantor.getEmail())}"
+                                th:text="${guarantor.getEmail()}"></li>
+                        </ul>
+                    </td>
                 </tr>
             </table>
         </div>

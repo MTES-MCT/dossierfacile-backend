@@ -176,8 +176,11 @@ public class BOController {
         Page<Tenant> tenants = tenantService.getTenantByIdOrEmail(email, pageable);
         applicationAccessService.checkAndLogSearchTenant(principal, email, tenants.getTotalElements());
 
-        if (tenants.getTotalElements() == 1 && (email.contains("@") || StringUtils.isNumeric(email))) {
-            return REDIRECT_BO_COLOCATION + tenants.getContent().getFirst().getApartmentSharing().getId();
+        if (tenants.getTotalElements() == 1 && tenants.hasContent()) {
+            Tenant tenant = tenants.getContent().getFirst();
+            if (StringUtils.isNumeric(email) || StringUtils.equalsIgnoreCase(tenant.getEmail(), email.trim())) {
+                return REDIRECT_BO_COLOCATION + tenant.getApartmentSharing().getId();
+            }
         }
 
         model.addAttribute("tenants", tenants);

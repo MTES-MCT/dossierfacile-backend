@@ -63,6 +63,7 @@ class BOControllerSearchTenantTest {
     void searchTenant_logsSearchAndRedirectsWhenSingleEmailMatch() {
         UserPrincipal principal = supportPrincipal();
         Tenant tenant = tenant(42L, 99L);
+        tenant.setEmail("John.Doe@example.com");
         Page<Tenant> page = new PageImpl<>(List.of(tenant), PageRequest.of(0, 20), 1);
         when(tenantService.getTenantByIdOrEmail(eq("john.doe@example.com"), any(PageRequest.class))).thenReturn(page);
 
