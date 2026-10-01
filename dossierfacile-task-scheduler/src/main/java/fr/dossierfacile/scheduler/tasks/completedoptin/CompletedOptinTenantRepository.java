@@ -36,4 +36,28 @@ interface CompletedOptinTenantRepository extends JpaRepository<Tenant, Long> {
     List<Long> findTenantIdsToRemindForValidation(@Param("submittedFrom") LocalDateTime submittedFrom,
                                                   @Param("submittedBefore") LocalDateTime submittedBefore);
 
+    // Tenants still COMPLETED whose last submission (ACCOUNT_COMPLETED log) is inside the window
+    // and who have not received the impact survey yet
+    @Query("""
+            select distinct t.id from Tenant t
+            join TenantLog l on l.tenantId = t.id
+            where l.logType = 'ACCOUNT_COMPLETED'
+            and l.creationDateTime >= :submittedFrom
+            and l.creationDateTime < :submittedBefore
+            and t.status = 'COMPLETED'
+            and not exists (
+                select 1 from TenantLog later
+                where later.tenantId = t.id
+                and later.logType = 'ACCOUNT_COMPLETED'
+                and later.creationDateTime >= :submittedBefore
+            )
+            and not exists (
+                select 1 from TenantLog survey
+                where survey.tenantId = t.id
+                and survey.logType = 'COMPLETED_SURVEY_SENT'
+            )
+            """)
+    List<Long> findTenantIdsForCompletedSurvey(@Param("submittedFrom") LocalDateTime submittedFrom,
+                                               @Param("submittedBefore") LocalDateTime submittedBefore);
+
 }

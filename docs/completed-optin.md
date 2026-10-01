@@ -192,14 +192,16 @@ Le choix (`validation_requested`) n'est pas modifié : si le flag est réactivé
 | Rollback (§9) | aucun mail (template dédié à créer si besoin) | — |
 | Validation après opt-out | mails de validation existants, inchangés | — |
 | Relance J+24h, vérification non demandée (§10.1) | 177 (« Demander une vérification », CTA vers le tableau de bord) | `brevo.template.id.validation.reminder` |
+| Enquête d'impact J+6 semaines, dossier toujours `COMPLETED` | 178 (lien TypeForm, `TENANT_ID` en champ caché) | `brevo.template.id.completed.survey` |
 
 Le branchement du mail de soumission se fait sur le **statut résultant** (dans `HonorDeclaration.saveStep`), jamais sur le feature flag.
 ---
 
 ## 11. Journalisation & observabilité
 
-- Nouveaux `LogType` dans `tenant_log` : `VALIDATION_REQUESTED`, `VALIDATION_DECLINED` (choix utilisateur), `COMPLETED_SWITCHED_TO_PROCESS` (toute bascule automatique ou rollback), `VALIDATION_REMINDER_SENT` (relance J+24h, §10.1).
+- Nouveaux `LogType` dans `tenant_log` : `VALIDATION_REQUESTED`, `VALIDATION_DECLINED` (choix utilisateur), `COMPLETED_SWITCHED_TO_PROCESS` (toute bascule automatique ou rollback), `VALIDATION_REMINDER_SENT` (relance J+24h, §10.1), `COMPLETED_SURVEY_SENT` (enquête J+6 semaines).
 - Efficacité de la relance par simple SQL : part des locataires ayant un log `VALIDATION_REQUESTED` postérieur à leur log `VALIDATION_REMINDER_SENT`. Suivi de la tâche dans ELK : `TENANT_VALIDATION_REMINDER`.
+- Enquête d'impact : `CompletedSurveyTask` (task-scheduler), une fois par jour à 10h30 Europe/Paris (`cron.completed.survey`). Cible les dossiers encore `COMPLETED` dont la **dernière soumission** (`ACCOUNT_COMPLETED`) a entre 42 et 45 jours (`tenant.completed.survey.min-age-days` / `max-age-days`), quelle que soit la réponse à la question de vérification ; une seule enquête par locataire (log `COMPLETED_SURVEY_SENT`, écrit avant l'envoi). Distincte de l'enquête J+42 post-validation (api-tenant, template 75) : un dossier validé n'est plus `COMPLETED` et ne reçoit pas celle-ci. Suivi ELK : `TENANT_COMPLETED_SURVEY`.
 - Métriques du MVP par simple SQL : répartition de `validation_requested` (`null` = jamais répondu / `false` = complété par défaut ou décliné / `true` = vérification demandée) sur la cohorte assignée (`user_feature_assignment`, flag `tenant_completed_optin`), croisée avec les logs.
 - Point de surveillance ELK post-activation : le message « `Defensive status masking triggered` » (§7.3) — zéro occurrence attendue.
 - `callback_log.tenant_status` ne contient `COMPLETED` que pour des `partner_id` de partenaires ayant intégré `COMPLETED` (requête dans partner-completed-optin.md §8).

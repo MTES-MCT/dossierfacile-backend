@@ -27,5 +27,7 @@ public interface MailCommonService {
 
     void sendEmailValidationReminder(TenantDto tenant);
 
+    void sendEmailCompletedSurvey(TenantDto tenant);
+
 }
 

@@ -37,6 +37,7 @@ public enum LogType {
     VALIDATION_REQUESTED,
     VALIDATION_DECLINED,
     VALIDATION_REMINDER_SENT,
+    COMPLETED_SURVEY_SENT,
     COMPLETED_SWITCHED_TO_PROCESS,
     GUARANTOR_NOTIFIED,
     // TODO(lottery-bypass): without the bypass count, QUEUE_ENTERED only duplicates
