@@ -33,18 +33,21 @@ Build : `mvn clean install`. Dev : `mvn spring-boot:run -Dspring-boot.run.profil
 Hiérarchie : `apartment_sharing` -> `tenant` -> `guarantor` ; `document` -> `file`.
 
 - **`apartment_sharing` (dossier de candidature)** : concept central regroupant les dossiers locataires. `type` (`ApplicationType`) = `ALONE` / `COUPLE` / `GROUP`. Validé quand **tous** ses tenants le sont.
-- **`tenant` (dossier locataire)** : **1 seul par compte utilisateur**. `type` = `CREATE` (principal) / `JOIN` (invité d'un `COUPLE`/`GROUP`). Le principal invite par mail ; il complète le dossier joint **en `COUPLE` uniquement**. Complet = infos (nom/prénom) + 5 documents + déclaration sur l'honneur.
-- **`guarantor` (dossier garant)** : 0..n par tenant. `TypeGuarantor` = `NATURAL_PERSON` (≤2) / `ORGANISM` (ex. Visale).
-- **`document`** : rattaché à un `tenant` **ou** un `guarantor` (FK exclusives `tenant_id` / `guarantor_id`). `category` (5 : `IDENTIFICATION`, `RESIDENCY`, `PROFESSIONAL`, `FINANCIAL`, `TAX`) + `subCategory`. = **fusion filigranée de plusieurs `file`**.
+- **`tenant` (dossier locataire)** : **1 seul par compte utilisateur**. `type` = `CREATE` (principal) / `JOIN` (invité d'un `COUPLE`/`GROUP`). Le principal invite par mail ; il complète le dossier joint **en `COUPLE` uniquement**. Complet = infos (nom/prénom) + les 5 **catégories** de documents couvertes + déclaration sur l'honneur.
+- **`guarantor` (dossier garant)** : 0..n par tenant. `TypeGuarantor` = `NATURAL_PERSON` (≤2) / `LEGAL_PERSON` (1) / `ORGANISM` (1, ex. Visale), sans mélange de types.
+- **`document`** : rattaché à un `tenant` **ou** un `guarantor` (FK exclusives `tenant_id` / `guarantor_id`). `category` (5 pour un tenant ou un garant personne physique : `IDENTIFICATION`, `RESIDENCY`, `PROFESSIONAL`, `FINANCIAL`, `TAX` ; catégories propres aux garants : `IDENTIFICATION_LEGAL_PERSON`, `GUARANTEE_PROVIDER_CERTIFICATE`) + `subCategory`. **Un seul document par catégorie, sauf `FINANCIAL` : un par source de revenus.** = **fusion filigranée de plusieurs `file`**.
 - **`file`** : fichier brut (JPG/PNG/PDF). Fusion + filigrane via **traitement asynchrone**.
 
 ## Statuts (`status` de `apartment_sharing`, `tenant`, `document`)
 
 - `INCOMPLETE` : infos/documents manquants.
 - `TO_PROCESS` : complet, en attente de vérification opérateur.
+- `COMPLETED` : complet et utilisable sans vérification opérateur (opt-in, cf. `docs/completed-optin.md`).
 - `DECLINED` : pièce non conforme à corriger (motifs dans `documentDeniedReasons`) ; resoumission → `TO_PROCESS`.
 - `VALIDATED` : vérifié et validé (un `apartment_sharing` l'est quand tous ses tenants le sont).
 - `ARCHIVED` : après 3 mois d'inactivité, documents supprimés.
+
+Un `document` n'a que `TO_PROCESS` / `VALIDATED` / `DECLINED`. Le statut d'un `tenant` est **recalculé** à partir de ses documents et de ceux de ses garants (`Tenant.computeStatus()` puis `OperatorReviewPolicy.resolveStatus()`) ; celui d'un `apartment_sharing` est déduit de ses tenants. Règles, ordre de priorité et pièges : [docs/dossier-status.md](docs/dossier-status.md).
 
 Des **mails automatiques** sont envoyés sur certaines actions (création de compte, demande de modification, validation, archivage…) via un outil de transactionnal emailing (Brevo).
 
@@ -56,5 +59,6 @@ Pour limiter les risques de régressions, évaluer l'impact sur chacun de ces ax
 - **Permissions selon le type de candidature** (`TenantPermissionsService.canAccess`) : accès aux autres dossiers du `apartment_sharing` **uniquement en `COUPLE`** (pas en `GROUP`). Qui accède à un dossier locataire accède aux documents de ses garants. Respecter les permissions existantes.
 - **Canaux de partage** (`ApartmentSharingLinkType`) : `LINK`, `MAIL`, `PARTNER`, `OWNER` — couvrir les 4.
 - **Bénéficiaire réel** (`TenantOwnerType` = `SELF` / `THIRD_PARTY`) : `user_account ≠ tenant`, ne jamais supposer l'égalité des identités.
+- **Statut et complétude du dossier** : se référer à la doc [docs/dossier-status.md](docs/dossier-status.md) et la maintenir à jour.
 - **Changement de statut & partage** : raisonner au niveau `apartment_sharing` (pas seulement `tenant`) — le partage porte sur le `apartment_sharing`, qui regroupe tous les tenants.
 - **Rétro-compatibilité `pdf-generator`** : toute modification doit rester rétro-compatible pour `api-tenant` et `api-watermark`, les 2 services backend qui en dépendent.
