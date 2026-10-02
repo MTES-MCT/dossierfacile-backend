@@ -41,11 +41,11 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             value = "SELECT t.*, ua.* " +
                     "FROM tenant t " +
                     "JOIN user_account ua ON t.id = ua.id " +
-                    "WHERE t.search_text LIKE ALL(:words)",
+                    "WHERE t.search_text LIKE :#{#words[0]} AND t.search_text LIKE ALL(:words)",
             countQuery = "SELECT COUNT(t.id) " +
                     "FROM tenant t " +
                     "JOIN user_account ua ON t.id = ua.id " +
-                    "WHERE t.search_text LIKE ALL(:words)",
+                    "WHERE t.search_text LIKE :#{#words[0]} AND t.search_text LIKE ALL(:words)",
             nativeQuery = true)
     Page<Tenant> findTenantByWordsAnywhere(@Param("words") String[] words, Pageable pageable);
 
