@@ -1,48 +1,75 @@
-<!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
 >
-<div th:fragment="fixed-header-bo">
+  <div th:fragment="fixed-header-bo">
     <header class="row header-bg space-separator">
-        <div class="col" style="display: flex;">
-            <a class="logo" th:href="@{/}"></a>
-            <a th:href="@{/bo/dashboard}"
-               class="profile fixed-header-link" th:text="Dashboard"></a>
-        </div>
-        <div class="col" sec:authorize="hasRole('SUPPORT')">
-            <form th:method="get" th:action="@{/bo/searchTenant}">
-                <div class="wrap">
-                    <div class="search">
-                        <input required
-                               oninvalid="this.setCustomValidity('Recherche locataire...')"
-                               oninput="setCustomValidity('')"
-                               th:value="${email}"
-                               name="email"
-                               type="text"
-                               class="form-control searchTerm"
-                               placeholder="Find tenant ..."
-                               style="border: 1px solid #00b4cc !important; height: auto;">
-                        <button type="submit" class="searchButton">
-                            <i class="fa fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="col d-flex justify-content-end align-items-center me-4">
-            <button class="btn-theme-change"><i class="fa fa-moon-o"></i></button>
-            <a sec:authorize="hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATOR')" th:href="@{/bo}"
-               class="profile fixed-header-link" th:text="#{locatio.header.link.bo}"></a>
-            <a th:unless="${#authorization.expression('isAuthenticated()')}" th:href="@{/login}"
-               th:text="#{locatio.header.link.login}" class="profile fixed-header-link"></a>
-            <form th:if="${#authorization.expression('isAuthenticated()')}" th:method="post"
-                  th:action="@{/logout}">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button th:type="submit" class="fixed-header-link logout"
-                        th:text="#{locatio.header.link.logout}"></button>
-            </form>
-        </div>
+      <div class="col" style="display: flex">
+        <a class="logo" th:href="@{/}"></a>
+        <a
+          th:href="@{/bo/dashboard}"
+          class="profile fixed-header-link"
+          th:text="Dashboard"
+        ></a>
+      </div>
+      <div class="col" sec:authorize="hasRole('SUPPORT')">
+        <form th:method="get" th:action="@{/bo/searchTenant}">
+          <div class="wrap">
+            <div class="search">
+              <label for="tenant-search" class="visually-hidden">
+                Rechercher un locataire
+              </label>
+              <input
+                id="tenant-search"
+                required
+                oninvalid="this.setCustomValidity('Recherche locataire...')"
+                oninput="setCustomValidity('')"
+                th:value="${email}"
+                name="email"
+                type="text"
+                class="form-control searchTerm"
+                placeholder="Recherche locataire..."
+                style="border: 1px solid #00b4cc !important; height: auto"
+              />
+              <button type="submit" class="searchButton">
+                <i class="fa fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="col d-flex justify-content-end align-items-center me-4">
+        <button class="btn-theme-change"><i class="fa fa-moon-o"></i></button>
+        <a
+          sec:authorize="hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATOR')"
+          th:href="@{/bo}"
+          class="profile fixed-header-link"
+          th:text="#{locatio.header.link.bo}"
+        ></a>
+        <a
+          th:unless="${#authorization.expression('isAuthenticated()')}"
+          th:href="@{/login}"
+          th:text="#{locatio.header.link.login}"
+          class="profile fixed-header-link"
+        ></a>
+        <form
+          th:if="${#authorization.expression('isAuthenticated()')}"
+          th:method="post"
+          th:action="@{/logout}"
+        >
+          <input
+            type="hidden"
+            th:name="${_csrf.parameterName}"
+            th:value="${_csrf.token}"
+          />
+          <button
+            th:type="submit"
+            class="fixed-header-link logout"
+            th:text="#{locatio.header.link.logout}"
+          ></button>
+        </form>
+      </div>
     </header>
-</div>
-
+  </div>
 </html>

@@ -23,17 +23,29 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     Optional<Tenant> findByEmailIgnoreCase(String email);
 
+    @Query(value = """
+            SELECT t.*, ua.*
+            FROM tenant t
+            JOIN user_account ua ON t.id = ua.id
+            WHERE t.id IN (
+                SELECT id FROM user_account WHERE lower(email) = lower(:email)
+                UNION
+                SELECT tenant_id FROM guarantor WHERE lower(email) = lower(:email)
+            )
+            """, countProjection = "t.id", nativeQuery = true)
+    Page<Tenant> findByTenantOrGuarantorEmailIgnoreCase(@Param("email") String email, Pageable pageable);
+
     boolean existsByEmail(String email);
 
     @Query(
             value = "SELECT t.*, ua.* " +
                     "FROM tenant t " +
                     "JOIN user_account ua ON t.id = ua.id " +
-                    "WHERE t.search_text LIKE ALL(:words)",
+                    "WHERE t.search_text LIKE :#{#words[0]} AND t.search_text LIKE ALL(:words)",
             countQuery = "SELECT COUNT(t.id) " +
                     "FROM tenant t " +
                     "JOIN user_account ua ON t.id = ua.id " +
-                    "WHERE t.search_text LIKE ALL(:words)",
+                    "WHERE t.search_text LIKE :#{#words[0]} AND t.search_text LIKE ALL(:words)",
             nativeQuery = true)
     Page<Tenant> findTenantByWordsAnywhere(@Param("words") String[] words, Pageable pageable);
 

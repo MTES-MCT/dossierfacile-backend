@@ -208,4 +208,5 @@
     <include file="db/migration/202608270000-add-document-ia-professional-analysis-flag.xml"/>
     <include file="db/migration/20260901000000-add-tenant-lottery.xml"/>
     <include file="db/migration/20260910000000-add-partner-completed-optin-flag.xml"/>
+    <include file="db/migration/20260929000000-add-guarantor-email-index.xml"/>
 </databaseChangeLog>
