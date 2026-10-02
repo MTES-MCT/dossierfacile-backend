@@ -73,6 +73,7 @@ lottery.draw.allow-multiple-per-day=true
 # Brevo template of the end-of-cooldown mail (default: 176)
 #brevo.template.id.lottery.cooldown.ended=
 
+
 environment=local
 
 #Ademe api configuration 
