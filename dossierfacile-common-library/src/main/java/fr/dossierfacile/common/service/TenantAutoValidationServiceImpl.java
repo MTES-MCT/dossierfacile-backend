@@ -177,9 +177,7 @@ public class TenantAutoValidationServiceImpl implements TenantAutoValidationServ
             return List.of();
         }
 
-        Stream<Document> tenantDocsStream = (tenant.getDocuments() != null) ?
-                tenant.getDocuments().stream() :
-                Stream.empty();
+        Stream<Document> tenantDocsStream = (tenant.getDocuments() != null) ? tenant.getDocuments().stream() : Stream.empty();
 
         if (tenant.getGuarantors() == null || tenant.getGuarantors().isEmpty()) {
             return tenantDocsStream.toList();

@@ -14,12 +14,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentProfessionalGuarantorNaturalPersonValidator extends TenantConstraintValidator<NumberOfDocumentProfessionalGuarantorNaturalPerson, DocumentProfessionalGuarantorNaturalPersonForm> {
+public class NumberOfDocumentProfessionalGuarantorNaturalPersonValidator
+        extends
+            TenantConstraintValidator<NumberOfDocumentProfessionalGuarantorNaturalPerson, DocumentProfessionalGuarantorNaturalPersonForm> {
 
     private final FileRepository fileRepository;
 
     @Override
-    public boolean isValid(DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm,
+            ConstraintValidatorContext constraintValidatorContext) {
         Tenant tenant = getTenant(documentProfessionalGuarantorNaturalPersonForm);
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
@@ -32,7 +35,7 @@ public class NumberOfDocumentProfessionalGuarantorNaturalPersonValidator extends
                 .stream()
                 .filter(f -> !f.isEmpty())
                 .count();
-        if(countOld > 0){
+        if (countOld > 0) {
             sizeOldDoc = fileRepository.sumSizeOfAllFilesInDocumentForGuarantorTenantId(
                     DocumentCategory.PROFESSIONAL,
                     documentProfessionalGuarantorNaturalPersonForm.getGuarantorId(),
@@ -40,7 +43,8 @@ public class NumberOfDocumentProfessionalGuarantorNaturalPersonValidator extends
                     tenant
             );
         }
-        long sizeNewDoc = documentProfessionalGuarantorNaturalPersonForm.getDocuments().stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize).sum();
+        long sizeNewDoc = documentProfessionalGuarantorNaturalPersonForm.getDocuments().stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize)
+                .sum();
 
         return 1 <= countNew + countOld && countNew + countOld <= 20 && sizeNewDoc + sizeOldDoc <= 52428800;
     }

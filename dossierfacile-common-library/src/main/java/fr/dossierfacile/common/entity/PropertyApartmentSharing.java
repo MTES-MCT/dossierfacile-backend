@@ -47,4 +47,3 @@ public class PropertyApartmentSharing implements Serializable {
     @Column(nullable = false)
     private boolean accessFull = false;
 }
-

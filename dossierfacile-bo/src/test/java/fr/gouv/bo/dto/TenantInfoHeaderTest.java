@@ -131,8 +131,8 @@ class TenantInfoHeaderTest {
     }
 
     private List<HeaderElement> headerElements(String label1, String value1, String label2, String value2,
-                                               String label3, String value3, String label4, String value4,
-                                               String label5, String value5) {
+            String label3, String value3, String label4, String value4,
+            String label5, String value5) {
         return List.of(
                 new HeaderElement(label1, value1),
                 new HeaderElement(label2, value2),

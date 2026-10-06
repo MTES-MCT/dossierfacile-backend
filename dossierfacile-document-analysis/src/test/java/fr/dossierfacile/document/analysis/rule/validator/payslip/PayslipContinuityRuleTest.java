@@ -194,7 +194,8 @@ class PayslipContinuityRuleTest {
                 // Scénario : Mars, Fev, Jan, Dec, Novembre -> OK (5 présents, donc 3 consécutifs ok)
                 Arguments.of(
                         LocalDate.of(2023, 4, 10),
-                        List.of(LocalDate.of(2023, 3, 1), LocalDate.of(2023, 2, 1), LocalDate.of(2023, 1, 1), LocalDate.of(2022, 12, 1), LocalDate.of(2022, 11, 1)),
+                        List.of(LocalDate.of(2023, 3, 1), LocalDate.of(2023, 2, 1), LocalDate.of(2023, 1, 1), LocalDate.of(2022, 12, 1),
+                                LocalDate.of(2022, 11, 1)),
                         true
                 )
         );

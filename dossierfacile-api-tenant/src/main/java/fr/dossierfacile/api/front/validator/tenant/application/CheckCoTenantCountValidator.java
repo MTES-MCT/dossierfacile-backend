@@ -10,7 +10,6 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Collections;
 import java.util.List;
 
-
 public class CheckCoTenantCountValidator implements ConstraintValidator<CheckCoTenantCount, ApplicationFormV2> {
 
     @Override

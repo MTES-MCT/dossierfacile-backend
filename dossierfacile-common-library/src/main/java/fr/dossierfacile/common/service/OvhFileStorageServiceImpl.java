@@ -98,7 +98,8 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     }
 
     private OSClient.OSClientV3 getClient() {
-        if (osClientThreadLocal.get() != null) return osClientThreadLocal.get();
+        if (osClientThreadLocal.get() != null)
+            return osClientThreadLocal.get();
         return authenticate();
     }
 
@@ -114,27 +115,27 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
         // Construct the endpoint URL manually based on OVH's standard pattern
         // OVH Object Storage endpoints follow: https://storage.<region>.cloud.ovh.net/v1/AUTH_<project_id>
         // We have the region from ovhRegion, and we can get the project ID from the token
-        
+
         var token = client.getToken();
         if (token == null) {
             throw new OvhConnectionFailedException("Token is null");
         }
-        
+
         var project = token.getProject();
         if (project == null) {
             throw new OvhConnectionFailedException("Project is null in token");
         }
-        
+
         String projectId = project.getId();
         if (projectId == null || projectId.isEmpty()) {
             throw new OvhConnectionFailedException("Project ID is null or empty");
         }
-        
+
         // Construct OVH Object Storage endpoint
         // Format: https://storage.<region>.cloud.ovh.net/v1/AUTH_<project_id>
-        String endpoint = String.format("https://storage.%s.cloud.ovh.net/v1/AUTH_%s", 
-                                        ovhRegion, projectId);
-        
+        String endpoint = String.format("https://storage.%s.cloud.ovh.net/v1/AUTH_%s",
+                ovhRegion, projectId);
+
         log.debug("Constructed Object Storage endpoint: {}", endpoint);
         return endpoint;
     }
@@ -322,7 +323,7 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
         } else {
             path = swiftPath;
         }
-        
+
         // Decode the path to match the original unencoded paths
         try {
             return URLDecoder.decode(path, StandardCharsets.UTF_8);
@@ -363,7 +364,8 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
             object = authenticate().objectStorage().objects().get(ovhContainerName, path);
         }
 
-        if (object == null) throw new FileNotFoundException("File " + path + " not found");
+        if (object == null)
+            throw new FileNotFoundException("File " + path + " not found");
 
         InputStream in = object.download().getInputStream();
         if (key != null) {
@@ -375,7 +377,7 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     @Override
     public void upload(String path, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
         if (key != null) {
-            if (key.getVersion() != 1 && key.getVersion() != 2){
+            if (key.getVersion() != 1 && key.getVersion() != 2) {
                 throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
             }
             try {
@@ -426,7 +428,8 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     }
 
     @Override
-    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException, IOException {
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key)
+            throws RetryableOperationException, IOException {
         throw new NotImplementedException("OVH does not support uploadV2 operation");
     }
 

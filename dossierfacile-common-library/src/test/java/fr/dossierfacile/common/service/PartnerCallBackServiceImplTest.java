@@ -152,7 +152,6 @@ class PartnerCallBackServiceImplTest {
         );
     }
 
-
     @Test
     void should_create_links_when_existing_links_are_deleted() {
         // Given - Existing links are marked as deleted

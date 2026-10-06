@@ -63,7 +63,7 @@ class TenantServiceSendCustomMessageTest {
                 null, // completedDossierService
                 null, // operatorReviewPolicy
                 null, // featureFlagService
-                null  // lotteryTicketService
+                null // lotteryTicketService
         );
 
         when(messageSource.getMessage(anyString(), any(), any(Locale.class)))

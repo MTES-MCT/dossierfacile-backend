@@ -28,4 +28,3 @@ public class UserFeatureAssignmentId implements Serializable {
     @Column(name = "feature_key", length = 100)
     private String featureKey;
 }
-

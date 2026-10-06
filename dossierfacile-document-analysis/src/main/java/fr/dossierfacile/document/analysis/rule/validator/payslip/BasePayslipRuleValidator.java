@@ -1,6 +1,5 @@
 package fr.dossierfacile.document.analysis.rule.validator.payslip;
 
-
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 
@@ -22,9 +21,9 @@ public abstract class BasePayslipRuleValidator extends BaseDocumentIAValidator {
         YearMonth yearMonth = YearMonth.now(clock);
         // If before the 15th, we expect M - 2, M - 3, M - 4
         // Else we expect M - 1, M - 2, M -3
-        return (localDate.getDayOfMonth() <= 15) ?
-                List.of(yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3), yearMonth.minusMonths(4)) :
-                List.of(yearMonth, yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3));
+        return (localDate.getDayOfMonth() <= 15)
+                ? List.of(yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3), yearMonth.minusMonths(4))
+                : List.of(yearMonth, yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3));
     }
 
     protected String getFileName(DocumentIAFileAnalysis analysis) {

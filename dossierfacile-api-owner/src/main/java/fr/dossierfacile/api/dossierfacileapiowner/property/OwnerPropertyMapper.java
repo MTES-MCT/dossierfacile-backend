@@ -19,11 +19,11 @@ import org.springframework.stereotype.Component;
 @Mapper(componentModel = "spring")
 public abstract class OwnerPropertyMapper implements MasksCompletedStatusForOwner {
 
-    @Mapping( source="dpeDate", target="dpeDate", dateFormat="yyyy-MM-dd")
+    @Mapping(source = "dpeDate", target = "dpeDate", dateFormat = "yyyy-MM-dd")
     public abstract PropertyModel toPropertyModel(Property property);
 
-    @Mapping( target="ownerName", expression="java(property.getOwner().getFullName())" )
-    @Mapping( source="dpeDate", target="dpeDate", dateFormat="yyyy-MM-dd")
+    @Mapping(target = "ownerName", expression = "java(property.getOwner().getFullName())")
+    @Mapping(source = "dpeDate", target = "dpeDate", dateFormat = "yyyy-MM-dd")
     public abstract LightPropertyModel toLightPropertyModel(Property property);
 
     @AfterMapping
@@ -35,13 +35,13 @@ public abstract class OwnerPropertyMapper implements MasksCompletedStatusForOwne
         }
         for (PropertyApartmentSharingModel propertyApartmentSharing : propertiesApartmentSharing) {
             Optional<PropertyApartmentSharing> aptSharing = property.getPropertiesApartmentSharing().stream()
-                .filter(p -> p.getId().equals(propertyApartmentSharing.getId()))
-                .findFirst();
+                    .filter(p -> p.getId().equals(propertyApartmentSharing.getId()))
+                    .findFirst();
             if (aptSharing.isPresent()) {
                 Optional<ApartmentSharingLink> aptLink = aptSharing.get().getApartmentSharing().getApartmentSharingLinks().stream()
                         .filter(link -> ApartmentSharingLinkType.OWNER.equals(link.getLinkType()) && link.getPropertyId().equals(property.getId()))
                         .filter(ApartmentSharingLink::isActive)
-                    .findFirst();
+                        .findFirst();
                 String token = aptLink.isPresent() ? aptLink.get().getToken().toString() : "";
                 propertyApartmentSharing.getApartmentSharing().setToken(token);
             }

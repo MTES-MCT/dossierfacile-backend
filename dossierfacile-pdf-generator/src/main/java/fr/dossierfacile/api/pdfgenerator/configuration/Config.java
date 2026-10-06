@@ -12,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-
 @Configuration
 @EnableJpaAuditing
 public class Config {

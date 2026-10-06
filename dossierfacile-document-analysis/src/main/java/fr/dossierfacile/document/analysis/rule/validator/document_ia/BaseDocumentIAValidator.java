@@ -1,6 +1,5 @@
 package fr.dossierfacile.document.analysis.rule.validator.document_ia;
 
-
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.File;
@@ -35,11 +34,13 @@ public abstract class BaseDocumentIAValidator extends AbstractDocumentRuleValida
 
     protected DocumentIdentity getNamesFromDocument(Document document) {
         if (document.getGuarantor() != null) {
-            return new DocumentIdentity(Arrays.stream(TOKEN_SEPARATOR.split(document.getGuarantor().getFirstName())).toList(), document.getGuarantor().getLastName(), document.getGuarantor().getPreferredName());
+            return new DocumentIdentity(Arrays.stream(TOKEN_SEPARATOR.split(document.getGuarantor().getFirstName())).toList(),
+                    document.getGuarantor().getLastName(), document.getGuarantor().getPreferredName());
         }
 
         if (document.getTenant() != null) {
-            return new DocumentIdentity(Arrays.stream(TOKEN_SEPARATOR.split(document.getTenant().getFirstName())).toList(), document.getTenant().getLastName(), document.getTenant().getPreferredName());
+            return new DocumentIdentity(Arrays.stream(TOKEN_SEPARATOR.split(document.getTenant().getFirstName())).toList(), document.getTenant().getLastName(),
+                    document.getTenant().getPreferredName());
         }
         return null;
     }

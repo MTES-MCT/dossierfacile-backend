@@ -11,7 +11,9 @@ import fr.dossierfacile.common.enums.TypeGuarantor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class NumberOfDocumentTaxGuarantorNaturalPersonValidator extends NumberOfDocumentTaxValidator<NumberOfDocumentTaxGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
+public class NumberOfDocumentTaxGuarantorNaturalPersonValidator
+        extends
+            NumberOfDocumentTaxValidator<NumberOfDocumentTaxGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
 
     public NumberOfDocumentTaxGuarantorNaturalPersonValidator(FileRepository fileRepository) {
         super(fileRepository);

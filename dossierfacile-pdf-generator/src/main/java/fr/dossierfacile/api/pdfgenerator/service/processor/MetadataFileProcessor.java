@@ -50,7 +50,7 @@ public class MetadataFileProcessor {
         Map<String, String> keysOfInterest = new HashMap<>();
 
         // --- COMMUN & PDF ---
-        keysOfInterest.put("pdf:producer", "Logiciel PDF");       // Ex: iText, Adobe, Quartz
+        keysOfInterest.put("pdf:producer", "Logiciel PDF"); // Ex: iText, Adobe, Quartz
         keysOfInterest.put(XMP_CREATOR_TOOL, "Outil de création"); // Ex: Adobe Photoshop, Microsoft Word
         keysOfInterest.put("dc:creator", "Auteur");
         keysOfInterest.put("dc:title", "Titre");
@@ -63,8 +63,8 @@ public class MetadataFileProcessor {
         keysOfInterest.put("tiff:Software", "Logiciel (TIFF/Exif)");
 
         // Infos Matériel (Si c'est une vraie photo de carte d'identité)
-        keysOfInterest.put("tiff:Make", "Marque Appareil");       // Ex: Apple, Samsung
-        keysOfInterest.put("tiff:Model", "Modèle Appareil");      // Ex: iPhone 12, Galaxy S21
+        keysOfInterest.put("tiff:Make", "Marque Appareil"); // Ex: Apple, Samsung
+        keysOfInterest.put("tiff:Model", "Modèle Appareil"); // Ex: iPhone 12, Galaxy S21
 
         // La date PRÉCISE de la prise de vue (Difficile à falsifier sans supprimer les EXIF)
         keysOfInterest.put("Exif SubIFD:Date/Time Original", "Date prise de vue");

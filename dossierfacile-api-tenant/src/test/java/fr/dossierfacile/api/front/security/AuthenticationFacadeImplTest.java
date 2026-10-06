@@ -446,7 +446,8 @@ class AuthenticationFacadeImplTest {
         }
 
         @Test
-        void shouldReuseAccountByKeycloakIdWhenCreationRacesWithConcurrentRequest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        void shouldReuseAccountByKeycloakIdWhenCreationRacesWithConcurrentRequest()
+                throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
             var keycloakUser = KeycloakUser.builder()
                     .keycloakId("keycloakId")
                     .email("test@test.fr")
@@ -634,7 +635,6 @@ class AuthenticationFacadeImplTest {
 
         }
 
-
     }
 
     /*
@@ -793,7 +793,6 @@ class AuthenticationFacadeImplTest {
                     .familyName("test")
                     .build();
 
-
             // make that the method return the invocation parameter
             when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));
 
@@ -826,7 +825,6 @@ class AuthenticationFacadeImplTest {
                     .givenName("test")
                     .familyName("test")
                     .build();
-
 
             // make that the method return the invocation parameter
             when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));

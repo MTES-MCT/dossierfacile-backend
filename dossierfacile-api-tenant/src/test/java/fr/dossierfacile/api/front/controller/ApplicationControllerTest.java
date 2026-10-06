@@ -95,7 +95,6 @@ class ApplicationControllerTest {
         self = this;
     }
 
-
     private static final UUID TEST_TOKEN = UUID.fromString("186ed480-968b-4bcd-aaab-afa747b953da");
     private static final String VALID_TRIGRAM = "NOM";
     private static final String INVALID_TRIGRAM = "BAD";
@@ -107,7 +106,7 @@ class ApplicationControllerTest {
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
-                        .header("X-Tenant-Trigram", VALID_TRIGRAM))
+                .header("X-Tenant-Trigram", VALID_TRIGRAM))
                 .andExpect(status().isOk());
     }
 
@@ -140,7 +139,7 @@ class ApplicationControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
-                        .header("X-Tenant-Trigram", VALID_TRIGRAM))
+                .header("X-Tenant-Trigram", VALID_TRIGRAM))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"));
     }
@@ -164,7 +163,7 @@ class ApplicationControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
-                        .header("X-Tenant-Trigram", INVALID_TRIGRAM))
+                .header("X-Tenant-Trigram", INVALID_TRIGRAM))
                 .andExpect(status().isForbidden());
     }
 
@@ -179,7 +178,7 @@ class ApplicationControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/application/full/{token}", nonExistentToken)
-                        .header("X-Tenant-Trigram", VALID_TRIGRAM))
+                .header("X-Tenant-Trigram", VALID_TRIGRAM))
                 .andExpect(status().isNotFound());
     }
 
@@ -217,10 +216,9 @@ class ApplicationControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
-                        .header("X-Tenant-Trigram", INVALID_TRIGRAM))
+                .header("X-Tenant-Trigram", INVALID_TRIGRAM))
                 .andExpect(status().isTooManyRequests());
     }
-
 
     @Nested
     class GetFullPdfForLoggedTenantTests {
@@ -562,8 +560,7 @@ class ApplicationControllerTest {
                     .apartmentSharing(apartmentSharing)
                     .build();
 
-            fr.dossierfacile.common.model.apartment_sharing.ApplicationModel applicationModel =
-                    new fr.dossierfacile.common.model.apartment_sharing.ApplicationModel();
+            fr.dossierfacile.common.model.apartment_sharing.ApplicationModel applicationModel = new fr.dossierfacile.common.model.apartment_sharing.ApplicationModel();
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 401 when no user is logged in",

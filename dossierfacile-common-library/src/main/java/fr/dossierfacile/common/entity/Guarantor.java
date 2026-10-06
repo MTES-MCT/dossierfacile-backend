@@ -91,10 +91,10 @@ public class Guarantor implements Person, Serializable {
     public String getCompleteName() {
         StringBuilder fullName = new StringBuilder();
         if (typeGuarantor == TypeGuarantor.NATURAL_PERSON) {
-            if (StringUtils.isNotBlank(firstName)){
+            if (StringUtils.isNotBlank(firstName)) {
                 fullName.append(firstName);
             }
-            if (StringUtils.isNotBlank(lastName)){
+            if (StringUtils.isNotBlank(lastName)) {
                 fullName.append(" ").append(lastName);
             }
         } else if (typeGuarantor == TypeGuarantor.LEGAL_PERSON && StringUtils.isNotBlank(legalPersonName)) {
@@ -108,8 +108,8 @@ public class Guarantor implements Person, Serializable {
             var normalizedFirstName = StringUtils.stripAccents(StringUtils.trimToEmpty(getFirstName())).split(" ")[0];
             var normalizedLastName = StringUtils.stripAccents(StringUtils.trimToEmpty(getLastName()));
             return String.format("%s_%s",
-                StringUtils.capitalize(normalizedFirstName),
-                StringUtils.capitalize(normalizedLastName));
+                    StringUtils.capitalize(normalizedFirstName),
+                    StringUtils.capitalize(normalizedLastName));
         } else if (typeGuarantor == TypeGuarantor.LEGAL_PERSON) {
             var normalizedLegalPersonName = StringUtils.stripAccents(StringUtils.trimToEmpty(getLegalPersonName()));
             return StringUtils.capitalize(normalizedLegalPersonName);

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class Utility {
 
     public static void addText(PDPageContentStream contentStream, float width, float sx, float sy,
-                               String text, PDType0Font font, float fontSize, PDType0Font alternativeFont) throws IOException {
+            String text, PDType0Font font, float fontSize, PDType0Font alternativeFont) throws IOException {
         text = StringUtils.trim(text);
 
         String[] paragraphs = text.split("[\\r\\n]+");
@@ -82,7 +82,7 @@ public class Utility {
     }
 
     public static int countLines(String text, float width, PDType0Font font,
-                                 float fontSize, PDType0Font alternativeFont) {
+            float fontSize, PDType0Font alternativeFont) {
         text = StringUtils.trim(text);
         if (text.isEmpty()) {
             return 0;

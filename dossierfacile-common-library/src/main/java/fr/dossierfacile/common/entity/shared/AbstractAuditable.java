@@ -68,7 +68,9 @@ public abstract class AbstractAuditable<U extends Serializable, ID> implements A
     }
 
     public Optional<LocalDateTime> getLastModifiedDate() {
-        return null == this.lastModifiedDate ? Optional.empty() : Optional.of(LocalDateTime.ofInstant(this.lastModifiedDate.toInstant(), ZoneId.systemDefault()));
+        return null == this.lastModifiedDate
+                ? Optional.empty()
+                : Optional.of(LocalDateTime.ofInstant(this.lastModifiedDate.toInstant(), ZoneId.systemDefault()));
     }
 
     public void setLastModifiedDate(LocalDateTime lastModifiedDate) {

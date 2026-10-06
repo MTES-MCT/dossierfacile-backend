@@ -31,6 +31,9 @@ zxing-cpp/data/zxing-cpp
 .springBeans
 .sts4-cache
 
+# Shared Java tooling, including for clones with a local VS Code settings ignore.
+!/.vscode/settings.json
+
 ### IntelliJ IDEA ###
 .idea
 *.iws

@@ -58,4 +58,3 @@ class TrigramUtilsTest {
         assertThat(result).contains("NBA");
     }
 }
-

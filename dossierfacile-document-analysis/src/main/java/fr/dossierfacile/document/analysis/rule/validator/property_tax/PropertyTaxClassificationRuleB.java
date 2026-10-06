@@ -23,7 +23,6 @@ public class PropertyTaxClassificationRuleB extends BaseTaxRule {
         return DocumentRule.R_DOCUMENT_IA_CLASSIFICATION;
     }
 
-
     @Override
     protected boolean isValid(Document document) {
         var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);

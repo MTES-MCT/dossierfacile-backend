@@ -81,7 +81,8 @@ public abstract class AbstractDocumentFinancialSaveStep<T extends DocumentForm &
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(ZoneId.systemDefault()), DocumentCategory.FINANCIAL);
         if (needToBeReValidated) {
-            documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToReset, List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
+            documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToReset,
+                    List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
         }
 
         if (edited) {
@@ -100,7 +101,8 @@ public abstract class AbstractDocumentFinancialSaveStep<T extends DocumentForm &
         return 0;
     }
 
-    private boolean hasFinancialInfoChanged(Document document, DocumentSubCategory subCategory, fr.dossierfacile.common.enums.DocumentCategoryStep step, int monthlySum, String customText) {
+    private boolean hasFinancialInfoChanged(Document document, DocumentSubCategory subCategory, fr.dossierfacile.common.enums.DocumentCategoryStep step,
+            int monthlySum, String customText) {
         return subCategory != document.getDocumentSubCategory()
                 || step != document.getDocumentCategoryStep()
                 || !Objects.equals(document.getMonthlySum(), monthlySum)

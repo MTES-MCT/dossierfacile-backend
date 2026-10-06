@@ -23,7 +23,8 @@ public class NameRepresentantGuarantorLegalPerson implements SaveStep<NameGuaran
 
     @Override
     public TenantModel saveStep(Tenant tenant, NameGuarantorRepresentantLegalPersonForm nameGuarantorRepresentantLegalPersonForm) {
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON, nameGuarantorRepresentantLegalPersonForm.getGuarantorId())
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON, nameGuarantorRepresentantLegalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(nameGuarantorRepresentantLegalPersonForm.getGuarantorId()));
         guarantor.setFirstName(nameGuarantorRepresentantLegalPersonForm.getFirstName());
         guarantor.setTenant(tenant);

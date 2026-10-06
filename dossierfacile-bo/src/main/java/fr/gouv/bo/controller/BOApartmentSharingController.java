@@ -48,7 +48,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
 @Controller
 @RequiredArgsConstructor
 @RequestMapping(value = "/bo/colocation")
@@ -92,15 +91,13 @@ public class BOApartmentSharingController {
 
     @GetMapping("/{id}")
     public String view(Model model, @PathVariable("id") Long id,
-                       @AuthenticationPrincipal UserPrincipal principal) {
+            @AuthenticationPrincipal UserPrincipal principal) {
         ApartmentSharing apartmentSharing = applicationSharingService.findById(id).orElseThrow(BOAccessDenied::generic);
 
         applicationAccessService.checkAndLogApartmentSharingAccess(principal, apartmentSharing.getId());
 
         MessageDTO messageDTO = new MessageDTO();
         PartnerDTO partnerDTO = new PartnerDTO();
-
-        
 
         // Enrich apartment sharing links with visit data and creator info
         List<ApartmentSharingLink> filteredLinks = apartmentSharingLinkService.getFilteredLinks(apartmentSharing);
@@ -156,7 +153,7 @@ public class BOApartmentSharingController {
         ApartmentSharing apartmentSharing = applicationSharingService.findById(id).orElseThrow(BOAccessDenied::generic);
 
         applicationAccessService.checkApartmentSharingAccess(principal, apartmentSharing.getId());
-        
+
         apartmentSharingLinkService.delete(linkId, apartmentSharing);
         return REDIRECT_BO_COLOCATION + id;
     }
@@ -172,7 +169,7 @@ public class BOApartmentSharingController {
         ApartmentSharing apartmentSharing = applicationSharingService.findById(id).orElseThrow(BOAccessDenied::generic);
 
         applicationAccessService.checkApartmentSharingAccess(principal, apartmentSharing.getId());
-        
+
         apartmentSharingLinkService.updateStatus(linkId, enabled, apartmentSharing);
         return REDIRECT_BO_COLOCATION + id;
     }
@@ -187,12 +184,11 @@ public class BOApartmentSharingController {
         return tenants.stream()
                 .flatMap(BOApartmentSharingController::getAllDocuments)
                 .filter(doc -> doc.getId() != null)
-                .collect(Collectors.toMap(Document::getId, doc ->
-                        doc.getFiles().stream()
-                                .filter(f -> f.getDocumentIAFileAnalysis() != null
-                                        && f.getDocumentIAFileAnalysis().getAnalysisStatus() == DocumentIAFileAnalysisStatus.SUCCESS)
-                                .map(f -> f.getDocumentIAFileAnalysis().getResult())
-                                .toList()
+                .collect(Collectors.toMap(Document::getId, doc -> doc.getFiles().stream()
+                        .filter(f -> f.getDocumentIAFileAnalysis() != null
+                                && f.getDocumentIAFileAnalysis().getAnalysisStatus() == DocumentIAFileAnalysisStatus.SUCCESS)
+                        .map(f -> f.getDocumentIAFileAnalysis().getResult())
+                        .toList()
                 ));
     }
 
@@ -219,7 +215,7 @@ public class BOApartmentSharingController {
                 .flatMap(guarantor -> guarantor.getDocuments().stream());
         return Stream.concat(tenantDocuments, guarantorDocuments);
     }
-    
+
     private List<ApartmentSharingLinkEnrichedDTO> enrichApartmentSharingLinks(List<ApartmentSharingLink> links) {
         if (links.isEmpty()) {
             return new ArrayList<>();

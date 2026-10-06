@@ -29,7 +29,7 @@ public class BODashboardController {
     private Integer minusDays;
 
     @GetMapping("")
-    public String myDashboard(Model model,  @AuthenticationPrincipal UserPrincipal principal) {
+    public String myDashboard(Model model, @AuthenticationPrincipal UserPrincipal principal) {
         if (principal == null) {
             return "redirect:/login";
         }

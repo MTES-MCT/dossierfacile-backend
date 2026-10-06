@@ -72,8 +72,7 @@ public class LocalMockStorage implements FileStorageProviderService {
                 aes.init(Cipher.DECRYPT_MODE, key, gcmParamSpec);
 
                 in = new CipherInputStream(in, aes);
-            } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                     InvalidAlgorithmParameterException e) {
+            } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | InvalidAlgorithmParameterException e) {
                 throw new IOException(e);
             }
         }
@@ -124,7 +123,8 @@ public class LocalMockStorage implements FileStorageProviderService {
     }
 
     @Override
-    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException, IOException {
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key)
+            throws RetryableOperationException, IOException {
         throw new NotImplementedException("LocalMockStorage does not support uploadV2 operation");
     }
 
@@ -147,7 +147,7 @@ public class LocalMockStorage implements FileStorageProviderService {
     public BulkDeleteResult bulkDeleteV2(S3Bucket bucket, List<String> paths) {
         throw new NotImplementedException("LocalMockStorage does not support bulkDeleteV2 operation");
     }
-    
+
     @Override
     public List<String> listObjectNamesV2(S3Bucket s3Bucket, String prefix) {
         throw new NotImplementedException("LocalMockStorage does not support listObjectNamesV2 operation");

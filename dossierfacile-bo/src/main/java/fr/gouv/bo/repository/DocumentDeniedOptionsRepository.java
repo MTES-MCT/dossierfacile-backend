@@ -46,6 +46,7 @@ public interface DocumentDeniedOptionsRepository extends JpaRepository<DocumentD
             end,
             code;
             """, nativeQuery = true)
-    List<DocumentDeniedOptions> findAllByDocumentCategoryAndDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(String documentCategory, String documentSubCategory, String documentUserType);
+    List<DocumentDeniedOptions> findAllByDocumentCategoryAndDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(String documentCategory,
+            String documentSubCategory, String documentUserType);
 
 }

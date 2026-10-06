@@ -33,7 +33,7 @@ public class GeneralConfiguration {
     }
 
     @Bean
-    public ThreadPoolTaskScheduler threadPoolTaskScheduler(){
+    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setThreadNamePrefix("DF-Sch-Exec-");
         return threadPoolTaskScheduler;

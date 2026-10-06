@@ -43,7 +43,7 @@ public class BOPdfDocumentTemplateTest {
 
     @BeforeEach
     void init() {
-        Mockito.lenient().when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
+        Mockito.lenient().when(messageSource.getMessage(any(), any(), any(), any())).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
         Mockito.when(featureFlipping.shouldUseColors()).thenReturn(true);
         Mockito.when(featureFlipping.shouldUseDistortion()).thenReturn(true);
     }
@@ -74,7 +74,6 @@ public class BOPdfDocumentTemplateTest {
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
     }
-
 
     @DisplayName("Check if the render is correctly generated from text pdf and wrong sized pdf")
     @Test

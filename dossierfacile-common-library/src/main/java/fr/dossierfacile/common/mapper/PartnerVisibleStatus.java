@@ -18,12 +18,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class PartnerVisibleStatus {
 
-    private PartnerVisibleStatus() {
-    }
+    private PartnerVisibleStatus() {}
 
     public static TenantFileStatus mask(TenantFileStatus status, String source) {
         if (status == TenantFileStatus.COMPLETED) {
-            log.error("Defensive status masking triggered in {}: a COMPLETED dossier should never be exposed to a partner that did not opt in, nor to an owner", source);
+            log.error("Defensive status masking triggered in {}: a COMPLETED dossier should never be exposed to a partner that did not opt in, nor to an owner",
+                    source);
             return TenantFileStatus.TO_PROCESS;
         }
         return status;

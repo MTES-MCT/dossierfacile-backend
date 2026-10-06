@@ -38,7 +38,6 @@ public class UserController {
         return ok(userService.createPassword(token, password.getPassword()));
     }
 
-
     @DeleteMapping("/deleteAccount")
     @ApiOperation(value = "Delete the current user account")
     @ApiResponses(value = {

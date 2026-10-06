@@ -1,6 +1,5 @@
 package fr.gouv.bo.controller;
 
-
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.web.servlet.error.ErrorController;

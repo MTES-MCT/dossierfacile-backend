@@ -281,4 +281,3 @@ public enum DocumentRule {
     private final String inconclusiveMessage;
 
 }
-

@@ -10,4 +10,3 @@ public class TrigramNotAuthorizedException extends RuntimeException {
         super(message);
     }
 }
-

@@ -20,7 +20,6 @@ public abstract class ApplicationLightMapper implements ApartmentSharingMapper {
     @MapDocumentCategories
     public abstract DocumentModel documentToDocumentModel(Document document, @Context UserApi userApi);
 
-
     public DocumentModel documentToDocumentModel(Document document) {
         return documentToDocumentModel(document, null);
     }

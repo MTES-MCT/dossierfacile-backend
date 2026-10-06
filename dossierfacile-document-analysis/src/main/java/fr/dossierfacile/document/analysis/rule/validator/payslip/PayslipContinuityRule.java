@@ -46,11 +46,13 @@ public class PayslipContinuityRule extends BasePayslipRuleValidator {
         var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
 
         if (document.getFiles().size() < 3) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         if (documentIAAnalyses.isEmpty() || hasAnyNonSuccessfulDocumentIAAnalyses(document)) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var expectedMonths = getExpectedMonthsLists();

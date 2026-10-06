@@ -26,7 +26,8 @@ public abstract class NumberOfDocumentTaxValidator<A extends Annotation, F exten
         long countNew = getNewCount(documentTaxForm);
 
         boolean isValid;
-        if ((getTypeDocumentTax(documentTaxForm) == DocumentSubCategory.MY_NAME) || (getTypeDocumentTax(documentTaxForm) == DocumentSubCategory.OTHER_TAX && !getNoDocument(documentTaxForm))) {
+        if ((getTypeDocumentTax(documentTaxForm) == DocumentSubCategory.MY_NAME)
+                || (getTypeDocumentTax(documentTaxForm) == DocumentSubCategory.OTHER_TAX && !getNoDocument(documentTaxForm))) {
             isValid = countNew + countOld >= 1 && countNew + countOld <= 5;
             if (!isValid) {
                 setInvalidMessage(constraintValidatorContext, countNew + countOld == 0);

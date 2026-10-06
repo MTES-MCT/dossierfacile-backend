@@ -155,7 +155,8 @@ class DocumentResidencyGuarantorNaturalPersonTest {
 
         MockMultipartFile mockFile = new MockMultipartFile("documents", "attestation.pdf", "application/pdf", "content".getBytes());
         try {
-            when(fileUploadPreprocessor.prepareValidatedFiles(any())).thenReturn(List.of(new fr.dossierfacile.common.model.ValidatedFile(mockFile, "application/pdf")));
+            when(fileUploadPreprocessor.prepareValidatedFiles(any()))
+                    .thenReturn(List.of(new fr.dossierfacile.common.model.ValidatedFile(mockFile, "application/pdf")));
         } catch (IOException ignored) {
             // Empty catch for this test
         }

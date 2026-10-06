@@ -19,7 +19,8 @@ public class PayslipNames {
     public String getIdentityString() {
         if (beneficiaire != null) {
             String fromBeneficiaire = beneficiaire.resolveIdentityString();
-            if (fromBeneficiaire != null) return fromBeneficiaire;
+            if (fromBeneficiaire != null)
+                return fromBeneficiaire;
         }
         return identiteString;
     }

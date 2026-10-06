@@ -22,7 +22,6 @@ import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
 @RestController
 @RequestMapping("/api/application/links")
 @AllArgsConstructor
@@ -45,7 +44,7 @@ public class ApartmentSharingLinkController {
     }
 
     @PutMapping("/default")
-    public ResponseEntity<ApartmentSharingLinkModel> updateApartmentSharingLinksStatus( @RequestParam boolean isFullData) {
+    public ResponseEntity<ApartmentSharingLinkModel> updateApartmentSharingLinksStatus(@RequestParam boolean isFullData) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         ApartmentSharingLinkModel defaultLink = tenantService.getDefaultSharingLink(tenant, isFullData);
         return ResponseEntity.ok(defaultLink);
@@ -92,7 +91,6 @@ public class ApartmentSharingLinkController {
         return ResponseEntity.ok().build();
     }
 
-   
     @DeleteMapping(value = "/", consumes = "application/json")
     public ResponseEntity<Void> deleteLinks(@RequestBody List<Long> linkIds) {
         Tenant tenant = authenticationFacade.getLoggedTenant();

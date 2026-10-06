@@ -37,7 +37,7 @@ public class DocumentDeniedOptions implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(unique=true)
+    @Column(unique = true)
     private String code;
 
     private String messageValue;
@@ -52,8 +52,10 @@ public class DocumentDeniedOptions implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
         DocumentDeniedOptions that = (DocumentDeniedOptions) o;
         return id != null && Objects.equals(id, that.id);
     }

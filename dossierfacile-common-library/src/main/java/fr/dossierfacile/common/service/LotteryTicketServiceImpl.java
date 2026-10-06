@@ -25,8 +25,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class LotteryTicketServiceImpl implements LotteryTicketService {
 
-    private static final Set<LotteryTicketStatus> ACTIVE_STATUSES =
-            Set.of(LotteryTicketStatus.PENDING, LotteryTicketStatus.DRAWN);
+    private static final Set<LotteryTicketStatus> ACTIVE_STATUSES = Set.of(LotteryTicketStatus.PENDING, LotteryTicketStatus.DRAWN);
 
     private final LotteryTicketRepository lotteryTicketRepository;
     private final TenantLogCommonService tenantLogCommonService;

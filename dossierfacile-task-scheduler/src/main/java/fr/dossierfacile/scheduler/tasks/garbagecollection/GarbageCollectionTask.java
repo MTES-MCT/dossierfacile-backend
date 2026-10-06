@@ -33,11 +33,9 @@ public class GarbageCollectionTask extends AbstractTask {
         try {
             log.info("Garbage collection task started");
             garbageCollectionService.handleGarbageCollection();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error during garbage collection task", e);
-        }
-        finally {
+        } finally {
             super.endTask();
         }
     }

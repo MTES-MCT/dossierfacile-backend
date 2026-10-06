@@ -98,33 +98,32 @@ public class IdentificationBOPdfDocumentTemplateTest {
         InputStream isTextPdf = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("landscapeid.pdf");
         InputStream isOpen = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.pdf");
 
-        List<FileInputStream> dataList =
-                Arrays.asList(FileInputStream
-                                .builder()
-                                .mediaType(MediaType.APPLICATION_PDF)
-                                .inputStream(is)
-                                .build(),
-                        FileInputStream
-                                .builder()
-                                .mediaType(MediaType.IMAGE_JPEG)
-                                .inputStream(isJPG)
-                                .build(),
-                        FileInputStream
-                                .builder()
-                                .mediaType(MediaType.IMAGE_JPEG)
-                                .inputStream(isHJPG)
-                                .build(),
+        List<FileInputStream> dataList = Arrays.asList(FileInputStream
+                .builder()
+                .mediaType(MediaType.APPLICATION_PDF)
+                .inputStream(is)
+                .build(),
+                FileInputStream
+                        .builder()
+                        .mediaType(MediaType.IMAGE_JPEG)
+                        .inputStream(isJPG)
+                        .build(),
+                FileInputStream
+                        .builder()
+                        .mediaType(MediaType.IMAGE_JPEG)
+                        .inputStream(isHJPG)
+                        .build(),
 
-                        FileInputStream
-                                .builder()
-                                .mediaType(MediaType.APPLICATION_PDF)
-                                .inputStream(isTextPdf)
-                                .build(),
-                        FileInputStream
-                                .builder()
-                                .mediaType(MediaType.APPLICATION_PDF)
-                                .inputStream(isOpen)
-                                .build());
+                FileInputStream
+                        .builder()
+                        .mediaType(MediaType.APPLICATION_PDF)
+                        .inputStream(isTextPdf)
+                        .build(),
+                FileInputStream
+                        .builder()
+                        .mediaType(MediaType.APPLICATION_PDF)
+                        .inputStream(isOpen)
+                        .build());
 
         File resultFile = new File("target/resultFullTypeTestPdf.pdf");
         resultFile.createNewFile();

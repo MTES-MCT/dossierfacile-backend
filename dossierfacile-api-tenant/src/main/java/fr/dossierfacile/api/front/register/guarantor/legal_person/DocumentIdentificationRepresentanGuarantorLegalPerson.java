@@ -26,8 +26,10 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class DocumentIdentificationRepresentanGuarantorLegalPerson
-        extends AbstractDocumentSaveStep<DocumentIdentificationRepresentanGuarantorLegalPersonForm>
-        implements SaveStep<DocumentIdentificationRepresentanGuarantorLegalPersonForm> {
+        extends
+            AbstractDocumentSaveStep<DocumentIdentificationRepresentanGuarantorLegalPersonForm>
+        implements
+            SaveStep<DocumentIdentificationRepresentanGuarantorLegalPersonForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
@@ -37,10 +39,12 @@ public class DocumentIdentificationRepresentanGuarantorLegalPerson
 
     private final ApartmentSharingService apartmentSharingService;
 
-
     @Override
-    protected DocumentSaveResult saveDocument(Tenant tenant, DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentanGuarantorLegalPersonForm) {
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON, documentIdentificationRepresentanGuarantorLegalPersonForm.getGuarantorId())
+    protected DocumentSaveResult saveDocument(Tenant tenant,
+            DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentanGuarantorLegalPersonForm) {
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON,
+                        documentIdentificationRepresentanGuarantorLegalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationRepresentanGuarantorLegalPersonForm.getGuarantorId()));
         guarantor.setFirstName(documentIdentificationRepresentanGuarantorLegalPersonForm.getFirstName());
         guarantorRepository.save(guarantor);

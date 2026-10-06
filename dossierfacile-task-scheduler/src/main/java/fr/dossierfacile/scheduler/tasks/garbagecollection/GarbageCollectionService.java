@@ -20,7 +20,8 @@ public class GarbageCollectionService {
 
     private final TenantLogRepository tenantLogRepository;
     private final GarbageSequenceRepository garbageSequenceRepository;
-    private final List<LogType> targetedLogStatus = List.of(LogType.ACCOUNT_DELETE, LogType.ACCOUNT_ARCHIVED, LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS);
+    private final List<LogType> targetedLogStatus = List.of(LogType.ACCOUNT_DELETE, LogType.ACCOUNT_ARCHIVED,
+            LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS);
     private final S3FileStorageServiceImpl s3Client;
 
     public void handleGarbageCollection() {

@@ -16,7 +16,7 @@ public interface ApartmentSharingRepository extends JpaRepository<ApartmentShari
     Optional<ApartmentSharing> findByTenant(@Param("id") Long id);
 
     @Query(value = """
-            SELECT a 
+            SELECT a
             FROM ApartmentSharing a
             JOIN a.tenants t
             JOIN t.tenantsUserApi tua
@@ -25,6 +25,7 @@ public interface ApartmentSharingRepository extends JpaRepository<ApartmentShari
             ORDER BY t.lastUpdateDate ASC
             """
     )
-    List<ApartmentSharing> findByLastUpdateDateAndPartner(@Param("lastUpdateDate") LocalDateTime lastUpdateDateFrom, @Param("partner") UserApi partner, Pageable pageable);
+    List<ApartmentSharing> findByLastUpdateDateAndPartner(@Param("lastUpdateDate") LocalDateTime lastUpdateDateFrom, @Param("partner") UserApi partner,
+            Pageable pageable);
 
 }

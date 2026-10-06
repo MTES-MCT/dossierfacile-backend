@@ -117,7 +117,6 @@ public class ApartmentSharingLinkService {
         return mapApartmentSharingLink(newLink, apartmentSharing);
     }
 
-
     private ApartmentSharingLinkModel mapApartmentSharingLink(ApartmentSharingLink link, ApartmentSharing apartmentSharing) {
         LinkLogServiceImpl.FirstAndLastVisit firstAndLastVisit = linkLogService.getFirstAndLastVisit(link.getToken(), apartmentSharing);
         long nbVisits = linkLogService.countVisits(link.getToken(), apartmentSharing);
@@ -295,6 +294,5 @@ public class ApartmentSharingLinkService {
         link.setTitle(title);
         apartmentSharingLinkRepository.save(link);
     }
-
 
 }

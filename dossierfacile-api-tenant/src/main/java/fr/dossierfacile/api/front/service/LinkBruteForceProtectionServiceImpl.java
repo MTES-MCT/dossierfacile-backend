@@ -35,8 +35,8 @@ public class LinkBruteForceProtectionServiceImpl implements BruteForceProtection
         this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
         this.maxFailedAttempts = maxFailedAttempts;
         this.timeWindowHours = timeWindowHours;
-        
-        log.info("BruteForceProtectionService initialized with maxAttempts={}, timeWindowHours={}", 
+
+        log.info("BruteForceProtectionService initialized with maxAttempts={}, timeWindowHours={}",
                 maxFailedAttempts, timeWindowHours);
     }
 
@@ -56,7 +56,7 @@ public class LinkBruteForceProtectionServiceImpl implements BruteForceProtection
 
         // Check if link is blocked
         if (isBlocked(link)) {
-            log.warn("Access denied for link [{}] - Too many failed attempts. Count: {}, First attempt: {}", 
+            log.warn("Access denied for link [{}] - Too many failed attempts. Count: {}, First attempt: {}",
                     link.getToken(), link.getFailedAttemptCount(), link.getFirstFailedAttemptAt());
             throw new ApplicationLinkBlockedException("Too many failed attempts. Link is temporarily blocked.");
         }
@@ -75,7 +75,7 @@ public class LinkBruteForceProtectionServiceImpl implements BruteForceProtection
 
         apartmentSharingLinkRepository.save(link);
 
-        log.info("Failed attempt recorded for link [{}]. Total attempts: {}, First attempt at: {}", 
+        log.info("Failed attempt recorded for link [{}]. Total attempts: {}, First attempt at: {}",
                 link.getToken(), link.getFailedAttemptCount(), link.getFirstFailedAttemptAt());
     }
 
@@ -89,7 +89,7 @@ public class LinkBruteForceProtectionServiceImpl implements BruteForceProtection
         link.setFailedAttemptCount(0);
         link.setFirstFailedAttemptAt(null);
         apartmentSharingLinkRepository.save(link);
-        
+
         log.debug("Failed attempts reset for link [{}]", link.getToken());
     }
 
@@ -100,7 +100,7 @@ public class LinkBruteForceProtectionServiceImpl implements BruteForceProtection
         }
 
         long hoursSinceFirstAttempt = ChronoUnit.HOURS.between(
-                link.getFirstFailedAttemptAt(), 
+                link.getFirstFailedAttemptAt(),
                 LocalDateTime.now()
         );
 
@@ -111,7 +111,7 @@ public class LinkBruteForceProtectionServiceImpl implements BruteForceProtection
      * Checks if the link is blocked based on the number of failed attempts.
      */
     private boolean isBlocked(ApartmentSharingLink link) {
-        return link.getFailedAttemptCount() != null 
+        return link.getFailedAttemptCount() != null
                 && link.getFailedAttemptCount() >= maxFailedAttempts;
     }
 
@@ -121,7 +121,7 @@ public class LinkBruteForceProtectionServiceImpl implements BruteForceProtection
     private void initializeFailedAttemptTracking(ApartmentSharingLink link, LocalDateTime now) {
         link.setFirstFailedAttemptAt(now);
         link.setFailedAttemptCount(1);
-        
+
         log.debug("Initialized failed attempt tracking for link [{}] at {}", link.getToken(), now);
     }
 
@@ -133,6 +133,3 @@ public class LinkBruteForceProtectionServiceImpl implements BruteForceProtection
         link.setFailedAttemptCount(currentCount + 1);
     }
 }
-
-
-

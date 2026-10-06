@@ -17,6 +17,7 @@ public interface UserFeatureAssignmentHistoryRepository extends JpaRepository<Us
               AND assignment_source = 'HASH'
               AND enabled != (bucket < :newRolloutPct)
             """, nativeQuery = true)
-    void saveHistoryForChangingAssignments(@Param("featureKey") String featureKey, @Param("newRolloutPct") Integer newRolloutPct, @Param("reason") String reason);
+    void saveHistoryForChangingAssignments(@Param("featureKey") String featureKey, @Param("newRolloutPct") Integer newRolloutPct,
+            @Param("reason") String reason);
 
 }

@@ -37,7 +37,6 @@ public class MailService {
 
     private final MailCommonService mailCommonService;
 
-
     @Async
     public void sendEmailAccountDeleted(TenantDto tenant) {
         Map<String, String> params = new HashMap<>();

@@ -22,7 +22,8 @@ public abstract class AbstractDocumentRuleValidator {
 
         if (!isValid) {
             if (isInconclusive) {
-                return new RuleValidatorOutput(false, isBlocking, DocumentAnalysisRule.documentInconclusiveRuleFrom(rule), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+                return new RuleValidatorOutput(false, isBlocking, DocumentAnalysisRule.documentInconclusiveRuleFrom(rule),
+                        RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
             } else {
                 return new RuleValidatorOutput(false, isBlocking, DocumentAnalysisRule.documentFailedRuleFrom(rule), RuleValidatorOutput.RuleLevel.FAILED);
             }

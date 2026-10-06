@@ -8,7 +8,8 @@ public record NamesRuleData(Name expectedName, List<Name> extractedNames) implem
         this(other.expectedName, List.copyOf(extractedNames));
     }
 
-    public record Name(String firstNames, String lastName, String preferredName) {}
+    public record Name(String firstNames, String lastName, String preferredName) {
+    }
 
     @Override
     public String getType() {

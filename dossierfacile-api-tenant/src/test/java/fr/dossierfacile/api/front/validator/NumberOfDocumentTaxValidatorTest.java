@@ -28,7 +28,6 @@ public class NumberOfDocumentTaxValidatorTest {
 
     private final TenantNumberOfDocumentTaxValidator validator = new TenantNumberOfDocumentTaxValidator(fileRepository);
 
-
     private Tenant tenant = Tenant.builder().id(1L).firstName("John").lastName("Doe").build();
 
     @BeforeEach
@@ -163,7 +162,6 @@ public class NumberOfDocumentTaxValidatorTest {
         assertThat(validator.isValid(documentTaxForm, null)).isTrue();
     }
 
-
     private ConstraintValidatorContext getMockedValidationContext() {
         var validationContext = mock(ConstraintValidatorContext.class);
         ConstraintValidatorContext.ConstraintViolationBuilder mockBuilder = mock(ConstraintValidatorContext.ConstraintViolationBuilder.class);
@@ -173,5 +171,3 @@ public class NumberOfDocumentTaxValidatorTest {
         return validationContext;
     }
 }
-
-

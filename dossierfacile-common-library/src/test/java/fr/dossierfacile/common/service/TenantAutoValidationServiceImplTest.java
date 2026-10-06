@@ -248,7 +248,8 @@ class TenantAutoValidationServiceImplTest {
             verify(tenantLogCommonService).saveTenantLog(logCaptor.capture());
             assertThat(logCaptor.getValue().getLogType()).isEqualTo(LogType.ACCOUNT_AUTO_VALIDATION_FAILED);
             assertThat(logCaptor.getValue().getLogDetails().get("status").asText()).isEqualTo(AutoValidationResultStatus.FAILED.name());
-            assertThat(logCaptor.getValue().getLogDetails().get("documents").get(0).get("reason").asText()).isEqualTo(DocumentAutoValidationReason.FAILED_RULES_PRESENT.name());
+            assertThat(logCaptor.getValue().getLogDetails().get("documents").get(0).get("reason").asText())
+                    .isEqualTo(DocumentAutoValidationReason.FAILED_RULES_PRESENT.name());
         }
     }
 

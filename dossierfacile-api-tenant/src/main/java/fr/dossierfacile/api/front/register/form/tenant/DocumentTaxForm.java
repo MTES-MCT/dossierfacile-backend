@@ -32,8 +32,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.*;
 public class DocumentTaxForm extends DocumentForm implements IDocumentTaxForm {
 
     @NotNull
-    @DocumentSubcategorySubset(anyOf =
-            {MY_NAME, MY_PARENTS, LESS_THAN_YEAR, OTHER_TAX})
+    @DocumentSubcategorySubset(anyOf = {MY_NAME, MY_PARENTS, LESS_THAN_YEAR, OTHER_TAX})
     private DocumentSubCategory typeDocumentTax;
 
     @Nullable

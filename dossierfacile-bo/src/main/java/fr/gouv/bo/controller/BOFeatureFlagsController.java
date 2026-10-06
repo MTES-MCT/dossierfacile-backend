@@ -76,7 +76,7 @@ public class BOFeatureFlagsController {
 
     @PostMapping("/bo/feature-flags/rollout")
     public String updateRollout(@RequestParam("key") String key, @RequestParam("value") int value,
-                                RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         if (GLOBAL_FLAG_KEYS.contains(key)) {
             // The button is hidden in the UI: refuse a direct POST too, it would only trigger
             // a useless recomputation of the user assignments
@@ -86,8 +86,10 @@ public class BOFeatureFlagsController {
         }
         FeatureFlag featureFlag = featureFlagService.getFeatureFlag(key);
         int newValue = value;
-        if (newValue < 0) newValue = 0;
-        if (newValue > 100) newValue = 100;
+        if (newValue < 0)
+            newValue = 0;
+        if (newValue > 100)
+            newValue = 100;
         featureFlagService.updateRolloutForFeatureFlag(featureFlag, newValue);
         return REDIRECT_FEATURE_FLAGS;
     }

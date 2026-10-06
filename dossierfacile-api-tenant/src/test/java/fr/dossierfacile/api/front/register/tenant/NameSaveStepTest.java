@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.register.tenant;
 
-
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
@@ -63,7 +62,8 @@ class NameSaveStepTest {
     void shouldReturnTenantWhenNoNamesChangeWhenOwnerTypeSelf() {
         var apartmentSharing = ApartmentSharing.builder().id(1L).applicationType(ApplicationType.ALONE).build();
         var document = Document.builder().id(100L).build();
-        var tenant = Tenant.builder().id(1L).firstName("firstName").lastName("lastName").ownerType(TenantOwnerType.SELF).apartmentSharing(apartmentSharing).documents(new ArrayList<>(List.of(document))).build();
+        var tenant = Tenant.builder().id(1L).firstName("firstName").lastName("lastName").ownerType(TenantOwnerType.SELF).apartmentSharing(apartmentSharing)
+                .documents(new ArrayList<>(List.of(document))).build();
 
         apartmentSharing.setTenants(List.of(tenant));
         var namesForm = new NamesForm();
@@ -86,7 +86,8 @@ class NameSaveStepTest {
     void shouldReturnTenantWithNewNamesChange() {
         var apartmentSharing = ApartmentSharing.builder().id(1L).applicationType(ApplicationType.ALONE).build();
         var document = Document.builder().id(200L).build();
-        var tenant = Tenant.builder().id(1L).firstName("firstName").lastName("lastName").ownerType(TenantOwnerType.SELF).apartmentSharing(apartmentSharing).documents(new ArrayList<>(List.of(document))).build();
+        var tenant = Tenant.builder().id(1L).firstName("firstName").lastName("lastName").ownerType(TenantOwnerType.SELF).apartmentSharing(apartmentSharing)
+                .documents(new ArrayList<>(List.of(document))).build();
 
         apartmentSharing.setTenants(List.of(tenant));
         var namesForm = new NamesForm();

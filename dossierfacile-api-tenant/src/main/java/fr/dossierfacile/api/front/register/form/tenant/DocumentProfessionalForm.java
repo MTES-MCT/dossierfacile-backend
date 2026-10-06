@@ -38,8 +38,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.UNEMPLOYED;
 public class DocumentProfessionalForm extends DocumentForm {
 
     @NotNull
-    @DocumentSubcategorySubset(anyOf =
-            {CDI, CDI_TRIAL, CDD, ALTERNATION, INTERNSHIP, STUDENT, PUBLIC, CTT, RETIRED, UNEMPLOYED, INDEPENDENT,
-                    INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST, OTHER})
+    @DocumentSubcategorySubset(anyOf = {CDI, CDI_TRIAL, CDD, ALTERNATION, INTERNSHIP, STUDENT, PUBLIC, CTT, RETIRED, UNEMPLOYED, INDEPENDENT,
+            INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST, OTHER})
     private DocumentSubCategory typeDocumentProfessional;
 }

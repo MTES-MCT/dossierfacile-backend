@@ -53,7 +53,6 @@ public class LoggerUtil {
 
     private LoggerUtil() {}
 
-
     public static void sendEnrichedLogs(Level level, String message) {
         var rootLogger = (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
         sendEnrichedLogs(rootLogger, level, message);

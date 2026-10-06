@@ -131,19 +131,18 @@ public class TenantArchivingService {
      */
     private void archiveOrphanedCoTenants(Tenant mainTenant) {
         apartmentSharingRepository.findByTenant(mainTenant.getId())
-                .ifPresent(apartmentSharing ->
-                        apartmentSharing.getTenants().stream()
-                                .filter(t -> t.getTenantType() == TenantType.JOIN)
-                                .filter(t -> isBlank(t.getEmail()))
-                                .filter(t -> t.getStatus() != TenantFileStatus.ARCHIVED)
-                                .forEach(coTenant -> {
-                                    try {
-                                        // Goes through proxy → own REQUIRES_NEW transaction per co-tenant
-                                        self.archiveTenant(coTenant);
-                                    } catch (Exception e) {
-                                        log.error("Failed to cascade archive co-tenant [{}]: {}", coTenant.getId(), e.getMessage(), e);
-                                    }
-                                })
+                .ifPresent(apartmentSharing -> apartmentSharing.getTenants().stream()
+                        .filter(t -> t.getTenantType() == TenantType.JOIN)
+                        .filter(t -> isBlank(t.getEmail()))
+                        .filter(t -> t.getStatus() != TenantFileStatus.ARCHIVED)
+                        .forEach(coTenant -> {
+                            try {
+                                // Goes through proxy → own REQUIRES_NEW transaction per co-tenant
+                                self.archiveTenant(coTenant);
+                            } catch (Exception e) {
+                                log.error("Failed to cascade archive co-tenant [{}]: {}", coTenant.getId(), e.getMessage(), e);
+                            }
+                        })
                 );
     }
 

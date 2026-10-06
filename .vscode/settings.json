@@ -1,0 +1,12 @@
+{
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.checkstyle.configuration": "${workspaceFolder}/config/checkstyle.xml",
+  "java.checkstyle.version": "14.3.0",
+  "java.format.settings.url": "config/eclipse-formatter.xml",
+  "java.format.settings.profile": "DossierFacile",
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  }
+}

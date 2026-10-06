@@ -56,7 +56,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TenantController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
+@ContextConfiguration(
+        classes = {TestApplication.class, TenantMapperImpl.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class TenantControllerTest {
 
@@ -176,7 +177,8 @@ class TenantControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant(utmAcquisitionData);
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade)
+                                                .getLoggedTenant(utmAcquisitionData);
                                         return v;
                                     },
                                     List.of(
@@ -204,7 +206,6 @@ class TenantControllerTest {
                     parameter
             );
         }
-
 
     }
 

@@ -122,8 +122,9 @@ class DfcTenantsControllerTest {
                     .andReturn()
                     .getResponse().getContentAsString();
 
-            assertThat(contentAsString).isEqualToIgnoringNewLines("""
-                    {"data":[],"metadata":{"limit":10,"resultCount":0,"nextLink":"/dfc/api/v1/tenants?limit=10&after=2020-01-31T10:30&includeDeleted=true&includeRevoked=false"}}""");
+            assertThat(contentAsString).isEqualToIgnoringNewLines(
+                    """
+                            {"data":[],"metadata":{"limit":10,"resultCount":0,"nextLink":"/dfc/api/v1/tenants?limit=10&after=2020-01-31T10:30&includeDeleted=true&includeRevoked=false"}}""");
         }
     }
 
@@ -236,8 +237,8 @@ class DfcTenantsControllerTest {
             var claims = new HashMap<String, Object>();
             claims.put("client_id", "partner-client");
             return jwt().authorities(
-                            new SimpleGrantedAuthority("SCOPE_dfc"),
-                            new SimpleGrantedAuthority("SCOPE_dfc-documents"))
+                    new SimpleGrantedAuthority("SCOPE_dfc"),
+                    new SimpleGrantedAuthority("SCOPE_dfc-documents"))
                     .jwt(getDummyJwtWithCustomClaims(claims));
         }
 

@@ -6,12 +6,15 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class OtherTaxCustomTextGuarantorNaturalPersonValidator implements ConstraintValidator<OtherTaxCustomTextGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
+public class OtherTaxCustomTextGuarantorNaturalPersonValidator
+        implements
+            ConstraintValidator<OtherTaxCustomTextGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
 
     @Override
     public boolean isValid(DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
         boolean isValid = true;
-        if (documentTaxGuarantorNaturalPersonForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && documentTaxGuarantorNaturalPersonForm.getNoDocument() && documentTaxGuarantorNaturalPersonForm.getCategoryStep() == null) {
+        if (documentTaxGuarantorNaturalPersonForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && documentTaxGuarantorNaturalPersonForm.getNoDocument()
+                && documentTaxGuarantorNaturalPersonForm.getCategoryStep() == null) {
             isValid = documentTaxGuarantorNaturalPersonForm.getCustomText() != null && !documentTaxGuarantorNaturalPersonForm.getCustomText().isBlank();
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();

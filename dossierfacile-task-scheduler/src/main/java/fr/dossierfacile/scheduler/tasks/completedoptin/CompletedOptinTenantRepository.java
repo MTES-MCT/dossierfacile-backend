@@ -34,7 +34,7 @@ interface CompletedOptinTenantRepository extends JpaRepository<Tenant, Long> {
             )
             """)
     List<Long> findTenantIdsToRemindForValidation(@Param("submittedFrom") LocalDateTime submittedFrom,
-                                                  @Param("submittedBefore") LocalDateTime submittedBefore);
+            @Param("submittedBefore") LocalDateTime submittedBefore);
 
     // Tenants still COMPLETED whose last submission (ACCOUNT_COMPLETED log) is inside the window
     // and who have not received the impact survey yet
@@ -58,6 +58,6 @@ interface CompletedOptinTenantRepository extends JpaRepository<Tenant, Long> {
             )
             """)
     List<Long> findTenantIdsForCompletedSurvey(@Param("submittedFrom") LocalDateTime submittedFrom,
-                                               @Param("submittedBefore") LocalDateTime submittedBefore);
+            @Param("submittedBefore") LocalDateTime submittedBefore);
 
 }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="error"/>
+    <property name="fileExtensions" value="java"/>
+
+    <!-- Apply the same source scope in Maven and VS Code. -->
+    <module name="BeforeExecutionExclusionFileFilter">
+        <property name="fileNamePattern" value="[/\\]target[/\\]"/>
+    </module>
+
+    <!-- Start with code hygiene checks that do not impose a new formatting style. -->
+    <module name="TreeWalker">
+        <module name="AvoidNestedBlocks"/>
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="FallThrough"/>
+        <module name="IllegalImport"/>
+        <module name="OneTopLevelClass"/>
+        <module name="OuterTypeFilename"/>
+        <module name="RedundantImport"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+    </module>
+</module>

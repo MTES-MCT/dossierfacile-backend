@@ -98,8 +98,7 @@ class DocumentAnalysisRuleTest {
         YearMonth ym1 = YearMonth.of(2023, 1);
         YearMonth ym2 = YearMonth.of(2023, 2);
         YearMonth ym3 = YearMonth.of(2023, 3);
-        PayslipContinuityRuleData.PayslipContinuityEntry invalidEntry =
-                new PayslipContinuityRuleData.PayslipContinuityEntry(42L, "file-42.pdf", ym1);
+        PayslipContinuityRuleData.PayslipContinuityEntry invalidEntry = new PayslipContinuityRuleData.PayslipContinuityEntry(42L, "file-42.pdf", ym1);
         RuleData ruleData = new PayslipContinuityRuleData(List.of(ym1, ym2, ym3), List.of(invalidEntry), List.of(ym2));
 
         DocumentAnalysisRule rule = DocumentAnalysisRule.builder()
@@ -121,8 +120,7 @@ class DocumentAnalysisRuleTest {
 
     @Test
     void should_serialize_and_deserialize_PayslipClassificationRuleData() throws Exception {
-        PayslipClassificationRuleData.PayslipClassificationEntry entry =
-                new PayslipClassificationRuleData.PayslipClassificationEntry(7L, "file-7.pdf");
+        PayslipClassificationRuleData.PayslipClassificationEntry entry = new PayslipClassificationRuleData.PayslipClassificationEntry(7L, "file-7.pdf");
         YearMonth expectedMonth = YearMonth.of(2023, 3);
         RuleData ruleData = new PayslipClassificationRuleData(List.of(entry), List.of(expectedMonth));
 

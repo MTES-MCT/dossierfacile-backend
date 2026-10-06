@@ -18,8 +18,7 @@ public class PartnerAuthorizationManager implements AuthorizationManager<Request
     }
 
     private boolean hasScope(Authentication authentication) {
-        return requiredAuthorities.stream().allMatch(required ->
-                authentication.getAuthorities().stream().anyMatch(a -> required.equals(a.getAuthority())));
+        return requiredAuthorities.stream().allMatch(required -> authentication.getAuthorities().stream().anyMatch(a -> required.equals(a.getAuthority())));
     }
 
     private boolean isClient(Authentication authentication) {

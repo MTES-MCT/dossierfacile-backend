@@ -34,9 +34,9 @@ public class GarbageCollectionTaskOld extends AbstractTask {
     private final int numberOfObjectsToCheckByIteration;
 
     public GarbageCollectionTaskOld(GarbageCollectionDetailsRepository garbageCollectionDetailsRepository,
-                                    StorageFileRepository storageFileRepository,
-                                    List<FileStorageProviderService> storageProviderServices,
-                                    @Value("${garbage-collection.objects-by-iteration:100}") int numberOfObjectsToCheckByIteration) {
+            StorageFileRepository storageFileRepository,
+            List<FileStorageProviderService> storageProviderServices,
+            @Value("${garbage-collection.objects-by-iteration:100}") int numberOfObjectsToCheckByIteration) {
         this.garbageCollectionDetailsRepository = garbageCollectionDetailsRepository;
         this.storageFileRepository = storageFileRepository;
         this.storageProviderServices = storageProviderServices.stream()

@@ -67,7 +67,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             LIMIT 1
             """, nativeQuery = true)
     Tenant findMyNextApplication(@Param("toLocalDateTime") LocalDateTime toLocalDateTime,
-                                 @Param("operatorId") Long operatorId);
+            @Param("operatorId") Long operatorId);
 
     /**
      * Waiting-time buckets for tenants in {@code TO_PROCESS} with honor declaration,
@@ -198,36 +198,37 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             "where t.honorDeclaration = false " +
             "and l.logType in ('ACCOUNT_EDITED', 'DOCUMENT_ADDED', 'DOCUMENT_DELETED', 'FILE_ADDED', 'FILE_DELETED') " +
             "and l.creationDateTime between :initDate and :endDate")
-    List<Tenant> findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(@Param("initDate") LocalDateTime initDate, @Param("endDate") LocalDateTime endDate);
+    List<Tenant> findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(@Param("initDate") LocalDateTime initDate,
+            @Param("endDate") LocalDateTime endDate);
 
     @Query(
-            "select distinct t2 from Tenant t2 " +
-                    " join fetch t2.apartmentSharing a " +
-                    " join fetch a.tenants ts " +
-                    " join TenantLog l on t2.id = l.tenantId " +
-                    " where " +
-                    " t2.lastUpdateDate < :startDate " +
-                    " and " +
-                    " l.creationDateTime between :startDate and :endDate " +
-                    " and " +
-                    " l.logType = 'ACCOUNT_DENIED' " +
-                    " and " +
-                    " ( " +
-                    "   t2.id in ( " +
-                    "        select t.id from Tenant t" +
-                    "        join t.documents d" +
-                    "        join t.apartmentSharing a " +
-                    "        where d.documentStatus = 'DECLINED'" +
-                    "   ) " +
-                    "   or " +
-                    "   t2.id in (" +
-                    "        select t.id from Tenant t" +
-                    "        join t.guarantors g" +
-                    "        join g.documents d" +
-                    "        join t.apartmentSharing a" +
-                    "        where d.documentStatus = 'DECLINED'" +
-                    "   ) " +
-                    " )"
+        "select distinct t2 from Tenant t2 " +
+                " join fetch t2.apartmentSharing a " +
+                " join fetch a.tenants ts " +
+                " join TenantLog l on t2.id = l.tenantId " +
+                " where " +
+                " t2.lastUpdateDate < :startDate " +
+                " and " +
+                " l.creationDateTime between :startDate and :endDate " +
+                " and " +
+                " l.logType = 'ACCOUNT_DENIED' " +
+                " and " +
+                " ( " +
+                "   t2.id in ( " +
+                "        select t.id from Tenant t" +
+                "        join t.documents d" +
+                "        join t.apartmentSharing a " +
+                "        where d.documentStatus = 'DECLINED'" +
+                "   ) " +
+                "   or " +
+                "   t2.id in (" +
+                "        select t.id from Tenant t" +
+                "        join t.guarantors g" +
+                "        join g.documents d" +
+                "        join t.apartmentSharing a" +
+                "        where d.documentStatus = 'DECLINED'" +
+                "   ) " +
+                " )"
     )
     List<Tenant> findAllDeclinedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
@@ -319,9 +320,9 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             LIMIT :limit
             """, nativeQuery = true)
     List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(@Param("lastUpdateFrom") LocalDateTime from,
-                                                              @Param("partnerId") Long id, @Param("limit") Long limit,
-                                                              @Param("includeDeleted") boolean includeDeleted,
-                                                              @Param("includeRevoked") boolean includeRevoked);
+            @Param("partnerId") Long id, @Param("limit") Long limit,
+            @Param("includeDeleted") boolean includeDeleted,
+            @Param("includeRevoked") boolean includeRevoked);
 
     @Query(value = """
             SELECT rank

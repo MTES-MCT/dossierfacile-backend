@@ -10,4 +10,3 @@ public class ListMetadata {
     long resultCount;
     String nextLink;
 }
-

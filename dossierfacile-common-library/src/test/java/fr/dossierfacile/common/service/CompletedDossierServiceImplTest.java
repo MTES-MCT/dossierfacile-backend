@@ -81,8 +81,8 @@ class CompletedDossierServiceImplTest {
                 // The user's explicit choice is left untouched
                 assertThat(tenant.getValidationRequested()).isNull();
                 verify(tenantCommonRepository).save(tenant);
-                verify(tenantLogCommonService).saveTenantLog(argThat(log ->
-                        log.getLogType() == LogType.COMPLETED_SWITCHED_TO_PROCESS && log.getTenantId().equals(tenant.getId())));
+                verify(tenantLogCommonService)
+                        .saveTenantLog(argThat(log -> log.getLogType() == LogType.COMPLETED_SWITCHED_TO_PROCESS && log.getTenantId().equals(tenant.getId())));
 
                 // And - the mail mentioning the partner is sent after commit
                 verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());

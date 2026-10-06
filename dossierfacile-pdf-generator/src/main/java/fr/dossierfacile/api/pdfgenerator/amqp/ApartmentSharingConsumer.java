@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.pdfgenerator.amqp;
 
-
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.model.JobContext;

@@ -21,8 +21,7 @@ public class WebhookFilter extends OncePerRequestFilter {
     private final String token;
     private final String headerName;
 
-    private final RequestMatcher uriMatcher =
-            new AntPathRequestMatcher("/webhook/**", HttpMethod.POST.name());
+    private final RequestMatcher uriMatcher = new AntPathRequestMatcher("/webhook/**", HttpMethod.POST.name());
 
     public WebhookFilter(String token, String headerName) {
         this.token = token;
@@ -30,7 +29,8 @@ public class WebhookFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws IOException, ServletException {
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain)
+            throws IOException, ServletException {
         String apiKey = getApiKey(request);
         if (token == null || token.isBlank() || !token.equals(apiKey)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);

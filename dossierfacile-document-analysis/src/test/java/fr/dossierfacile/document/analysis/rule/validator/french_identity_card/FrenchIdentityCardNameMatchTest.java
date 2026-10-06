@@ -33,16 +33,20 @@ class FrenchIdentityCardNameMatchTest {
         ExtractionModel extraction = ExtractionModel.builder()
                 .type("cni")
                 .properties(Stream.of(
-                        lastName != null ? GenericProperty.builder()
-                                .name("nom")
-                                .type("string")
-                                .value(lastName)
-                                .build() : null,
-                        firstName != null ? GenericProperty.builder()
-                                .name("prenom")
-                                .type("string")
-                                .value(firstName)
-                                .build() : null
+                        lastName != null
+                                ? GenericProperty.builder()
+                                        .name("nom")
+                                        .type("string")
+                                        .value(lastName)
+                                        .build()
+                                : null,
+                        firstName != null
+                                ? GenericProperty.builder()
+                                        .name("prenom")
+                                        .type("string")
+                                        .value(firstName)
+                                        .build()
+                                : null
                 ).filter(Objects::nonNull).toList())
                 .build();
 
@@ -67,26 +71,34 @@ class FrenchIdentityCardNameMatchTest {
         BarcodeModel barcode = BarcodeModel.builder()
                 .type("DATA_MATRIX")
                 .typedData(Stream.of(
-                        lastName != null ? GenericProperty.builder()
-                                .name("nom_patronymique")
-                                .type("string")
-                                .value(lastName)
-                                .build() : null,
-                        usageName != null ? GenericProperty.builder()
-                                .name("nom_usage")
-                                .type("string")
-                                .value(usageName)
-                                .build() : null,
-                        firstName != null ? GenericProperty.builder()
-                                .name("prenom")
-                                .type("string")
-                                .value(firstName)
-                                .build() : null,
-                        listFirstNames != null ? GenericProperty.builder()
-                                .name("liste_prenoms")
-                                .type("string")
-                                .value(listFirstNames)
-                                .build() : null
+                        lastName != null
+                                ? GenericProperty.builder()
+                                        .name("nom_patronymique")
+                                        .type("string")
+                                        .value(lastName)
+                                        .build()
+                                : null,
+                        usageName != null
+                                ? GenericProperty.builder()
+                                        .name("nom_usage")
+                                        .type("string")
+                                        .value(usageName)
+                                        .build()
+                                : null,
+                        firstName != null
+                                ? GenericProperty.builder()
+                                        .name("prenom")
+                                        .type("string")
+                                        .value(firstName)
+                                        .build()
+                                : null,
+                        listFirstNames != null
+                                ? GenericProperty.builder()
+                                        .name("liste_prenoms")
+                                        .type("string")
+                                        .value(listFirstNames)
+                                        .build()
+                                : null
                 ).filter(Objects::nonNull).toList())
                 .build();
 
@@ -128,7 +140,8 @@ class FrenchIdentityCardNameMatchTest {
         return doc;
     }
 
-    private Document documentWithIaAnalysesAndGuarantor(String guarantorFirstName, String guarantorLastName, String preferredName, DocumentIAFileAnalysis... analyses) {
+    private Document documentWithIaAnalysesAndGuarantor(String guarantorFirstName, String guarantorLastName, String preferredName,
+            DocumentIAFileAnalysis... analyses) {
         Guarantor guarantor = Guarantor.builder()
                 .firstName(guarantorFirstName)
                 .lastName(guarantorLastName)
@@ -208,10 +221,10 @@ class FrenchIdentityCardNameMatchTest {
     @DisplayName("PASSED quand les noms correspondent exactement (2D-Doc, nom patronymique)")
     void passed_when_exact_match_2d_doc_patronymic() {
         DocumentIAFileAnalysis analysis = iaAnalysisWith2DDoc(
-                "Dupont",  // nom_patronymique
-                null,      // nom_usage
-                "Jean",    // prenoms
-                null       // liste_prenoms
+                "Dupont", // nom_patronymique
+                null, // nom_usage
+                "Jean", // prenoms
+                null // liste_prenoms
         );
 
         Document doc = documentWithIaAnalysesAndTenant("Jean", "Dupont", null, analysis);
@@ -242,8 +255,8 @@ class FrenchIdentityCardNameMatchTest {
     @DisplayName("PASSED avec nom d'usage qui matche (tenant a preferredName)")
     void passed_when_usage_name_matches_preferred_name() {
         DocumentIAFileAnalysis analysis = iaAnalysisWith2DDoc(
-                "Dupont",  // nom_patronymique
-                "Martin",  // nom_usage
+                "Dupont", // nom_patronymique
+                "Martin", // nom_usage
                 "Marie",
                 null
         );
@@ -262,7 +275,7 @@ class FrenchIdentityCardNameMatchTest {
                 "Dupont",
                 null,
                 null,
-                "Jean/Pierre/Paul"  // liste_prenoms
+                "Jean/Pierre/Paul" // liste_prenoms
         );
 
         Document doc = documentWithIaAnalysesAndTenant("Pierre", "Dupont", null, analysis);
@@ -277,7 +290,7 @@ class FrenchIdentityCardNameMatchTest {
     void passed_when_first_names_space_separated_extraction() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(
                 "Sagon",
-                "Nicolas Patrick"  // prenom avec plusieurs prénoms
+                "Nicolas Patrick" // prenom avec plusieurs prénoms
         );
 
         Document doc = documentWithIaAnalysesAndTenant("Nicolas", "Sagon", null, analysis);
@@ -310,8 +323,8 @@ class FrenchIdentityCardNameMatchTest {
         // Discriminant test: lastName ("Durand") does NOT match the card's nom_patronymique ("Dupont").
         // The match must come from the guarantor's preferredName ("Dupont").
         DocumentIAFileAnalysis analysis = iaAnalysisWith2DDoc(
-                "Dupont",  // nom_patronymique
-                null,      // nom_usage absent on the card
+                "Dupont", // nom_patronymique
+                null, // nom_usage absent on the card
                 "Marie",
                 null
         );
@@ -357,8 +370,8 @@ class FrenchIdentityCardNameMatchTest {
     @DisplayName("INCONCLUSIVE quand aucun nom trouvé dans le 2D-Doc")
     void inconclusive_when_no_name_in_2d_doc() {
         DocumentIAFileAnalysis analysis = iaAnalysisWith2DDoc(
-                null,  // pas de nom_patronymique
-                null,  // pas de nom_usage
+                null, // pas de nom_patronymique
+                null, // pas de nom_usage
                 "Jean",
                 null
         );
@@ -376,8 +389,8 @@ class FrenchIdentityCardNameMatchTest {
         DocumentIAFileAnalysis analysis = iaAnalysisWith2DDoc(
                 "Dupont",
                 null,
-                null,  // pas de prenoms
-                null   // pas de liste_prenoms
+                null, // pas de prenoms
+                null // pas de liste_prenoms
         );
 
         Document doc = documentWithIaAnalysesAndTenant("Jean", "Dupont", null, analysis);
@@ -406,7 +419,7 @@ class FrenchIdentityCardNameMatchTest {
     @DisplayName("INCONCLUSIVE quand l'extraction ne contient pas de nom")
     void inconclusive_when_extraction_missing_last_name() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(
-                null,  // pas de nom
+                null, // pas de nom
                 "Jean"
         );
 
@@ -422,7 +435,7 @@ class FrenchIdentityCardNameMatchTest {
     void inconclusive_when_extraction_missing_first_name() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(
                 "Dupont",
-                null  // pas de prenom
+                null // pas de prenom
         );
 
         Document doc = documentWithIaAnalysesAndTenant("Jean", "Dupont", null, analysis);
@@ -483,4 +496,3 @@ class FrenchIdentityCardNameMatchTest {
         Assertions.assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
     }
 }
-

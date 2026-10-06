@@ -19,12 +19,15 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator extends TenantConstraintValidator<NumberOfDocumentResidencyGuarantorNaturalPerson, DocumentResidencyGuarantorNaturalPersonForm> {
+public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator
+        extends
+            TenantConstraintValidator<NumberOfDocumentResidencyGuarantorNaturalPerson, DocumentResidencyGuarantorNaturalPersonForm> {
 
     private final FileRepository fileRepository;
 
     @Override
-    public boolean isValid(DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm,
+            ConstraintValidatorContext constraintValidatorContext) {
         List<MultipartFile> documents = documentResidencyGuarantorNaturalPersonForm.getDocuments();
 
         Tenant tenant = getTenant(documentResidencyGuarantorNaturalPersonForm);
@@ -49,8 +52,8 @@ public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator extends Te
         long sizeNewDoc = documents.stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize).sum();
 
         int minNumberOfDocs = 1;
-        if (documentResidencyGuarantorNaturalPersonForm.getTypeDocumentResidency() == DocumentSubCategory.OTHER_RESIDENCY 
-            && StringUtils.isNotBlank(documentResidencyGuarantorNaturalPersonForm.getCustomText())) {
+        if (documentResidencyGuarantorNaturalPersonForm.getTypeDocumentResidency() == DocumentSubCategory.OTHER_RESIDENCY
+                && StringUtils.isNotBlank(documentResidencyGuarantorNaturalPersonForm.getCustomText())) {
             minNumberOfDocs = 0;
         }
 

@@ -80,24 +80,24 @@ public class TenantServiceImpl implements TenantService {
     // (TenantStatusService -> ApartmentSharingService -> TenantPermissionsService -> TenantService),
     // so we need to inject it lazily
     public TenantServiceImpl(ApartmentSharingRepository apartmentSharingRepository,
-                             ApartmentSharingLinkRepository apartmentSharingLinkRepository,
-                             ConfirmationTokenService confirmationTokenService,
-                             LogService logService,
-                             MailService mailService,
-                             PartnerCallBackService partnerCallBackService,
-                             RegisterFactory registerFactory,
-                             TenantCommonRepository tenantRepository,
-                             KeycloakService keycloakService,
-                             UserApiService userApiService,
-                             DocumentAnalysisReportRepository documentAnalysisReportRepository,
-                             DocumentService documentService,
-                             DocumentRepository documentRepository,
-                             TenantMapperForMail tenantMapperForMail,
-                             OperatorReviewPolicy operatorReviewPolicy,
-                             @Lazy TenantStatusService tenantStatusService,
-                             FeatureFlagService featureFlagService,
-                             LotteryTicketService lotteryTicketService,
-                             ApartmentSharingLinkService apartmentSharingLinkService) {
+            ApartmentSharingLinkRepository apartmentSharingLinkRepository,
+            ConfirmationTokenService confirmationTokenService,
+            LogService logService,
+            MailService mailService,
+            PartnerCallBackService partnerCallBackService,
+            RegisterFactory registerFactory,
+            TenantCommonRepository tenantRepository,
+            KeycloakService keycloakService,
+            UserApiService userApiService,
+            DocumentAnalysisReportRepository documentAnalysisReportRepository,
+            DocumentService documentService,
+            DocumentRepository documentRepository,
+            TenantMapperForMail tenantMapperForMail,
+            OperatorReviewPolicy operatorReviewPolicy,
+            @Lazy TenantStatusService tenantStatusService,
+            FeatureFlagService featureFlagService,
+            LotteryTicketService lotteryTicketService,
+            ApartmentSharingLinkService apartmentSharingLinkService) {
         this.apartmentSharingRepository = apartmentSharingRepository;
         this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
         this.confirmationTokenService = confirmationTokenService;
@@ -205,7 +205,8 @@ public class TenantServiceImpl implements TenantService {
         if (!kcUser.isEmailVerified()) {
             // createdAccount without verified email should be deactivated
             keycloakService.disableAccount(kcUser.getKeycloakId());
-            TransactionalUtil.afterCommit(() -> mailService.sendEmailConfirmAccount(tenantMapperForMail.toDto(tenant), confirmationTokenService.createToken(tenant)));
+            TransactionalUtil
+                    .afterCommit(() -> mailService.sendEmailConfirmAccount(tenantMapperForMail.toDto(tenant), confirmationTokenService.createToken(tenant)));
 
         }
         if (partner != null) {
@@ -224,7 +225,8 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime since, UserApi userApi, Long limit, boolean includeDeleted, boolean includeRevoked) {
+    public List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime since, UserApi userApi, Long limit, boolean includeDeleted,
+            boolean includeRevoked) {
         return tenantRepository.findTenantUpdateByLastUpdateAndPartner(since, userApi.getId(), limit, includeDeleted, includeRevoked);
     }
 
@@ -233,7 +235,8 @@ public class TenantServiceImpl implements TenantService {
         requireShareableDossier(tenant);
         UUID token = UUID.randomUUID();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
-        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(tenant.getApartmentSharing(), date);
+        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository
+                .findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(tenant.getApartmentSharing(), date);
         if (existingASL.size() > 10) {
             log.info("Daily limit reached for file sharing by mail");
             throw new MailSentLimitException();

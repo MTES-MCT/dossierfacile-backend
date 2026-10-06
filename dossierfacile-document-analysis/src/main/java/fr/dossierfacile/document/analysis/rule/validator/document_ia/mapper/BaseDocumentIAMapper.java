@@ -47,8 +47,8 @@ public abstract class BaseDocumentIAMapper {
     // Mappe un champ annote @DocumentIAField en appliquant selection de source,
     // transformation eventuelle puis conversion vers le type du champ.
     private Optional<Object> mapAnnotatedFieldValue(Field field,
-                                                    List<GenericProperty> twoDDocProperties,
-                                                    List<GenericProperty> extractionProperties)
+            List<GenericProperty> twoDDocProperties,
+            List<GenericProperty> extractionProperties)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (!field.isAnnotationPresent(DocumentIAField.class)) {
             return Optional.empty();
@@ -79,8 +79,8 @@ public abstract class BaseDocumentIAMapper {
     }
 
     protected GenericProperty findProperty(DocumentIAField annotation,
-                                           List<GenericProperty> listOf2DDocItems,
-                                           List<GenericProperty> listOfExtractionItems) {
+            List<GenericProperty> listOf2DDocItems,
+            List<GenericProperty> listOfExtractionItems) {
         GenericProperty genericProperty = null;
 
         if (!annotation.twoDDocName().isBlank()) {
@@ -132,7 +132,6 @@ public abstract class BaseDocumentIAMapper {
         JavaType targetType = objectMapper.getTypeFactory().constructType(field.getGenericType());
         return objectMapper.convertValue(value, targetType);
     }
-
 
     private Object extractListValue(Field targetField, GenericProperty property) {
         Class<?> elementType = resolveListElementType(targetField);
@@ -202,8 +201,7 @@ public abstract class BaseDocumentIAMapper {
         }
 
         @SuppressWarnings("unchecked")
-        PropertyTransformer<Object, Object> transformer =
-                (PropertyTransformer<Object, Object>) transformerClass.getDeclaredConstructor().newInstance();
+        PropertyTransformer<Object, Object> transformer = (PropertyTransformer<Object, Object>) transformerClass.getDeclaredConstructor().newInstance();
         return transformer.transform(value);
     }
 

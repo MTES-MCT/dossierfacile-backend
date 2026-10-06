@@ -10,8 +10,7 @@ import java.util.regex.Pattern;
 
 public class NameUtil {
 
-    private NameUtil() {
-    }
+    private NameUtil() {}
 
     // Pattern pour identifier les caractères diacritiques (les accents)
     private static final Pattern DIACRITICS_AND_FRIENDS = Pattern.compile("\\p{M}");
@@ -26,7 +25,6 @@ public class NameUtil {
         return normalized.replace('-', ' ')
                 .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "").toUpperCase();
     }
-
 
     public static String sanitizeForComparison(@Nullable String input) {
         if (input == null || input.isBlank()) {
@@ -63,15 +61,15 @@ public class NameUtil {
                 .map(NameUtil::sanitizeForComparison)
                 .toList();
         String documentSanitizedLastName = sanitizeForComparison(document.getLastName());
-        String documentSanitizedPreferredName = document.getPreferredName() != null ?
-                sanitizeForComparison(document.getPreferredName()) : null;
+        String documentSanitizedPreferredName = document.getPreferredName() != null ? sanitizeForComparison(document.getPreferredName()) : null;
 
         List<String> extractedSanitizedFirstNames = extractedIdentity.getFirstNames().stream()
                 .map(NameUtil::sanitizeForComparison)
                 .toList();
         String extractedSanitizedLastName = sanitizeForComparison(extractedIdentity.getLastName());
-        String extractedSanitizedPreferredName = extractedIdentity.getPreferredName() != null ?
-                sanitizeForComparison(extractedIdentity.getPreferredName()) : null;
+        String extractedSanitizedPreferredName = extractedIdentity.getPreferredName() != null
+                ? sanitizeForComparison(extractedIdentity.getPreferredName())
+                : null;
 
         boolean hasMatchingFirstName = hasMatchingFirstName(documentSanitizedFirstNames, extractedSanitizedFirstNames);
         boolean hasMatchingLastName = hasMatchingLastName(
@@ -100,9 +98,9 @@ public class NameUtil {
     }
 
     private static boolean hasMatchingLastName(String documentLastName,
-                                               @Nullable String documentPreferredName,
-                                               String extractedLastName,
-                                               @Nullable String extractedPreferredName) {
+            @Nullable String documentPreferredName,
+            String extractedLastName,
+            @Nullable String extractedPreferredName) {
         boolean hasMatchingLastName = documentLastName.contains(extractedLastName)
                 || extractedLastName.contains(documentLastName);
 

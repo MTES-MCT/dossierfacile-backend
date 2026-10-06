@@ -157,14 +157,14 @@ class TaxDisplayTest {
     }
 
     private void addGuarantorDocument(Guarantor guarantor, DocumentCategory category,
-                                      DocumentSubCategory subCategory, Boolean noDocument, String customText) {
+            DocumentSubCategory subCategory, Boolean noDocument, String customText) {
         addGuarantorDocument(guarantor, category, subCategory, noDocument, customText,
                 "gdoc-" + guarantor.getDocuments().size());
     }
 
     private void addGuarantorDocument(Guarantor guarantor, DocumentCategory category,
-                                      DocumentSubCategory subCategory, Boolean noDocument, String customText,
-                                      String documentName) {
+            DocumentSubCategory subCategory, Boolean noDocument, String customText,
+            String documentName) {
         var doc = fr.dossierfacile.common.entity.Document.builder()
                 .id((long) (guarantor.getDocuments().size() + 200))
                 .documentCategory(category)
@@ -180,12 +180,12 @@ class TaxDisplayTest {
     }
 
     private void addTenantDocument(DocumentCategory category, DocumentSubCategory subCategory,
-                                   Boolean noDocument, String customText) {
+            Boolean noDocument, String customText) {
         addTenantDocument(category, subCategory, noDocument, customText, "doc-" + tenant.getDocuments().size());
     }
 
     private void addTenantDocument(DocumentCategory category, DocumentSubCategory subCategory,
-                                   Boolean noDocument, String customText, String documentName) {
+            Boolean noDocument, String customText, String documentName) {
         var doc = fr.dossierfacile.common.entity.Document.builder()
                 .id((long) (tenant.getDocuments().size() + 100))
                 .documentCategory(category)

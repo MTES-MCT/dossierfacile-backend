@@ -24,7 +24,8 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class DocumentProfessional extends AbstractDocumentSaveStep<DocumentProfessionalForm>
-        implements SaveStep<DocumentProfessionalForm> {
+        implements
+            SaveStep<DocumentProfessionalForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
@@ -49,7 +50,8 @@ public class DocumentProfessional extends AbstractDocumentSaveStep<DocumentProfe
         saveFiles(documentProfessionalForm, document);
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.PROFESSIONAL);
-        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(tenant.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
+        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(tenant.getDocuments(),
+                List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
 
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());

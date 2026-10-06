@@ -15,7 +15,9 @@ import static fr.dossierfacile.api.front.validator.tenant.residency.CustomTextRe
 @Slf4j
 @Component
 @AllArgsConstructor
-public class CustomTextResidencyGuarantorNaturalPersonValidator implements ConstraintValidator<CustomTextResidencyGuarantorNaturalPerson, DocumentResidencyGuarantorNaturalPersonForm> {
+public class CustomTextResidencyGuarantorNaturalPersonValidator
+        implements
+            ConstraintValidator<CustomTextResidencyGuarantorNaturalPerson, DocumentResidencyGuarantorNaturalPersonForm> {
 
     @Override
     public boolean isValid(DocumentResidencyGuarantorNaturalPersonForm documentForm, ConstraintValidatorContext constraintValidatorContext) {

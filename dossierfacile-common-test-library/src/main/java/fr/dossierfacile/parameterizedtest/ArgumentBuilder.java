@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ArgumentBuilder {
 
-    private ArgumentBuilder(){}
+    private ArgumentBuilder() {}
 
     public static <T> Arguments buildArguments(String name, ControllerParameter<T> object) {
         return Arguments.of(Named.of(name, object));

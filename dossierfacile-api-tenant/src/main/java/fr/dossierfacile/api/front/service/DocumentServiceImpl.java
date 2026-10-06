@@ -59,17 +59,17 @@ public class DocumentServiceImpl implements DocumentService {
 
     // There is a dependency cycle between DocumentServiceImpl and TenantStatusService / ApartmentSharingService, so we need to inject them lazily
     public DocumentServiceImpl(DocumentRepository documentRepository,
-                               DocumentAnalysisReportRepository documentAnalysisReportRepository,
-                               DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository,
-                               FileStorageService fileStorageService,
-                               @Lazy TenantStatusService tenantStatusService,
-                               @Lazy ApartmentSharingService apartmentSharingService,
-                               DocumentHelperService documentHelperService,
-                               LogService logService,
-                               TenantCommonRepository tenantRepository,
-                               Producer producer,
-                               DocumentIAService documentIAService,
-                               TenantMapper tenantMapper) {
+            DocumentAnalysisReportRepository documentAnalysisReportRepository,
+            DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository,
+            FileStorageService fileStorageService,
+            @Lazy TenantStatusService tenantStatusService,
+            @Lazy ApartmentSharingService apartmentSharingService,
+            DocumentHelperService documentHelperService,
+            LogService logService,
+            TenantCommonRepository tenantRepository,
+            Producer producer,
+            DocumentIAService documentIAService,
+            TenantMapper tenantMapper) {
         this.documentRepository = documentRepository;
         this.documentAnalysisReportRepository = documentAnalysisReportRepository;
         this.documentIAFileAnalysisRepository = documentIAFileAnalysisRepository;
@@ -256,8 +256,7 @@ public class DocumentServiceImpl implements DocumentService {
                     .status(AnalysisStatus.COMPLETED)
                     .analysisReport(reportModel)
                     .build();
-        }
-        else {
+        } else {
             // 6. IN_PROGRESS scenario
             return DocumentAnalysisStatusResponse.builder()
                     .documentId(documentId)

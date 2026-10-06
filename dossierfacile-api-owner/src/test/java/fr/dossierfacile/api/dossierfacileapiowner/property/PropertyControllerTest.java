@@ -37,12 +37,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @WebMvcTest(controllers = PropertyController.class)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {
         TestApplication.class,
-    }
+}
 )
 @AutoConfigureMockMvc(addFilters = false)
 class PropertyControllerTest {
@@ -74,7 +73,6 @@ class PropertyControllerTest {
     record PropertyTestPayload(String name, String dpeDate) {
     }
 
-
     static Stream<Arguments> providePropertyData() {
         var localDate = LocalDate.now();
         var futureDate = localDate.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -82,9 +80,12 @@ class PropertyControllerTest {
 
         return Stream.of(
                 Arguments.of(Named.of("Should return BadRequest when empty body sent", null), 400),
-                Arguments.of(Named.of("Should return BadRequest when invalid date format (EEEE dd MMMM yyyy) is sent in body", new PropertyTestPayload("Test", "Lundi 15 mars 2021")), 400),
-                Arguments.of(Named.of("Should return BadRequest when invalid date format (MM/dd/yyyy) is sent in body", new PropertyTestPayload("Test", "02/10/2025")), 400),
-                Arguments.of(Named.of("Should return BadRequest when invalid date format (dd/MM/yyyy) is sent in body", new PropertyTestPayload("Test", "10/02/2025")), 400),
+                Arguments.of(Named.of("Should return BadRequest when invalid date format (EEEE dd MMMM yyyy) is sent in body",
+                        new PropertyTestPayload("Test", "Lundi 15 mars 2021")), 400),
+                Arguments.of(Named.of("Should return BadRequest when invalid date format (MM/dd/yyyy) is sent in body",
+                        new PropertyTestPayload("Test", "02/10/2025")), 400),
+                Arguments.of(Named.of("Should return BadRequest when invalid date format (dd/MM/yyyy) is sent in body",
+                        new PropertyTestPayload("Test", "10/02/2025")), 400),
                 Arguments.of(Named.of("Should return BadRequest when a specific date is sent in body", new PropertyTestPayload("Test", "52021-04-06")), 400),
                 Arguments.of(Named.of("Should return BadRequest when a futur date is sent in body", new PropertyTestPayload("Test", futureDate)), 400),
                 Arguments.of(Named.of("Should return 200 when valid body sent", new PropertyTestPayload("Test", "2021-08-01")), 200),

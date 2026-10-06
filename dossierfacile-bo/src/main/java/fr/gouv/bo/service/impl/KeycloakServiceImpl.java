@@ -112,7 +112,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public void createKeycloakClient(UserApi userApi) {
 
-        String clientTemplateName = userApi.getName().startsWith("dfconnect-") ? "dfconnect-template"  : null;
+        String clientTemplateName = userApi.getName().startsWith("dfconnect-") ? "dfconnect-template" : null;
 
         ClientRepresentation clientTemplate = realmResource.clients()
                 .findByClientId(clientTemplateName).get(0);

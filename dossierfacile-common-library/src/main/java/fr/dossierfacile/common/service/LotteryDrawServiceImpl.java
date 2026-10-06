@@ -104,7 +104,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
         cancelOutOfScopeTickets(drawDate);
         if (availableSlots <= 0) {
             log.warn("Lottery draw for {}: no available slot ({} = capacity {} - bypass {}), no ticket drawn " +
-                            "({} tickets stay for the next draw)",
+                    "({} tickets stay for the next draw)",
                     drawDate, availableSlots, capacity.getDailyCount(), bypassCount, tickets.size());
             return Optional.of(draw);
         }

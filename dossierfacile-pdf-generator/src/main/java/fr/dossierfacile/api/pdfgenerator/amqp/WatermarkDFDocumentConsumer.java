@@ -50,7 +50,7 @@ public class WatermarkDFDocumentConsumer {
                             watermarkFile = pdfGeneratorService.generateBOPdfDocument(msg.getDocumentId());
                         } catch (FileNotFoundException e) {
                             throw new RuntimeException(e);
-                        };
+                        }
                         documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, msg.getDocumentId());
                     }, (jobContext -> {
                         log.info("Ending processing");

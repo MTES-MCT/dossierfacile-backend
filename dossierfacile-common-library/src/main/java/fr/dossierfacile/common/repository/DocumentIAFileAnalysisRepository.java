@@ -17,12 +17,12 @@ public interface DocumentIAFileAnalysisRepository extends JpaRepository<Document
     List<DocumentIAFileAnalysis> findAllByAnalysisStatus(DocumentIAFileAnalysisStatus analysisStatus, Pageable pageable);
 
     @Query("SELECT COUNT(difa) FROM DocumentIAFileAnalysis difa " +
-           "WHERE difa.file.document.id = :documentId " +
-           "AND difa.analysisStatus IN ('SUCCESS', 'FAILED')")
+            "WHERE difa.file.document.id = :documentId " +
+            "AND difa.analysisStatus IN ('SUCCESS', 'FAILED')")
     Long countAnalyzedFilesByDocumentId(@Param("documentId") Long documentId);
 
     @Query("SELECT COUNT(difa) FROM DocumentIAFileAnalysis difa " +
-           "WHERE difa.file.document.id = :documentId")
+            "WHERE difa.file.document.id = :documentId")
     Long countTotalFilesByDocumentId(@Param("documentId") Long documentId);
 
 }

@@ -100,9 +100,9 @@ public class PropertyController {
     public ResponseEntity<Object> removeTenant(@PathVariable("id") Long id) {
         Owner owner = authenticationFacade.getOwner();
         List<Property> propertyList = owner.getProperties();
-        List<PropertyApartmentSharing> propertyApartmentSharings = propertyList.stream().flatMap(property -> property.getPropertiesApartmentSharing().stream()).collect(Collectors.toList());
-        PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharings.stream().filter(pas ->
-                pas.getId().equals(id)).findAny().orElse(null);
+        List<PropertyApartmentSharing> propertyApartmentSharings = propertyList.stream().flatMap(property -> property.getPropertiesApartmentSharing().stream())
+                .collect(Collectors.toList());
+        PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharings.stream().filter(pas -> pas.getId().equals(id)).findAny().orElse(null);
 
         if (propertyApartmentSharing != null) {
             propertyApartmentSharingService.deletePropertyApartmentSharing(propertyApartmentSharing);

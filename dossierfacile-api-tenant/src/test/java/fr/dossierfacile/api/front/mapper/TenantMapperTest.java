@@ -282,7 +282,7 @@ class TenantMapperTest {
                     .documents(new ArrayList<>())
                     .guarantors(List.of(guarantor))
                     .build();
-            
+
             guarantor.setTenant(tenant);
 
             setupApartmentSharing(tenant, new ArrayList<>());

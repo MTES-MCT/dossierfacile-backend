@@ -15,8 +15,7 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
     ApplicationContext applicationContext;
     @Override
     protected MethodSecurityExpressionHandler createExpressionHandler() {
-        CustomMethodSecurityExpressionHandler handler =
-          new CustomMethodSecurityExpressionHandler();
+        CustomMethodSecurityExpressionHandler handler = new CustomMethodSecurityExpressionHandler();
         handler.setApplicationContext(applicationContext);
         return handler;
     }

@@ -18,7 +18,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = PayslipNamesRuleData.class, name = RuleData.R_PAYSLIP_NAMES),
         @JsonSubTypes.Type(value = PayslipClassificationRuleData.class, name = RuleData.R_PAYSLIP_CLASSIFICATION),
 })
-public sealed interface RuleData permits ExpirationRuleData, NamesRuleData, PayslipClassificationRuleData, PayslipContinuityRuleData, PayslipNamesRuleData, TaxClassificationRuleData, TaxNamesRuleData, TaxYearsRuleData {
+public sealed interface RuleData permits ExpirationRuleData, NamesRuleData, PayslipClassificationRuleData, PayslipContinuityRuleData, PayslipNamesRuleData,
+        TaxClassificationRuleData, TaxNamesRuleData, TaxYearsRuleData {
     String R_EXPIRATION = "R_EXPIRATION";
     String R_TAX_CLASSIFICATION = "R_TAX_CLASSIFICATION";
     String R_TAX_YEARS = "R_TAX_YEARS";

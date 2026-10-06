@@ -83,7 +83,6 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
         return ObjectStorageProvider.S3;
     }
 
-
     @Override
     public InputStream downloadV2(S3Bucket bucket, String path, EncryptionKey key) throws IOException {
         try {
@@ -119,8 +118,7 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
     @Override
     public void deleteV2(S3Bucket bucket, String path) throws IOException {
         try {
-            s3Client.deleteObject(deleteObjectRequest ->
-                    deleteObjectRequest.bucket(bucketMapping.get(bucket)).key(path).build()
+            s3Client.deleteObject(deleteObjectRequest -> deleteObjectRequest.bucket(bucketMapping.get(bucket)).key(path).build()
             );
         } catch (SdkClientException e) {
             log.error("Error deleting file from S3 bucket: {}", e.getMessage());
@@ -131,8 +129,7 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
     @Override
     public List<String> listObjectNamesV2(S3Bucket s3Bucket, String prefix) {
         try {
-            return s3Client.listObjects(listObjectRequest ->
-                    listObjectRequest.bucket(bucketMapping.get(s3Bucket)).prefix(prefix).build()
+            return s3Client.listObjects(listObjectRequest -> listObjectRequest.bucket(bucketMapping.get(s3Bucket)).prefix(prefix).build()
             ).contents().stream().map(S3Object::key).toList();
         } catch (SdkClientException e) {
             log.error("Error listing objects from S3 bucket: {}", e.getMessage());

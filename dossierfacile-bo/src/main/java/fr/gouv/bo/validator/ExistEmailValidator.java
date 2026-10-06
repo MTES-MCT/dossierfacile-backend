@@ -1,6 +1,5 @@
 package fr.gouv.bo.validator;
 
-
 import fr.gouv.bo.repository.BOUserRepository;
 import fr.gouv.bo.validator.annotation.ExistEmail;
 import jakarta.validation.ConstraintValidator;
