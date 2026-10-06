@@ -37,21 +37,23 @@ summary() {
   fi
 }
 
-# The API token is exchanged for a bearer token valid for one hour
-if ! exchange=$(curl --silent --show-error --fail-with-body --max-time 30 --retry 3 \
+# The API token is exchanged for a bearer token valid for one hour.
+exchange=$(mktemp)
+trap 'rm -f "$exchange"' EXIT
+if ! curl --silent --show-error --fail-with-body --max-time 30 --retry 3 \
   -H 'Accept: application/json' -H 'Content-Type: application/json' \
   -u ":${SCALINGO_API_TOKEN}" \
-  -X POST https://auth.scalingo.com/v1/tokens/exchange); then
-  error "Scalingo authentication failed: ${exchange}"
+  -X POST https://auth.scalingo.com/v1/tokens/exchange --output "$exchange"; then
+  error "Scalingo authentication failed: $(cat "$exchange")"
   exit 1
 fi
-bearer=$(jq -r '.token' <<< "$exchange")
+bearer=$(jq -r '.token' "$exchange")
 if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
   echo "::add-mask::${bearer}"
 fi
 
 api_get() {
-  curl --silent --show-error --fail-with-body --max-time 30 --retry 3 --retry-all-errors \
+  curl --silent --show-error --fail-with-body --max-time 30 \
     -H 'Accept: application/json' -H "Authorization: Bearer ${bearer}" "$1"
 }
 
