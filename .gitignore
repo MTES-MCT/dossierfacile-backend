@@ -6,6 +6,7 @@ document_analysis.properties
 .env
 .run
 target/
+target-ide/
 mockstorage/
 mock-storage/
 .DS_Store
