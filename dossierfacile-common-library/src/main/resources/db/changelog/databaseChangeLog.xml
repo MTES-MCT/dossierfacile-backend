@@ -209,4 +209,5 @@
     <include file="db/migration/20260901000000-add-tenant-lottery.xml"/>
     <include file="db/migration/20260910000000-add-partner-completed-optin-flag.xml"/>
     <include file="db/migration/20260929000000-add-guarantor-email-index.xml"/>
+    <include file="db/migration/20261005000000-add-document-ia-execution-id-index.xml"/>
 </databaseChangeLog>
