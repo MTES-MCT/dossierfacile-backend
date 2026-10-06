@@ -1,0 +1,90 @@
+name: Deploy
+
+run-name: Deploy ${{ inputs.ref }} to ${{ inputs.environment }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or commit SHA to deploy
+        required: true
+        default: develop
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - preprod
+
+permissions:
+  contents: read
+
+# One deployment at a time per environment
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+env:
+  ENVIRONMENT: ${{ inputs.environment }}
+  # Scalingo region hosting the apps of each environment
+  SCALINGO_REGION: ${{ fromJSON('{"preprod":"osc-fr1"}')[inputs.environment] }}
+
+jobs:
+  resolve:
+    name: Resolve ${{ inputs.ref }}
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+
+    steps:
+      # Pin the ref to a commit so that every app gets the same code
+      - name: Resolve ref to a commit
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ inputs.ref }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF" --jq .sha)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Deploying \`$REF\` ($sha) to **$ENVIRONMENT**" >> "$GITHUB_STEP_SUMMARY"
+
+  # api-tenant goes first: it runs the Liquibase migrations the other apps rely on
+  api-tenant:
+    name: Deploy api-tenant
+    needs: resolve
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - name: Deploy to Scalingo
+        env:
+          SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: bash .github/scripts/scalingo-deploy.sh "dossierfacile-api-tenant-$ENVIRONMENT" "$SCALINGO_REGION" "$SHA"
+
+  others:
+    name: Deploy ${{ matrix.app }}
+    needs: [resolve, api-tenant]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 40
+    strategy:
+      # A failed app must not interrupt the deployments already running
+      fail-fast: false
+      matrix:
+        app: [bo, pdf, api-owner, task-scheduler, filigrane]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - name: Deploy to Scalingo
+        env:
+          SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+          APP: ${{ matrix.app }}
+        run: bash .github/scripts/scalingo-deploy.sh "dossierfacile-$APP-$ENVIRONMENT" "$SCALINGO_REGION" "$SHA"
