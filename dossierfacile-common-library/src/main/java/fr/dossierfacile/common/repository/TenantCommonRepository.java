@@ -324,19 +324,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
                                                               @Param("includeRevoked") boolean includeRevoked);
 
     @Query(value = """
-            SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate, ua.creation_date as creationDate 
-            FROM  user_account ua 
-            INNER JOIN tenant t ON t.id = ua.id
-            INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id  
-            WHERE tua.userapi_id = :partnerId
-            AND ( CAST( CAST(:creationDateFrom AS text) AS timestamp) IS NULL OR ua.creation_date > CAST( CAST(:creationDateFrom AS text) AS timestamp))
-            ORDER BY ua.creation_date ASC
-            LIMIT :limit
-            """, nativeQuery = true
-    )
-    List<TenantUpdate> findTenantUpdateByCreationDateAndPartner(@Param("creationDateFrom") LocalDateTime from, @Param("partnerId") Long id, @Param("limit") Long limit);
-
-    @Query(value = """
             SELECT rank
             FROM ranked_tenant
             WHERE tid = :tenantId

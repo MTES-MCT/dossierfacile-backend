@@ -73,7 +73,6 @@ public class ResourceServerConfig {
                                 "/error",
                                 "/actuator/health",
                                 "/api/webhook/**").permitAll()
-                        .requestMatchers("/api-partner/**").access(apiPartnerAuthorizationManager())
                         .requestMatchers("/dfc/api/v1/tenants/*/documents/**").access(dfcDocumentsAuthorizationManager())
                         .requestMatchers("/dfc/api/**").access(dfcPartnerServiceAuthorizationManager())
                         .requestMatchers("/dfc/**").hasAuthority("SCOPE_dfc")
@@ -89,11 +88,6 @@ public class ResourceServerConfig {
                                 .authenticationEntryPoint(authenticationEntryPoint)
                 );
         return http.build();
-    }
-
-    @Bean
-    AuthorizationManager<RequestAuthorizationContext> apiPartnerAuthorizationManager() {
-        return new PartnerAuthorizationManager("api-partner");
     }
 
     @Bean

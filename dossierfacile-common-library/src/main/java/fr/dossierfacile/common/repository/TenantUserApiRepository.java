@@ -25,8 +25,6 @@ public interface TenantUserApiRepository extends JpaRepository<TenantUserApi, Te
             """)
     List<TenantUserApi> findAllByApartmentSharingAndUserApi(@Param("apartmentSharingId") Long apartmentSharingId, @Param("userApiId") Long userApiId);
 
-    Optional<TenantUserApi> findFirstByUserApiAndTenantIn(UserApi partner, List<Tenant> tenants);
-
     @Query(value = """
             SELECT count(*) > 0
             FROM tenant_userapi
