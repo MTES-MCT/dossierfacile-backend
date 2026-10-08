@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="20261005000000-01" author="dossierfacile" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_document_ia_file_analysis_execution_id
+                ON document_ia_file_analysis (document_ia_execution_id);
+        </sql>
+        <rollback>
+            DROP INDEX CONCURRENTLY IF EXISTS idx_document_ia_file_analysis_execution_id;
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
