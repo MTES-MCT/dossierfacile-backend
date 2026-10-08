@@ -2,13 +2,13 @@
 
 ## 1. Vue d'ensemble
 
-Le module **Opt-in COMPLETED** introduit un nouveau statut de dossier `COMPLETED` : un dossier complet et soumis (déclaration sur l'honneur signée), **utilisable immédiatement par le locataire sans vérification opérateur**. Le locataire peut le partager par téléchargement ZIP des justificatifs filigranés, ainsi que par lien et par mail (page publique et full PDF au design « dossier non vérifié », cf. §7.2). Depuis l'itération « partage en TO_PROCESS », un dossier `TO_PROCESS` se partage exactement comme un `COMPLETED`; les partenaires (DFC, api-partner) voient `COMPLETED` s'ils ont **intégré ce statut** (cf. [partner-completed-optin.md](partner-completed-optin.md)).
+Le module **Opt-in COMPLETED** introduit un nouveau statut de dossier `COMPLETED` : un dossier complet et soumis (déclaration sur l'honneur signée), **utilisable immédiatement par le locataire sans vérification opérateur**. Le locataire peut le partager par téléchargement ZIP des justificatifs filigranés, ainsi que par lien et par mail (page publique et full PDF au design « dossier non vérifié », cf. §7.2). Depuis l'itération « partage en TO_PROCESS », un dossier `TO_PROCESS` se partage exactement comme un `COMPLETED`; les partenaires (DFC, webhooks) voient `COMPLETED` s'ils ont **intégré ce statut** (cf. [partner-completed-optin.md](partner-completed-optin.md)).
 
 Objectif : réduire la charge opérateur en laissant, par défaut, les dossiers éligibles hors de la file de traitement — la vérification devient un choix explicite du locataire.
 
 Ce système garantit :
 - **Un comportement strictement inchangé hors rollout** : la machine à états (`Tenant.computeStatus()`) n'est pas modifiée ; le passage en `COMPLETED` est une surcouche conditionnée par un feature flag.
-- **L'invisibilité du statut pour les partenaires n'ayant pas intégré le statut COMPLETED** (DFC, api-partner) et pour l'espace propriétaire, via trois verrous complémentaires (§7) ; les partenaires ayant intégré `COMPLETED` le voient (cf. [partner-completed-optin.md](partner-completed-optin.md)).
+- **L'invisibilité du statut pour les partenaires n'ayant pas intégré le statut COMPLETED** (DFC, webhooks) et pour l'espace propriétaire, via trois verrous complémentaires (§7) ; les partenaires ayant intégré `COMPLETED` le voient (cf. [partner-completed-optin.md](partner-completed-optin.md)).
 - **Un seul fait persisté : le choix explicite de l'utilisateur** (`validation_requested`) — l'éligibilité est toujours recalculée, jamais stockée.
 - **Un rollback maîtrisé** : action BO explicite qui rebascule tous les dossiers `COMPLETED` en file de traitement.
 
@@ -134,13 +134,13 @@ Les liens de partage existants survivent à toute sortie de `COMPLETED`. Le full
 - **`TenantModel`** (profil locataire) expose :
   - `validationRequested` (`Boolean`, absent du JSON si `null` — jamais répondu) ;
   - `optInEligible` (`boolean` primitif, toujours sérialisé) : pilote l'affichage de l'encart « Voulez-vous une validation opérateur ? » sur le tableau de bord. Vrai aussi pour les dossiers `VALIDATED`/`DECLINED` éligibles.
-- Les modèles partenaires (DFC, api-partner, api-owner) n'exposent **aucun** de ces champs.
+- Les modèles partenaires (DFC, webhooks, api-owner) n'exposent **aucun** de ces champs.
 
 ---
 
 ## 7. Invisibilité partenaires — les trois verrous
 
-Un dossier `COMPLETED` ne doit jamais être vu d'un partenaire **n'ayant pas intégré ce statut** (DFC, api-partner) ni d'un propriétaire. Les partenaires ayant intégré `COMPLETED` (listés dans le flag `partner_completed_optin`, cf. [partner-completed-optin.md](partner-completed-optin.md)) le voient : les trois verrous ci-dessous sont conditionnés à `OperatorReviewPolicy.isPartnerOptedIn(userApi)`. Le §7.2 décrit le régime des liens de partage, qui ne créent aucun lien partenaire :
+Un dossier `COMPLETED` ne doit jamais être vu d'un partenaire **n'ayant pas intégré ce statut** (DFC, webhooks) ni d'un propriétaire. Les partenaires ayant intégré `COMPLETED` (listés dans le flag `partner_completed_optin`, cf. [partner-completed-optin.md](partner-completed-optin.md)) le voient : les trois verrous ci-dessous sont conditionnés à `OperatorReviewPolicy.isPartnerOptedIn(userApi)`. Le §7.2 décrit le régime des liens de partage, qui ne créent aucun lien partenaire :
 
 ### 7.1 Bascule automatique à la liaison partenaire
 `PartnerCallBackServiceImpl.registerTenant()` — point de passage unique de toute création de lien `tenant_userapi` (connexion DFC, candidature propriétaire via `dfconnect-proprietaire`, propagation aux colocataires) — délègue, **si le partenaire n'a pas intégré le statut COMPLETED**, à **`CompletedDossierService.switchBackToProcessing()`** (logique de bascule unique, partagée avec le rollback) : si le tenant est `COMPLETED`, il repasse `TO_PROCESS` **avant** l'envoi du callback (le webhook `CREATED_ACCOUNT` part donc avec un statut connu du partenaire), avec `last_update_date = now`, log `COMPLETED_SWITCHED_TO_PROCESS` et mail au locataire (template `brevo.template.id.completed.switched.to.processing`) après commit. Pour un partenaire ayant intégré `COMPLETED`, pas de bascule : le webhook `COMPLETED_ACCOUNT` part avec `status = COMPLETED`.
@@ -150,7 +150,7 @@ Le partage par lien/mail est ouvert à tout dossier **soumis** : `TO_PROCESS`, `
 
 ### 7.3 Filet défensif dans les mappers
 `PartnerVisibleStatus.mask(status, source)` (common-library) : convertit `COMPLETED → TO_PROCESS` et émet un **`log.error`** — « *Defensive status masking triggered in {source}…* ». Ce cas ne doit jamais se produire : toute occurrence dans ELK signale un invariant cassé, à investiguer (les dossiers concernés se retrouvent via la requête de partner-completed-optin.md §8). Branché dans six mappers :
-- conditionnel au contexte d'un partenaire **n'ayant pas intégré COMPLETED** (`userApi != null && !isPartnerOptedIn(userApi)`, classe de base `MasksCompletedStatusForPartner`) là où le mapper sert aussi le locataire : `ApplicationFullMapper` (webhooks, api-partner), `TenantMapper` (profil + DFC) — ce dernier cache aussi `optInEligible` et `validationRequested` en contexte partenaire ;
+- conditionnel au contexte d'un partenaire **n'ayant pas intégré COMPLETED** (`userApi != null && !isPartnerOptedIn(userApi)`, classe de base `MasksCompletedStatusForPartner`) là où le mapper sert aussi le locataire : `ApplicationFullMapper` (webhooks), `TenantMapper` (profil + DFC) — ce dernier cache aussi `optInEligible` et `validationRequested` en contexte partenaire ;
 - inconditionnel dans le module api-owner, dont tous les lecteurs sont externes : `PropertyMapper`, `OwnerPropertyMapper`, `ApartmentSharingModelMapper`, `OwnerMapper`.
 
 ### 7.4 Règle d'éligibilité
@@ -258,7 +258,7 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 | C1 | Rollout 100 → 0 % | Nouvelles soumissions → TO_PROCESS ; dossiers COMPLETED existants **inchangés** tant que l'action de rollback n'est pas lancée |
 | C2 | Action « Rebasculer les dossiers COMPLETED » | Tous → TO_PROCESS, `last_update_date=now` (fin de file), `validation_requested` intact, mail de bascule, logs `COMPLETED_SWITCHED_TO_PROCESS` |
 | C3 | Métriques | Répartition `validation_requested` sur la cohorte assignée ; comptage des logs |
-| C4 | Partenaires | `callback_log.tenant_status = COMPLETED` uniquement pour des `partner_id` de partenaires ayant intégré COMPLETED ; API DFC/api-partner : jamais COMPLETED dans les payloads d'un partenaire n'ayant pas intégré COMPLETED |
+| C4 | Partenaires | `callback_log.tenant_status = COMPLETED` uniquement pour des `partner_id` de partenaires ayant intégré COMPLETED ; API DFC : jamais COMPLETED dans les payloads d'un partenaire n'ayant pas intégré COMPLETED |
 | C5 | ELK | Aucune occurrence de « Defensive status masking triggered » |
 
 ---
