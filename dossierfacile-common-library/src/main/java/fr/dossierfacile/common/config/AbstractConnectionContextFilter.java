@@ -34,7 +34,8 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
                 Object errorMessage = request.getAttribute(JAKARTA_SERVLET_ERROR_MESSAGE);
                 Object errorException = request.getAttribute(JAKARTA_SERVLET_ERROR_EXCEPTION);
                 Object bestMatchingHandler = request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler");
-                log.info("Request: method={}, path={}, previousRequestUri={}, errorMessage={}, errorException={}, bestMatchingHandler={}", request.getMethod(), requestUri, previousRequestUri, errorMessage, errorException, bestMatchingHandler);
+                log.info("Request: method={}, path={}, previousRequestUri={}, errorMessage={}, errorException={}, bestMatchingHandler={}", request.getMethod(),
+                        requestUri, previousRequestUri, errorMessage, errorException, bestMatchingHandler);
             } else {
                 log.info("Request: method={}, path={}", request.getMethod(), requestUri);
             }
@@ -52,7 +53,8 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
                 LoggerUtil.addRequestStatusToMdc(response.getStatus());
                 if ("/error".equals(request.getRequestURI()) && request.getAttribute(JAKARTA_SERVLET_FORWARD_REQUEST_URI) != null) {
                     String previousRequestUri = request.getAttribute(JAKARTA_SERVLET_FORWARD_REQUEST_URI).toString();
-                    log.info("Response: status={}, method={}, path={}, previousRequestUri={}", response.getStatus(), request.getMethod(), request.getRequestURI(), previousRequestUri);
+                    log.info("Response: status={}, method={}, path={}, previousRequestUri={}", response.getStatus(), request.getMethod(),
+                            request.getRequestURI(), previousRequestUri);
                 } else if (response.getStatus() < 400) {
                     log.info("Response: status={}, method={}, path={}", response.getStatus(), request.getMethod(), request.getRequestURI());
                 } else if (response.getStatus() < 500) {

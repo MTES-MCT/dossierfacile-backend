@@ -25,8 +25,10 @@ import static fr.dossierfacile.common.enums.DocumentCategory.GUARANTEE_PROVIDER_
 @Service
 @RequiredArgsConstructor
 public class DocumentGuaranteeProviderCertificate
-        extends AbstractDocumentSaveStep<DocumentGuaranteeProviderCertificateForm>
-        implements SaveStep<DocumentGuaranteeProviderCertificateForm> {
+        extends
+            AbstractDocumentSaveStep<DocumentGuaranteeProviderCertificateForm>
+        implements
+            SaveStep<DocumentGuaranteeProviderCertificateForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;

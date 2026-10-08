@@ -10,11 +10,12 @@ public abstract class BaseTaxRule extends BaseDocumentIAValidator {
     }
 
     protected boolean isTax(BarcodeModel barcodeModel) {
-        return barcodeModel.getAntsType() != null && (barcodeModel.getAntsType().equals("avis_imposition") || barcodeModel.getAntsType().equals("avis_imposition_v1"));
+        return barcodeModel.getAntsType() != null
+                && (barcodeModel.getAntsType().equals("avis_imposition") || barcodeModel.getAntsType().equals("avis_imposition_v1"));
     }
 
     protected boolean isDeclarativeSituation(BarcodeModel barcodeModel) {
-        if (barcodeModel.getDocType() == null)  {
+        if (barcodeModel.getDocType() == null) {
             return false;
         }
         return barcodeModel.getDocType().equals("27") || barcodeModel.getDocType().equals("24") || barcodeModel.getDocType().equals("18");

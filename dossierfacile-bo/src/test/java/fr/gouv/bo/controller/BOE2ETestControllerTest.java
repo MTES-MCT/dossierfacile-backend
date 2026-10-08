@@ -33,8 +33,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BOE2ETestControllerTest {
 
-    private static final String ALLOWED_EMAIL_PATTERN =
-            "(ywiwyne-1268@yopmail\\.com|[a-z0-9]+\\.[a-z0-9_-]+@inbox\\.testmail\\.app)";
+    private static final String ALLOWED_EMAIL_PATTERN = "(ywiwyne-1268@yopmail\\.com|[a-z0-9]+\\.[a-z0-9_-]+@inbox\\.testmail\\.app)";
     private static final String OPERATOR_EMAIL = "e2e-tests@dossierfacile.fr";
     private static final String TEST_EMAIL = "namespace1.e2e-alone@inbox.testmail.app";
     private static final Long TENANT_ID = 42L;
@@ -98,8 +97,7 @@ class BOE2ETestControllerTest {
         void rejectsTestmailLookalikeDomain() {
             givenProfile("dev");
 
-            ResponseEntity<Void> response =
-                    controller.deleteUser("namespace1.tag@inbox.testmail.app.evil.com");
+            ResponseEntity<Void> response = controller.deleteUser("namespace1.tag@inbox.testmail.app.evil.com");
 
             assertThat(response.getStatusCode().value()).isEqualTo(400);
             verifyNoInteractions(tenantService, userService, keycloakService);
@@ -109,8 +107,7 @@ class BOE2ETestControllerTest {
         void rejectsPrefixedNamespace() {
             givenProfile("dev");
 
-            ResponseEntity<Void> response =
-                    controller.deleteUser("evil-namespace1.tag@inbox.testmail.app");
+            ResponseEntity<Void> response = controller.deleteUser("evil-namespace1.tag@inbox.testmail.app");
 
             assertThat(response.getStatusCode().value()).isEqualTo(400);
             verifyNoInteractions(tenantService, userService, keycloakService);
@@ -287,8 +284,7 @@ class BOE2ETestControllerTest {
             when(tenantService.findTenantByEmail(TEST_EMAIL)).thenReturn(tenant);
             when(userService.findOrCreateOperatorByEmail(OPERATOR_EMAIL)).thenReturn(operator);
 
-            ResponseEntity<Void> response =
-                    controller.declineTenant(TEST_EMAIL, declineRequest(List.of("IDENTIFICATION")));
+            ResponseEntity<Void> response = controller.declineTenant(TEST_EMAIL, declineRequest(List.of("IDENTIFICATION")));
 
             assertThat(response.getStatusCode().value()).isEqualTo(200);
             verify(tenantService).declineTenantForTesting(
@@ -313,8 +309,7 @@ class BOE2ETestControllerTest {
             givenProfile("dev");
             when(tenantService.findTenantByEmail(TEST_EMAIL)).thenReturn(tenant);
 
-            ResponseEntity<Void> response =
-                    controller.declineTenant(TEST_EMAIL, declineRequest(List.of("NOT_A_CATEGORY")));
+            ResponseEntity<Void> response = controller.declineTenant(TEST_EMAIL, declineRequest(List.of("NOT_A_CATEGORY")));
 
             assertThat(response.getStatusCode().value()).isEqualTo(500);
         }

@@ -78,7 +78,8 @@ class GuarantorControllerTest {
     @Nested
     class DeleteGuarantorTest {
 
-        record DeleteGuarantorParam() {}
+        record DeleteGuarantorParam() {
+        }
 
         static List<Arguments> provideDeleteGuarantorParameters() {
             var jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));

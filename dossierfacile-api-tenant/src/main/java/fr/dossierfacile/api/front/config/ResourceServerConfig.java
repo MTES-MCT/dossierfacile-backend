@@ -72,20 +72,19 @@ public class ResourceServerConfig {
                                 "/api/stats/**",
                                 "/error",
                                 "/actuator/health",
-                                "/api/webhook/**").permitAll()
+                                "/api/webhook/**")
+                        .permitAll()
                         .requestMatchers("/dfc/api/v1/tenants/*/documents/**").access(dfcDocumentsAuthorizationManager())
                         .requestMatchers("/dfc/api/**").access(dfcPartnerServiceAuthorizationManager())
                         .requestMatchers("/dfc/**").hasAuthority("SCOPE_dfc")
                         .anyRequest().hasAuthority("SCOPE_dossier")
                 )
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2
-                                .jwt(jwt ->
-                                        jwt.jwtAuthenticationConverter(
-                                                new JwtAuthenticationConverter()
-                                        )
-                                )
-                                .authenticationEntryPoint(authenticationEntryPoint)
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(
+                                new JwtAuthenticationConverter()
+                        )
+                        )
+                        .authenticationEntryPoint(authenticationEntryPoint)
                 );
         return http.build();
     }
@@ -105,7 +104,9 @@ public class ResourceServerConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(Arrays.asList("Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Origin", "Cache-Control", "Content-Type", "Authorization", "Baggage", "Sentry-trace", "Content-Disposition", "X-Tenant-Trigram"));
+        configuration.setAllowedHeaders(
+                Arrays.asList("Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers",
+                        "Origin", "Cache-Control", "Content-Type", "Authorization", "Baggage", "Sentry-trace", "Content-Disposition", "X-Tenant-Trigram"));
         configuration.setAllowedMethods(Arrays.asList("DELETE", "GET", "POST", "PATCH", "PUT", "HEAD"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

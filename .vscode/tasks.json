@@ -2,6 +2,16 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "format and lint",
+      "detail": "Format Java sources with Spotless, then check them with Checkstyle in each module",
+      "type": "process",
+      "command": "mvn",
+      "args": ["--batch-mode", "--no-transfer-progress", "spotless:apply", "validate"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
       "label": "docker-infra",
       "detail": "Start local infra (postgres, rabbitmq, redis, nginx) + Keycloak",
       "type": "shell",

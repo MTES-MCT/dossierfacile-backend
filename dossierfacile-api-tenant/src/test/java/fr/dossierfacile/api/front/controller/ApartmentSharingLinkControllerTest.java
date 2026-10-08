@@ -227,7 +227,8 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant())
+                                                .thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         when(self.apartmentSharingLinkService.getLinks(apartmentSharing)).thenReturn(links);
                                         return v;
                                     },
@@ -242,7 +243,8 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant())
+                                                .thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         when(self.apartmentSharingLinkService.getLinks(apartmentSharing)).thenReturn(List.of(linkWithCreator));
                                         return v;
                                     },
@@ -281,7 +283,6 @@ public class ApartmentSharingLinkControllerTest {
 
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
-
             ApartmentSharing apartmentSharing = new ApartmentSharing();
 
             return ArgumentBuilder.buildListOfArguments(
@@ -314,7 +315,8 @@ public class ApartmentSharingLinkControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant())
+                                                .thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateStatus(1L, true, apartmentSharing);
                                         return v;
                                     },
@@ -336,7 +338,8 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant())
+                                                .thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -449,7 +452,8 @@ public class ApartmentSharingLinkControllerTest {
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new IllegalStateException("Delay between two resend is too short")).when(self.tenantService).resendLink(1L, tenant);
+                                        doThrow(new IllegalStateException("Delay between two resend is too short")).when(self.tenantService).resendLink(1L,
+                                                tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -619,9 +623,11 @@ public class ApartmentSharingLinkControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant())
+                                                .thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         LocalDateTime expectedDateTime = LocalDate.parse(futureDate).atStartOfDay();
-                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateExpirationDate(1L, expectedDateTime, apartmentSharing);
+                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateExpirationDate(1L, expectedDateTime,
+                                                apartmentSharing);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -633,7 +639,8 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant())
+                                                .thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -709,7 +716,8 @@ public class ApartmentSharingLinkControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant())
+                                                .thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateTitle(1L, "test", apartmentSharing);
                                         return v;
                                     },
@@ -722,7 +730,8 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant())
+                                                .thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         return v;
                                     },
                                     Collections.emptyList()

@@ -411,4 +411,3 @@ class ApartmentSharingServiceImplBruteForceTest {
         verify(bruteForceProtectionService, times(1)).checkAndEnforceProtection(fullDataLink);
     }
 }
-

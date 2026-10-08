@@ -76,7 +76,8 @@ class DocumentIAResultSanitizerTest {
         @MethodSource("matchingClassCases")
         void should_return_only_corresponding_class(Document document, int expectedSize, List<Class<?>> expectedClasses) {
             DocumentIAResultSanitizer sanitizer = new DocumentIAResultSanitizer();
-            sanitizer.setDocumentIaModelClassesOverride(List.of(TestIdentityModel.class, TestFullDiscriminatorModel.class, TestSubCategoryDiscriminatorModel.class));
+            sanitizer.setDocumentIaModelClassesOverride(
+                    List.of(TestIdentityModel.class, TestFullDiscriminatorModel.class, TestSubCategoryDiscriminatorModel.class));
             sanitizer.init();
 
             var listOfClass = sanitizer.getFilteredListOfClass(document);
@@ -196,7 +197,8 @@ class DocumentIAResultSanitizerTest {
 
         @Test
         void should_keep_allowed_typed_data_for_professional_2ddoc() {
-            DocumentIAResultSanitizer sanitizer = newSanitizer(List.of(fr.dossierfacile.document.analysis.rule.validator.professional.document_ia_model.PNDSProfessionalActivity2DDoc.class));
+            DocumentIAResultSanitizer sanitizer = newSanitizer(
+                    List.of(fr.dossierfacile.document.analysis.rule.validator.professional.document_ia_model.PNDSProfessionalActivity2DDoc.class));
 
             Document professionalDoc = new Document();
             professionalDoc.setDocumentCategory(DocumentCategory.PROFESSIONAL);
@@ -209,7 +211,8 @@ class DocumentIAResultSanitizerTest {
                                     .typedData(List.of(
                                             GenericProperty.builder().name("doc_type").type(GenericProperty.TYPE_STRING).value("29").build(),
                                             GenericProperty.builder().name("date_debut_contrat").type(GenericProperty.TYPE_DATE).value("2025-09-04").build(),
-                                            GenericProperty.builder().name("periode_declaration_contrat").type(GenericProperty.TYPE_STRING).value("092024062026").build(),
+                                            GenericProperty.builder().name("periode_declaration_contrat").type(GenericProperty.TYPE_STRING)
+                                                    .value("092024062026").build(),
                                             GenericProperty.builder().name("liste_prenoms").type(GenericProperty.TYPE_STRING).value("DIALLA BAH").build(),
                                             GenericProperty.builder().name("nom_patronymique").type(GenericProperty.TYPE_STRING).value("KONATE").build(),
                                             GenericProperty.builder().name("nature_contrat").type(GenericProperty.TYPE_STRING).value("01").build(),

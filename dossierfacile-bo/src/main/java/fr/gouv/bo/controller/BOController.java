@@ -41,7 +41,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
-
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -93,7 +92,10 @@ public class BOController {
             int count = 0;
             ClientRegistration single = null;
             for (ClientRegistration cr : clientRegistrations) {
-                count++; single = cr; if (count > 1) break;
+                count++;
+                single = cr;
+                if (count > 1)
+                    break;
             }
             if (count == 1 && single != null) {
                 // Redirige directement vers le provider unique
@@ -107,13 +109,12 @@ public class BOController {
 
     @GetMapping("/bo")
     public String bo(Model model,
-                     @AuthenticationPrincipal UserPrincipal principal) {
+            @AuthenticationPrincipal UserPrincipal principal) {
 
         User loginUser = userService.findUserByEmail(principal.getEmail());
         boolean isAdmin = loginUser.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
         model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
-        List<TenantWaitingTimeBucketProjection> waitingTimeBuckets =
-                tenantService.getToProcessFullyWatermarkedTenantWaitingTimeBuckets();
+        List<TenantWaitingTimeBucketProjection> waitingTimeBuckets = tenantService.getToProcessFullyWatermarkedTenantWaitingTimeBuckets();
         model.addAttribute("toProcessFullyWatermarkedTenantWaitingTimeBuckets", waitingTimeBuckets);
         model.addAttribute("numberOfTenantsWithWatermarkPdfFailure",
                 tenantService.countTenantsToProcessWithWatermarkPdfGenerationFailed());
@@ -124,7 +125,8 @@ public class BOController {
 
     @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/bo/regroup")
-    public String getRegroupTenants(RedirectAttributes redirectAttributes, Model model, ReGroupDTO reGroupDTO, @ModelAttribute("showAlert") BooleanDTO booleanDTO) {
+    public String getRegroupTenants(RedirectAttributes redirectAttributes, Model model, ReGroupDTO reGroupDTO,
+            @ModelAttribute("showAlert") BooleanDTO booleanDTO) {
         model.addAttribute("reGroupData", reGroupDTO);
         if (booleanDTO.isAlertValue()) {
             redirectAttributes.addFlashAttribute(SHOW_ALERT, booleanDTO);
@@ -165,13 +167,13 @@ public class BOController {
     @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/bo/searchTenant")
     public String searchTenant(Model model,
-                               @AuthenticationPrincipal UserPrincipal principal,
-                               @RequestParam(value = EMAIL) String email,
-                               @RequestParam(value = "page", defaultValue = "1") int page) {
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(value = EMAIL) String email,
+            @RequestParam(value = "page", defaultValue = "1") int page) {
 
         int pageSize = Integer.parseInt(MAX_PAGE_SIZE);
         int boundedPage = Math.clamp(page, 1, MAX_PAGE_NUMBER);
-        
+
         PageRequest pageable = PageRequest.of(boundedPage - 1, pageSize, Sort.by("id").descending());
         Page<Tenant> tenants = tenantService.getTenantByIdOrEmail(email, pageable);
         applicationAccessService.checkAndLogSearchTenant(principal, email, tenants.getTotalElements());

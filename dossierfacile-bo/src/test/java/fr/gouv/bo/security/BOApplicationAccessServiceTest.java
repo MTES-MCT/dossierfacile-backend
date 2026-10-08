@@ -12,7 +12,6 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
-import fr.gouv.bo.security.BOAccessDenied;
 import fr.gouv.bo.service.BOTenantResolver;
 import fr.gouv.bo.service.QuotaService;
 import fr.gouv.bo.service.UserService;
@@ -84,9 +83,9 @@ class BOApplicationAccessServiceTest {
             UserPrincipal principal = operatorPrincipal();
             when(operatorLogRepository
                     .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
-                        eq(OPERATOR_ID), eq(TENANT_ID),
-                        argThat(types -> types.contains(START_PROCESS)),
-                        any(LocalDateTime.class)))
+                            eq(OPERATOR_ID), eq(TENANT_ID),
+                            argThat(types -> types.contains(START_PROCESS)),
+                            any(LocalDateTime.class)))
                     .thenReturn(true);
 
             service.checkTenantAccess(principal, TENANT_ID);

@@ -90,8 +90,7 @@ class ApplicationV2ControllerTest {
     private LotteryTicketService lotteryTicketService;
 
     private final Gson gson = new Gson();
-    private final SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtToken =
-            jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+    private final SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtToken = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
     @Test
     void shouldReturn200WhenApplicationIsValid() throws Exception {
@@ -109,9 +108,9 @@ class ApplicationV2ControllerTest {
         when(tenantService.saveStepRegister(any(), any(), any())).thenReturn(TenantModel.builder().id(1L).build());
 
         mockMvc.perform(post("/api/register/application/v2")
-                        .contentType("application/json")
-                        .content(gson.toJson(form))
-                        .with(jwtToken))
+                .contentType("application/json")
+                .content(gson.toJson(form))
+                .with(jwtToken))
                 .andExpect(status().isOk());
     }
 
@@ -126,9 +125,9 @@ class ApplicationV2ControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/register/application/v2")
-                        .contentType("application/json")
-                        .content(gson.toJson(form))
-                        .with(jwtToken))
+                .contentType("application/json")
+                .content(gson.toJson(form))
+                .with(jwtToken))
                 .andExpect(status().isBadRequest());
 
         verify(tenantService, never()).saveStepRegister(any(), any(), any());
@@ -143,9 +142,9 @@ class ApplicationV2ControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/register/application/v2")
-                        .contentType("application/json")
-                        .content(gson.toJson(form))
-                        .with(jwtToken))
+                .contentType("application/json")
+                .content(gson.toJson(form))
+                .with(jwtToken))
                 .andExpect(status().isBadRequest());
 
         verify(tenantService, never()).saveStepRegister(any(), any(), any());
@@ -160,9 +159,9 @@ class ApplicationV2ControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/register/application/v2")
-                        .contentType("application/json")
-                        .content(gson.toJson(form))
-                        .with(jwtToken))
+                .contentType("application/json")
+                .content(gson.toJson(form))
+                .with(jwtToken))
                 .andExpect(status().isBadRequest());
 
         verify(tenantService, never()).saveStepRegister(any(), any(), any());
@@ -180,9 +179,9 @@ class ApplicationV2ControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/register/application/v2")
-                        .contentType("application/json")
-                        .content(gson.toJson(form))
-                        .with(jwtToken))
+                .contentType("application/json")
+                .content(gson.toJson(form))
+                .with(jwtToken))
                 .andExpect(status().isBadRequest());
 
         verify(tenantService, never()).saveStepRegister(any(), any(), any());
@@ -204,12 +203,11 @@ class ApplicationV2ControllerTest {
                 .when(applicationRegistrationValidator).validate(any(), any());
 
         mockMvc.perform(post("/api/register/application/v2")
-                        .contentType("application/json")
-                        .content(gson.toJson(form))
-                        .with(jwtToken))
+                .contentType("application/json")
+                .content(gson.toJson(form))
+                .with(jwtToken))
                 .andExpect(status().isConflict());
     }
-
 
     @Test
     void shouldReturn409WithCodeWhenServiceLayerDetectsExistingEmail() throws Exception {
@@ -228,9 +226,9 @@ class ApplicationV2ControllerTest {
                 .thenThrow(new CoTenantEmailAlreadyExistsException("Cannot add a cotenant with an existing account: raced@example.com"));
 
         mockMvc.perform(post("/api/register/application/v2")
-                        .contentType("application/json")
-                        .content(gson.toJson(form))
-                        .with(jwtToken))
+                .contentType("application/json")
+                .content(gson.toJson(form))
+                .with(jwtToken))
                 .andExpect(status().isConflict());
     }
 
@@ -253,9 +251,9 @@ class ApplicationV2ControllerTest {
                 .when(applicationRegistrationValidator).validate(any(), any());
 
         mockMvc.perform(post("/api/register/application/v2")
-                        .contentType("application/json")
-                        .content(gson.toJson(form))
-                        .with(jwtToken))
+                .contentType("application/json")
+                .content(gson.toJson(form))
+                .with(jwtToken))
                 .andExpect(status().isBadRequest());
 
         verify(tenantService, never()).saveStepRegister(any(), any(), any());

@@ -23,7 +23,6 @@ import java.util.Collections;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-
 @EnableWebSecurity
 @Configuration
 public class ResourceServerConfig {
@@ -54,14 +53,12 @@ public class ResourceServerConfig {
                         .permitAll()
                         .anyRequest().hasAuthority("SCOPE_dossier")
                 )
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2
-                                .jwt(jwt ->
-                                        jwt.jwtAuthenticationConverter(
-                                                new JwtAuthenticationConverter()
-                                        )
-                                )
-                                .authenticationEntryPoint(authenticationEntryPoint)
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(
+                                new JwtAuthenticationConverter()
+                        )
+                        )
+                        .authenticationEntryPoint(authenticationEntryPoint)
                 );
 
         return http.build();
@@ -72,7 +69,8 @@ public class ResourceServerConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(Arrays.asList("Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Origin", "Cache-Control", "Content-Type", "Authorization", "Baggage", "Sentry-trace"));
+        configuration.setAllowedHeaders(Arrays.asList("Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Request-Method",
+                "Access-Control-Request-Headers", "Origin", "Cache-Control", "Content-Type", "Authorization", "Baggage", "Sentry-trace"));
         configuration.setAllowedMethods(Arrays.asList("DELETE", "GET", "POST", "PATCH", "PUT"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

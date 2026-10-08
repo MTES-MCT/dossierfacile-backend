@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.identification;
 
-
 import fr.dossierfacile.api.front.validator.guarantor.natural_person.identification.NumberOfDocumentIdentificationGuarantorNaturalPersonFileValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

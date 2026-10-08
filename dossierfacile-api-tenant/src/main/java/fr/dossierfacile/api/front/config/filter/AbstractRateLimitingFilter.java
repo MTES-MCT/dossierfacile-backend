@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 @Slf4j
 public abstract class AbstractRateLimitingFilter implements Filter {
     private final Map<String, Bucket> ipBuckets = new ConcurrentHashMap<>();
@@ -59,14 +58,14 @@ public abstract class AbstractRateLimitingFilter implements Filter {
     }
 
     private Bucket createNewBucket(String key) {
-        return new LocalBucketBuilder().addLimit(Bandwidth.classic(getRegisterCapacity(), Refill.intervally(getRefillTokensByDelay(), Duration.ofMinutes(getRefillDelayInMinute())))).build();
+        return new LocalBucketBuilder()
+                .addLimit(Bandwidth.classic(getRegisterCapacity(), Refill.intervally(getRefillTokensByDelay(), Duration.ofMinutes(getRefillDelayInMinute()))))
+                .build();
     }
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-    }
+    public void init(FilterConfig filterConfig) throws ServletException {}
 
     @Override
-    public void destroy() {
-    }
+    public void destroy() {}
 }

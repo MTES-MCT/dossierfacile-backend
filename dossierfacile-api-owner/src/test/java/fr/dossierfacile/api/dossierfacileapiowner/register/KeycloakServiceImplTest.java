@@ -58,7 +58,7 @@ class KeycloakServiceImplTest {
         // Mock: When keycloakId is null, get(null) will throw NullPointerException, so we create a new user
         // The implementation doesn't search by email when keycloakId is null - it just creates a new user
         when(usersResource.get(null)).thenThrow(new NullPointerException("keycloakId is null"));
-        
+
         UserRepresentation newUserRep = new UserRepresentation();
         newUserRep.setId(NEW_KEYCLOAK_ID);
         newUserRep.setEmail(TEST_EMAIL);
@@ -89,10 +89,9 @@ class KeycloakServiceImplTest {
         verify(usersResource, times(2)).get(NEW_KEYCLOAK_ID); // Called to get representation after creation and to update
         verify(newUserResource, times(1)).toRepresentation();
         verify(newUserResource, times(1)).update(any(UserRepresentation.class));
-        
+
         // Verify user is enabled and email verified
-        verify(newUserResource).update(argThat(rep -> 
-            rep.isEnabled() && rep.isEmailVerified()
+        verify(newUserResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()
         ));
     }
 
@@ -144,10 +143,9 @@ class KeycloakServiceImplTest {
         verify(usersResource, times(2)).get(NEW_KEYCLOAK_ID); // Called to get representation after creation and to update
         verify(newUserResource, times(1)).toRepresentation();
         verify(newUserResource, times(1)).update(any(UserRepresentation.class));
-        
+
         // Verify user is enabled and email verified
-        verify(newUserResource).update(argThat(rep -> 
-            rep.isEnabled() && rep.isEmailVerified()
+        verify(newUserResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()
         ));
     }
 
@@ -164,7 +162,7 @@ class KeycloakServiceImplTest {
         // Mock: When keycloakId is null, get(null) will throw NullPointerException, so we create a new user
         // The implementation doesn't search by email when keycloakId is null - it just creates a new user
         when(usersResource.get(null)).thenThrow(new NullPointerException("keycloakId is null"));
-        
+
         UserRepresentation newUserRep = new UserRepresentation();
         newUserRep.setId(NEW_KEYCLOAK_ID);
         newUserRep.setEmail(TEST_EMAIL);
@@ -196,10 +194,9 @@ class KeycloakServiceImplTest {
         verify(usersResource, times(2)).get(NEW_KEYCLOAK_ID); // Called to get representation after creation and to update
         verify(newUserResource, times(1)).toRepresentation();
         verify(newUserResource, times(1)).update(any(UserRepresentation.class));
-        
+
         // Verify user is enabled and email verified
-        verify(newUserResource).update(argThat(rep -> 
-            rep.isEnabled() && rep.isEmailVerified()
+        verify(newUserResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()
         ));
     }
 
@@ -233,10 +230,9 @@ class KeycloakServiceImplTest {
         verify(usersResource, times(2)).get(EXISTING_KEYCLOAK_ID); // Called once to get representation, once to update
         verify(userResource, times(1)).toRepresentation();
         verify(userResource, times(1)).update(any(UserRepresentation.class));
-        
+
         // Verify user is enabled and email verified
-        verify(userResource).update(argThat(rep -> 
-            rep.isEnabled() && rep.isEmailVerified()
+        verify(userResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()
         ));
     }
 }

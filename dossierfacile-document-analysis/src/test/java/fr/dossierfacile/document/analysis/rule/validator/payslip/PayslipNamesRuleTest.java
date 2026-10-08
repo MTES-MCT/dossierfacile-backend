@@ -44,9 +44,9 @@ class PayslipNamesRuleTest {
 
     private DocumentIAFileAnalysis analysisWith2DDoc(String ligne1, String nom, String prenom) {
         List<GenericProperty> beneficiaireProps = Stream.of(
-                ligne1  != null ? GenericProperty.builder().name("ligne1").type("string").value(ligne1).build() : null,
-                nom     != null ? GenericProperty.builder().name("nom").type("string").value(nom).build()       : null,
-                prenom  != null ? GenericProperty.builder().name("prenom").type("string").value(prenom).build() : null
+                ligne1 != null ? GenericProperty.builder().name("ligne1").type("string").value(ligne1).build() : null,
+                nom != null ? GenericProperty.builder().name("nom").type("string").value(nom).build() : null,
+                prenom != null ? GenericProperty.builder().name("prenom").type("string").value(prenom).build() : null
         ).filter(Objects::nonNull).toList();
 
         GenericProperty beneficiaire = GenericProperty.builder()
@@ -376,7 +376,7 @@ class PayslipNamesRuleTest {
     @Test
     @DisplayName("FAILED si un des bulletins ne correspond pas")
     void failed_when_one_payslip_does_not_match() {
-        DocumentIAFileAnalysis match    = analysisWithExtraction("MR DUPONT JEAN");
+        DocumentIAFileAnalysis match = analysisWithExtraction("MR DUPONT JEAN");
         DocumentIAFileAnalysis mismatch = analysisWithExtraction("MR MARTIN PIERRE");
 
         Document doc = documentWithTenant("Jean", "Dupont", match, mismatch);

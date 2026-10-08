@@ -73,7 +73,6 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             new Color(255, 0, 0, 170)
     };
 
-
     private static ConvolveOp getGaussianBlurFilter(int radius, boolean horizontal) {
         int size = radius * 2 + 1;
         float[] data = new float[size];
@@ -104,8 +103,9 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     }
 
     public InputStream render(List<FileInputStream> data, String watermarkText) throws Exception {
-        final String watermarkToApply = StringUtils.isNotBlank(watermarkText) ? watermarkText + "   " :
-                messageSource.getMessage("tenant.pdf.watermark.default", null, " https://filigrane.beta.gouv.fr/   ", locale);
+        final String watermarkToApply = StringUtils.isNotBlank(watermarkText)
+                ? watermarkText + "   "
+                : messageSource.getMessage("tenant.pdf.watermark.default", null, " https://filigrane.beta.gouv.fr/   ", locale);
 
         try (PDDocument document = new PDDocument()) {
 
@@ -117,7 +117,6 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     .map(this::fitImageToPage)
                     .map(bim -> applyWatermark(bim, watermarkToApply))
                     .forEach(bim -> addImageAsPageToDocument(document, bim));
-
 
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
@@ -169,12 +168,11 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         float ratioPDF = params.mediaBox.getHeight() / params.mediaBox.getWidth();
 
         // scale according the greater axis
-        PageDimension dimension = (ratioImage < ratioPDF) ?
-                new PageDimension((int) pageMediaBox.getWidth(), (int) (pageMediaBox.getWidth() * ratioPDF), 0)
+        PageDimension dimension = (ratioImage < ratioPDF)
+                ? new PageDimension((int) pageMediaBox.getWidth(), (int) (pageMediaBox.getWidth() * ratioPDF), 0)
                 : new PageDimension((int) (pageMediaBox.getHeight() / ratioPDF), (int) pageMediaBox.getHeight(), 0);
 
-        return (dimension.width < params.maxPage.width) ? 1f :
-                params.maxPage.width / pageMediaBox.getWidth();
+        return (dimension.width < params.maxPage.width) ? 1f : params.maxPage.width / pageMediaBox.getWidth();
     }
 
     private BufferedImage createImageWithOrientation(InputStream inputStream) throws IOException {
@@ -192,7 +190,8 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                 Metadata metadata = ImageMetadataReader.readMetadata(imageInputForMeta);
                 Directory dir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
                 int orientation = dir != null && dir.getInteger(ExifIFD0Directory.TAG_ORIENTATION) != null
-                        ? dir.getInt(ExifIFD0Directory.TAG_ORIENTATION) : 0;
+                        ? dir.getInt(ExifIFD0Directory.TAG_ORIENTATION)
+                        : 0;
 
                 return switch (orientation) {
                     case 2 -> ImageUtil.createFlipped(image, ImageUtil.FLIP_HORIZONTAL);
@@ -244,7 +243,6 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ThreadLocalRandom.current().nextFloat(0.52f, 0.6f)));
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-
             // allows to have small variation on the watermark position at each generation
             float spaceBetweenText = diagonal / ThreadLocalRandom.current().nextFloat(8f, 10f);
             for (int i = 1; i < 11; i++) {
@@ -288,7 +286,8 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             graphic.drawImage(blurredTextLayer, 0, 0, null);
             graphic.dispose();
 
-            BufferedImage cropedRotated = rotated.getSubimage(diagonal / 2 - bim.getWidth() / 2, diagonal / 2 - bim.getHeight() / 2, diagonal / 2 + bim.getWidth() / 2, diagonal / 2 + bim.getHeight() / 2);
+            BufferedImage cropedRotated = rotated.getSubimage(diagonal / 2 - bim.getWidth() / 2, diagonal / 2 - bim.getHeight() / 2,
+                    diagonal / 2 + bim.getWidth() / 2, diagonal / 2 + bim.getHeight() / 2);
             List<BarcodeHit> qrCodes = detectQRCodes(bim);
             log.info("[QR_CODE] Qr codes detected: " + qrCodes.size());
 
@@ -337,13 +336,11 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             float ratioPDF = params.mediaBox.getHeight() / params.mediaBox.getWidth();
 
             // scale according the greater axis
-            PageDimension dimension = (ratioImage < ratioPDF) ?
-                    new PageDimension(bim.getWidth(), (int) (bim.getWidth() * ratioPDF), 0)
+            PageDimension dimension = (ratioImage < ratioPDF)
+                    ? new PageDimension(bim.getWidth(), (int) (bim.getWidth() * ratioPDF), 0)
                     : new PageDimension((int) (bim.getHeight() / ratioPDF), bim.getHeight(), 0);
 
-
-            float scale = (dimension.width < params.maxPage.width) ? 1f :
-                    params.maxPage.width / (float) bim.getWidth();// image is too big - scale if necessary
+            float scale = (dimension.width < params.maxPage.width) ? 1f : params.maxPage.width / (float) bim.getWidth();// image is too big - scale if necessary
 
             // translate in center and scale if necessary
             AffineTransform affineTransform = new AffineTransform();
@@ -379,7 +376,6 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             ImageIOUtil.writeImage(bim, "jpg", out, params.maxPage.dpi, params.compressionQuality);
 
-
             PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, out.toByteArray(), "");
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.OVERWRITE, true, true)) {
                 contentStream.drawImage(pdImage, 0, 0, PDRectangle.A4.getWidth(), bim.getHeight() * PDRectangle.A4.getWidth() / bim.getWidth());
@@ -391,4 +387,3 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     }
 
 }
-

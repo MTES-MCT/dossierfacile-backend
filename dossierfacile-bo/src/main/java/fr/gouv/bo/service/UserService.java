@@ -106,7 +106,8 @@ public class UserService {
     }
 
     public void removeFromOwner(Tenant tenant) {
-        List<PropertyApartmentSharing> propertyApartmentSharingList = propertyApartmentSharingRepository.findPropertyApartmentSharingsByApartmentSharingId(tenant.getApartmentSharing().getId());
+        List<PropertyApartmentSharing> propertyApartmentSharingList = propertyApartmentSharingRepository
+                .findPropertyApartmentSharingsByApartmentSharingId(tenant.getApartmentSharing().getId());
         if (propertyApartmentSharingList != null) {
             propertyApartmentSharingList.forEach(propertyApartmentSharingRepository::delete);
         }
@@ -126,7 +127,8 @@ public class UserService {
         }
 
         if (previousApplicationType != nextApplicationType) {
-            log.info("Changing applicationType of apartment with ID [" + apartmentSharing.getId() + "] from [" + previousApplicationType.name() + "] to [" + nextApplicationType.name() + "]");
+            log.info("Changing applicationType of apartment with ID [" + apartmentSharing.getId() + "] from [" + previousApplicationType.name() + "] to ["
+                    + nextApplicationType.name() + "]");
             apartmentSharing.setApplicationType(nextApplicationType);
             apartmentSharingRepository.save(apartmentSharing);
         }
@@ -162,4 +164,3 @@ public class UserService {
         addRoles(userRepository.save(user), Collections.singletonList(role));
     }
 }
-

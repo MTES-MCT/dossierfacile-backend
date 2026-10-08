@@ -65,7 +65,7 @@ public class KeycloakServiceImpl implements KeycloakService {
             userRepresentation = realmResource.users().get(keycloakId).toRepresentation();
             log.info("User representation: {}", userRepresentation);
         }
-        
+
         // In all cases, set the user as enabled and email verified
         log.info("Setting user as enabled and email verified");
         userRepresentation.setEmailVerified(true);

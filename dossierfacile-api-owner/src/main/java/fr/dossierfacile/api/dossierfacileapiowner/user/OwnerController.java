@@ -60,5 +60,4 @@ public class OwnerController {
         return ok().build();
     }
 
-
 }

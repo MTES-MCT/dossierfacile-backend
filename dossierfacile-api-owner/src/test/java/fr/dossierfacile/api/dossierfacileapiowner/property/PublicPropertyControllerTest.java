@@ -105,8 +105,8 @@ class PublicPropertyControllerTest {
             SubscriptionApartmentSharingOfTenantForm form = new SubscriptionApartmentSharingOfTenantForm(true, "a-valid-kc-token");
 
             mockMvc.perform(post(SUBSCRIBE_URL)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(form)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(form)))
                     .andExpect(status().isOk());
 
             verify(propertyService).subscribeTenantToProperty(PROPERTY_TOKEN, form.getKcToken());
@@ -119,8 +119,8 @@ class PublicPropertyControllerTest {
             doThrow(new NoSuchElementException()).when(propertyService).subscribeTenantToProperty(any(), any());
 
             mockMvc.perform(post(SUBSCRIBE_URL)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(form)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(form)))
                     .andExpect(status().isNotFound());
         }
     }

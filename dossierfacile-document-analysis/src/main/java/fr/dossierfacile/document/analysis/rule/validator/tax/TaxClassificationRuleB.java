@@ -32,7 +32,8 @@ public class TaxClassificationRuleB extends BaseTaxRule {
         var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
 
         if (documentIAAnalyses.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         List<BarcodeModel> taxOrDeclarativeSituations = documentIAAnalyses.stream()
@@ -44,7 +45,8 @@ public class TaxClassificationRuleB extends BaseTaxRule {
         // If there is no tax or declarative situation found
         // We return a failed validation because it's a complete misclassification
         if (taxOrDeclarativeSituations.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), new TaxClassificationRuleData(false)), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(),
+                    DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), new TaxClassificationRuleData(false)), RuleValidatorOutput.RuleLevel.FAILED);
         }
 
         var containsTax = taxOrDeclarativeSituations.stream().anyMatch(this::isTax);
@@ -57,13 +59,13 @@ public class TaxClassificationRuleB extends BaseTaxRule {
 
         // If it contains only declarative situations, we consider it misclassified with a custom rule
         if (containsDeclarativeSituation) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), new TaxClassificationRuleData(true)), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(),
+                    DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), new TaxClassificationRuleData(true)), RuleValidatorOutput.RuleLevel.FAILED);
         }
 
         return super.validate(document);
 
     }
-
 
     @Override
     protected boolean isValid(Document document) {

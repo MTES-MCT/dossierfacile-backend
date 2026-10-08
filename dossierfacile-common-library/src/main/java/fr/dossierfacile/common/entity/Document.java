@@ -49,7 +49,6 @@ public class Document implements Serializable {
     @Enumerated(EnumType.STRING)
     private DocumentCategoryStep documentCategoryStep;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
     @ToString.Exclude
@@ -115,8 +114,10 @@ public class Document implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
         Document document = (Document) o;
         return id != null && Objects.equals(id, document.id);
     }
@@ -143,9 +144,11 @@ public class Document implements Serializable {
     private String getDocumentNameFormat() {
         return switch (getDocumentSubCategory()) {
             case FRENCH_IDENTITY_CARD, FRENCH_PASSPORT, FRENCH_RESIDENCE_PERMIT, DRIVERS_LICENSE, FRANCE_IDENTITE,
-                 OTHER_IDENTIFICATION -> "Identité_%s.pdf";
+                    OTHER_IDENTIFICATION ->
+                "Identité_%s.pdf";
             case TENANT, OWNER, GUEST_PARENTS, GUEST, GUEST_COMPANY, GUEST_ORGANISM, SHORT_TERM_RENTAL,
-                 OTHER_RESIDENCY -> "Hébergement_%s.pdf";
+                    OTHER_RESIDENCY ->
+                "Hébergement_%s.pdf";
             case CDI -> "Activité_cdi_%s.pdf";
             case CDD -> "Activité_cdd_%s.pdf";
             case ALTERNATION -> "Activité_alternance_%s.pdf";

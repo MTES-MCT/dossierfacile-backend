@@ -22,8 +22,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class DocumentResidencyGuarantorNaturalPerson
-        extends AbstractDocumentResidencySaveStep<DocumentResidencyGuarantorNaturalPersonForm>
-        implements SaveStep<DocumentResidencyGuarantorNaturalPersonForm> {
+        extends
+            AbstractDocumentResidencySaveStep<DocumentResidencyGuarantorNaturalPersonForm>
+        implements
+            SaveStep<DocumentResidencyGuarantorNaturalPersonForm> {
 
     private final GuarantorRepository guarantorRepository;
 
@@ -40,7 +42,8 @@ public class DocumentResidencyGuarantorNaturalPerson
 
     @Override
     protected DocumentSaveResult saveDocument(Tenant tenant, DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentResidencyGuarantorNaturalPersonForm.getGuarantorId())
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentResidencyGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentResidencyGuarantorNaturalPersonForm.getGuarantorId()));
 
         Document document = documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.RESIDENCY, guarantor)

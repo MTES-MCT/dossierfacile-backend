@@ -13,62 +13,64 @@ import java.util.ArrayList;
 
 public class PayslipClassificationValidatorB extends BasePayslipRuleValidator {
 
-	private static final String EXPECTED_DOCUMENT_TYPE = "bulletin_salaire";
+    private static final String EXPECTED_DOCUMENT_TYPE = "bulletin_salaire";
 
-	public PayslipClassificationValidatorB() {
-		super(Clock.systemDefaultZone());
-	}
+    public PayslipClassificationValidatorB() {
+        super(Clock.systemDefaultZone());
+    }
 
-	@Override
-	protected boolean isBlocking() {
-		return true;
-	}
+    @Override
+    protected boolean isBlocking() {
+        return true;
+    }
 
-	@Override
-	protected boolean isInconclusive() {
-		return false;
-	}
+    @Override
+    protected boolean isInconclusive() {
+        return false;
+    }
 
-	@Override
-	protected DocumentRule getRule() {
-		return DocumentRule.R_DOCUMENT_IA_CLASSIFICATION;
-	}
+    @Override
+    protected DocumentRule getRule() {
+        return DocumentRule.R_DOCUMENT_IA_CLASSIFICATION;
+    }
 
-	@Override
-	public RuleValidatorOutput validate(Document document) {
-		var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
-		var ruleData = new PayslipClassificationRuleData(new ArrayList<>(), getExpectedMonthsLists());
+    @Override
+    public RuleValidatorOutput validate(Document document) {
+        var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
+        var ruleData = new PayslipClassificationRuleData(new ArrayList<>(), getExpectedMonthsLists());
 
-		if (documentIAAnalyses.isEmpty()) {
-			return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.FAILED);
-		}
+        if (documentIAAnalyses.isEmpty()) {
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData),
+                    RuleValidatorOutput.RuleLevel.FAILED);
+        }
 
-		for (DocumentIAFileAnalysis analysis : documentIAAnalyses) {
-			String documentType = null;
-			if (analysis.getResult() != null && analysis.getResult().getClassification() != null) {
-				documentType = analysis.getResult().getClassification().getDocumentType();
-			}
+        for (DocumentIAFileAnalysis analysis : documentIAAnalyses) {
+            String documentType = null;
+            if (analysis.getResult() != null && analysis.getResult().getClassification() != null) {
+                documentType = analysis.getResult().getClassification().getDocumentType();
+            }
 
-			if (!EXPECTED_DOCUMENT_TYPE.equals(documentType)) {
-				ruleData = ruleData.addItem(
-						new PayslipClassificationRuleData.PayslipClassificationEntry(
-								getFileId(analysis),
-								getFileName(analysis)
-						)
-				);
-			}
-		}
+            if (!EXPECTED_DOCUMENT_TYPE.equals(documentType)) {
+                ruleData = ruleData.addItem(
+                        new PayslipClassificationRuleData.PayslipClassificationEntry(
+                                getFileId(analysis),
+                                getFileName(analysis)
+                        )
+                );
+            }
+        }
 
-		if (ruleData.entriesInError().isEmpty()) {
-			return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.PASSED);
-		}
+        if (ruleData.entriesInError().isEmpty()) {
+            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), ruleData),
+                    RuleValidatorOutput.RuleLevel.PASSED);
+        }
 
-		return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.FAILED);
-	}
+        return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData),
+                RuleValidatorOutput.RuleLevel.FAILED);
+    }
 
-	@Override
-	protected boolean isValid(Document document) {
-		return false;
-	}
+    @Override
+    protected boolean isValid(Document document) {
+        return false;
+    }
 }
-

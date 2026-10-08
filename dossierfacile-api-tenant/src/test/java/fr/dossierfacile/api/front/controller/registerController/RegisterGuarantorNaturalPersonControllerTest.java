@@ -136,7 +136,8 @@ class RegisterGuarantorNaturalPersonControllerTest {
                                     null,
                                     List.of(
                                             jsonPath("$.errors").isArray(),
-                                            jsonPath("$.errors").value(hasItem("typeDocumentFinancial: must be one of [SALARY, SOCIAL_SERVICE, RENT, PENSION, SCHOLARSHIP]"))
+                                            jsonPath("$.errors").value(
+                                                    hasItem("typeDocumentFinancial: must be one of [SALARY, SOCIAL_SERVICE, RENT, PENSION, SCHOLARSHIP]"))
                                     )
                             )
                     ),
@@ -148,7 +149,8 @@ class RegisterGuarantorNaturalPersonControllerTest {
                                     null,
                                     List.of(
                                             jsonPath("$.errors").isArray(),
-                                            jsonPath("$.errors").value(hasItem("categoryStep: PENSION_NO_STATEMENT is not valid for document sub category SALARY"))
+                                            jsonPath("$.errors")
+                                                    .value(hasItem("categoryStep: PENSION_NO_STATEMENT is not valid for document sub category SALARY"))
                                     )
                             )
                     ),
@@ -160,7 +162,8 @@ class RegisterGuarantorNaturalPersonControllerTest {
                                     null,
                                     List.of(
                                             jsonPath("$.errors").isArray(),
-                                            jsonPath("$.errors").value(hasItem("categoryStep: For document sub category SCHOLARSHIP category step has to be null"))
+                                            jsonPath("$.errors")
+                                                    .value(hasItem("categoryStep: For document sub category SCHOLARSHIP category step has to be null"))
                                     )
                             )
                     )
@@ -233,7 +236,8 @@ class RegisterGuarantorNaturalPersonControllerTest {
                                     null,
                                     List.of(
                                             jsonPath("$.errors").isArray(),
-                                            jsonPath("$.errors").value(hasItem("typeDocumentResidency: must be one of [TENANT, OWNER, GUEST, GUEST_COMPANY, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY]"))
+                                            jsonPath("$.errors").value(hasItem(
+                                                    "typeDocumentResidency: must be one of [TENANT, OWNER, GUEST, GUEST_COMPANY, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY]"))
                                     )
                             )
                     ),

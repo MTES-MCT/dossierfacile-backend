@@ -21,7 +21,8 @@ public class BeneficiaireModel {
 
     // ligne1 en priorité, puis concaténation des valeurs non-nulles parmi prenom / nom
     public String resolveIdentityString() {
-        if (ligne1 != null) return ligne1;
+        if (ligne1 != null)
+            return ligne1;
         String result = Stream.of(nom, prenom)
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(" "));

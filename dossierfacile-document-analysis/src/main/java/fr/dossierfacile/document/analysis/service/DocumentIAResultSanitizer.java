@@ -35,8 +35,7 @@ public class DocumentIAResultSanitizer {
             return;
         }
 
-        ClassPathScanningCandidateComponentProvider scanner =
-                new ClassPathScanningCandidateComponentProvider(false);
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
         scanner.addIncludeFilter(new AnnotationTypeFilter(DocumentIAModel.class));
 
         Set<BeanDefinition> candidates = scanner.findCandidateComponents(BASE_PACKAGE);

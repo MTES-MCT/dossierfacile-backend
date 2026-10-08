@@ -13,7 +13,7 @@ public record ProcessedDocuments(Integer count, Integer timeSpent) {
         int countGuarantorDocuments = customMessage.getGuarantorItems().stream()
                 .mapToInt(i -> i.getMessageItems().size())
                 .sum();
-        int count = customMessage.getMessageItems().size() +  countGuarantorDocuments;
+        int count = customMessage.getMessageItems().size() + countGuarantorDocuments;
         try {
             int timeSpent = Integer.parseInt(customMessage.getTimeSpent()) / 1000;
             return new ProcessedDocuments(count, timeSpent);

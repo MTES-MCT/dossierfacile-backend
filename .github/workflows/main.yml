@@ -18,5 +18,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
+      - name: Check formatting and lint
+        run: mvn --batch-mode --no-transfer-progress spotless:check validate --file pom.xml
       - name: Build & test
         run: mvn --batch-mode verify --file pom.xml

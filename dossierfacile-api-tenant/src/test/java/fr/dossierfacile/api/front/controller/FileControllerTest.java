@@ -160,13 +160,16 @@ class FileControllerTest {
             Document documentCoTenantCouple,
             File fileCoTenantCouple
     ) {
-        File fileForCouple() { return fileCoTenantCouple; }
+        File fileForCouple() {
+            return fileCoTenantCouple;
+        }
     }
 
     @Nested
     class GetFileResourceTest {
 
-        record GetFileResourceParam(ApplicationType applicationType, boolean isOwnFile, boolean fileFound) {}
+        record GetFileResourceParam(ApplicationType applicationType, boolean isOwnFile, boolean fileFound) {
+        }
 
         static List<Arguments> provideGetFileResourceParameters() {
             var jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
@@ -256,7 +259,8 @@ class FileControllerTest {
     @Nested
     class DeleteFileTest {
 
-        record DeleteFileParam() {}
+        record DeleteFileParam() {
+        }
 
         static List<Arguments> provideDeleteFileParameters() {
             var jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));

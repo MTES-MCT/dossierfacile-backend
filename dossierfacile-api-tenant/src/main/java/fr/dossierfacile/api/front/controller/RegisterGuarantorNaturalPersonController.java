@@ -36,9 +36,11 @@ public class RegisterGuarantorNaturalPersonController {
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonFileForm.tenantId)")
     @PostMapping("/documentIdentification/v2")
     @Transactional
-    public ResponseEntity<TenantModel> documentIdentificationFile(@Validated(Dossier.class) DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
+    public ResponseEntity<TenantModel> documentIdentificationFile(
+            @Validated(Dossier.class) DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonFileForm.getTenantId());
-        tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonFileForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE);
+        tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonFileForm,
+                StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE);
         Tenant loggedTenant = (documentIdentificationGuarantorNaturalPersonFileForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
@@ -57,7 +59,8 @@ public class RegisterGuarantorNaturalPersonController {
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentResidency")
     @Transactional
-    public ResponseEntity<TenantModel> documentResidency(@Validated({Dossier.class, ResidencyDocumentGroup.class}) DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
+    public ResponseEntity<TenantModel> documentResidency(
+            @Validated({Dossier.class, ResidencyDocumentGroup.class}) DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyGuarantorNaturalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentResidencyGuarantorNaturalPersonForm, StepRegister.DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON);
         Tenant loggedTenant = (documentResidencyGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
@@ -67,7 +70,8 @@ public class RegisterGuarantorNaturalPersonController {
     @PreAuthorize("hasPermissionOnTenant(#documentProfessionalGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentProfessional")
     @Transactional
-    public ResponseEntity<TenantModel> documentProfessional(@Validated(Dossier.class) DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
+    public ResponseEntity<TenantModel> documentProfessional(
+            @Validated(Dossier.class) DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentProfessionalGuarantorNaturalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentProfessionalGuarantorNaturalPersonForm, StepRegister.DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON);
         Tenant loggedTenant = (documentProfessionalGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
@@ -77,7 +81,8 @@ public class RegisterGuarantorNaturalPersonController {
     @PreAuthorize("hasPermissionOnTenant(#documentFinancialGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentFinancial")
     @Transactional
-    public ResponseEntity<TenantModel> documentFinancial(@Validated({Dossier.class, FinancialDocumentGroup.class}) DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
+    public ResponseEntity<TenantModel> documentFinancial(
+            @Validated({Dossier.class, FinancialDocumentGroup.class}) DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentFinancialGuarantorNaturalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentFinancialGuarantorNaturalPersonForm, StepRegister.DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON);
         Tenant loggedTenant = (documentFinancialGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();

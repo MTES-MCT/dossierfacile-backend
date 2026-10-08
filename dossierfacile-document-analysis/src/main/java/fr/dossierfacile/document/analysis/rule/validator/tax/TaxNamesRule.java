@@ -94,7 +94,8 @@ public class TaxNamesRule extends BaseTaxRule {
                 .toList();
 
         if (tax.isEmpty() || nameToMatch == null) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var listOfBarcodeIdentities = tax.stream().flatMap(it -> convertBarcodeModelToTaxIdentity(it).stream()).toList();
@@ -113,11 +114,13 @@ public class TaxNamesRule extends BaseTaxRule {
             return reject(namesRuleData);
         }
 
-        return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);
+        return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData),
+                RuleValidatorOutput.RuleLevel.PASSED);
     }
 
     private RuleValidatorOutput reject(TaxNamesRuleData ruleData) {
-        return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.FAILED);
+        return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData),
+                RuleValidatorOutput.RuleLevel.FAILED);
     }
 
     @Override

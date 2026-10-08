@@ -106,6 +106,24 @@ s3.secret.access.key=your-secret-key
 - Project: [dossierfacile-pdf-generator](dossierfacile-pdf-generator/README.md)
 - Project: [dossierfacile-task-scheduler](dossierfacile-task-scheduler/README.md)
 
+## Enable the pre-commit hook
+
+Run this once from the backend repository root after cloning, or when first
+pulling the hook into an existing checkout:
+
+```shell
+git config --local core.hooksPath .githooks
+```
+
+Git stores this setting locally, so each checkout needs this setup step.
+The hook requires `mvn` on `PATH` and runs
+`mvn --batch-mode --no-transfer-progress spotless:apply validate` across all modules.
+
+Stage your Java sources and Maven, lint and formatter configuration before
+committing, or stash any edits you want to leave out. The hook blocks commits
+when those files have unstaged changes or lint errors. If formatting changes
+files, review and stage the changes, then retry the commit.
+
 ## Feature flags (must be created through DB migration)
 
 Feature flags are backed by the `feature_flag`, `user_feature_assignment`, and `user_feature_assignment_history` tables.

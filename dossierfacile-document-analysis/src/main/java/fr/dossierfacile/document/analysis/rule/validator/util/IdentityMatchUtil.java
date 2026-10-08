@@ -19,8 +19,7 @@ public final class IdentityMatchUtil {
     private static final int MIN_LENGTH_FOR_LEVENSHTEIN = 4;
     private static final String NAME_SEPARATOR_REGEX = "[-'_]";
 
-    private IdentityMatchUtil() {
-    }
+    private IdentityMatchUtil() {}
 
     public static boolean hasFirstNameMatch(List<String> identities, DocumentIdentity documentIdentity) {
         if (documentIdentity == null) {
@@ -92,7 +91,6 @@ public final class IdentityMatchUtil {
                             return distance != null && distance <= LAST_NAME_MAX_DISTANCE;
                         }));
     }
-
 
     @SafeVarargs
     public static List<String> mergeAndDeduplicateIdentities(List<String>... sources) {

@@ -1,4 +1,4 @@
 package fr.dossierfacile.common.service.zxing;
 
-public record BarcodePoint(int x, int y) {}
-
+public record BarcodePoint(int x, int y) {
+}

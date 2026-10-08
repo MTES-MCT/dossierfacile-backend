@@ -13,11 +13,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentFinancialGuarantorNaturalPersonValidator extends TenantConstraintValidator<NumberOfDocumentFinancialGuarantorNaturalPerson, DocumentFinancialGuarantorNaturalPersonForm> {
+public class NumberOfDocumentFinancialGuarantorNaturalPersonValidator
+        extends
+            TenantConstraintValidator<NumberOfDocumentFinancialGuarantorNaturalPerson, DocumentFinancialGuarantorNaturalPersonForm> {
     private final FileRepository fileRepository;
 
     @Override
-    public boolean isValid(DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm,
+            ConstraintValidatorContext constraintValidatorContext) {
         var tenant = getTenant(documentFinancialGuarantorNaturalPersonForm);
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenantDocumentId(
@@ -29,8 +32,9 @@ public class NumberOfDocumentFinancialGuarantorNaturalPersonValidator extends Te
         );
         long countNew = documentFinancialGuarantorNaturalPersonForm.getDocuments().stream().filter(f -> !f.isEmpty()).count();
 
-        long sizeNewDoc = documentFinancialGuarantorNaturalPersonForm.getDocuments().stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize).sum();
-        if(countOld > 0){
+        long sizeNewDoc = documentFinancialGuarantorNaturalPersonForm.getDocuments().stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize)
+                .sum();
+        if (countOld > 0) {
             sizeOldDoc = fileRepository.sumSizeOfAllFilesInDocumentForGuarantorTenantId(
                     DocumentCategory.FINANCIAL,
                     documentFinancialGuarantorNaturalPersonForm.getGuarantorId(),
@@ -39,7 +43,6 @@ public class NumberOfDocumentFinancialGuarantorNaturalPersonValidator extends Te
                     documentFinancialGuarantorNaturalPersonForm.getDocumentId()
             );
         }
-
 
         if (documentFinancialGuarantorNaturalPersonForm.getNoDocument() == null) {
             return true;

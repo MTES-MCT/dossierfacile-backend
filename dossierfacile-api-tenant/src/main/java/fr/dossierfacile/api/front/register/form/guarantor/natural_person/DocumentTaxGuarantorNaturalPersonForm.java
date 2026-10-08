@@ -39,8 +39,7 @@ import fr.dossierfacile.api.front.register.form.IDocumentTaxForm;
 public class DocumentTaxGuarantorNaturalPersonForm extends DocumentGuarantorFormAbstract implements IDocumentTaxForm {
 
     @NotNull
-    @DocumentSubcategorySubset(anyOf =
-            {MY_NAME, MY_PARENTS, OTHER_TAX})
+    @DocumentSubcategorySubset(anyOf = {MY_NAME, MY_PARENTS, OTHER_TAX})
     private DocumentSubCategory typeDocumentTax;
 
     @Nullable

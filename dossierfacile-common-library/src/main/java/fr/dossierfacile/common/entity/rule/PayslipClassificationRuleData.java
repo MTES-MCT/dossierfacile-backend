@@ -20,4 +20,3 @@ public record PayslipClassificationRuleData(List<PayslipClassificationEntry> ent
     public record PayslipClassificationEntry(Long fileId, String fileName) {
     }
 }
-

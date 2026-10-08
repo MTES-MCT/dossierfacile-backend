@@ -14,8 +14,7 @@ class ValidUrlValidatorTest {
     /**
      * Mimics the platform-internal DNS: every host resolves to a private load-balancer address
      */
-    private static final ValidUrlValidator.HostResolver PRIVATE_RESOLVER =
-            host -> new InetAddress[]{InetAddress.getByName("10.0.0.1")};
+    private static final ValidUrlValidator.HostResolver PRIVATE_RESOLVER = host -> new InetAddress[]{InetAddress.getByName("10.0.0.1")};
 
     @Test
     void isValid_shouldRejectLoopbackAndLocalhost() {

@@ -26,7 +26,6 @@ public class TaxYearRule extends BaseTaxRule {
         this.clock = clock;
     }
 
-
     @Override
     protected boolean isBlocking() {
         return false;
@@ -57,7 +56,8 @@ public class TaxYearRule extends BaseTaxRule {
         var taxYearRuleData = new TaxYearsRuleData(expectedYear, List.of());
 
         if (tax.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var listOfPresentYear = tax.stream().flatMap(it -> it.getTypedData().stream())
@@ -66,7 +66,8 @@ public class TaxYearRule extends BaseTaxRule {
                 .toList();
 
         if (listOfPresentYear.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         try {
@@ -78,13 +79,15 @@ public class TaxYearRule extends BaseTaxRule {
 
             // We always accept a newer tax notice because the user may have received a new tax notice before the 15 of September.
             if (listOfPresentYear.contains(expectedYear) || listOfPresentYear.contains(expectedYear + 1)) {
-                return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.PASSED);
+                return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), taxYearRuleData),
+                        RuleValidatorOutput.RuleLevel.PASSED);
             } else {
-                return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.FAILED);
+                return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), taxYearRuleData),
+                        RuleValidatorOutput.RuleLevel.FAILED);
             }
-        }
-        catch (ClassCastException e) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+        } catch (ClassCastException e) {
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
     }
 

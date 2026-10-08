@@ -153,8 +153,9 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
 
     private String getPersonName(Document document) {
         Long documentId = document.getId();
-        return tenantRepository.getTenantByDocumentId(documentId).map(Tenant::getFullName).orElseGet(() -> guarantorRepository.getGuarantorByDocumentId(documentId).map(Guarantor::getCompleteName).orElse("")
-        );
+        return tenantRepository.getTenantByDocumentId(documentId).map(Tenant::getFullName)
+                .orElseGet(() -> guarantorRepository.getGuarantorByDocumentId(documentId).map(Guarantor::getCompleteName).orElse("")
+                );
     }
 
     private static final class PdfTextElements {

@@ -53,7 +53,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
                 List<Tenant> tenantsToNotificate = tenantRepository.findAllByEnabledIsFalseAndCreationDateTimeIsBetween(startDate, endDate);
                 if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
-                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account email not yet validated after " + daysForEmailAccountValidationReminder + " days of account registration");
+                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account email not yet validated after "
+                            + daysForEmailAccountValidationReminder + " days of account registration");
                     for (Tenant tenant : tenantsToNotificate) {
                         Optional<ConfirmationToken> optional = confirmationTokenRepository.findByUser(tenant);
                         if (optional.isPresent()) {
@@ -78,7 +79,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
                 List<Tenant> tenantsToNotificate = tenantRepository.findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(startDate, endDate);
                 if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
-                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account not yet completed after " + daysForAccountCompletionReminder + " days of account email validation");
+                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account not yet completed after "
+                            + daysForAccountCompletionReminder + " days of account email validation");
                     for (Tenant tenant : tenantsToNotificate) {
                         mailService.sendEmailWhenAccountNotYetCompleted(tenant);
                         Thread.sleep(1000);// avoid to spam - softBounce
@@ -100,14 +102,17 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
                 List<Tenant> tenantsToNotificate = tenantRepository.findAllDeclinedSinceXDaysAgo(startDate, endDate);
                 if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
-                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account is still declination after " + daysForAccountCompletionReminder + " days of account declined");
+                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account is still declination after "
+                            + daysForAccountCompletionReminder + " days of account declined");
                     for (Tenant tenant : tenantsToNotificate) {
                         if (StringUtils.isNotBlank(tenant.getEmail())) {
                             mailService.sendEmailWhenAccountIsStillDeclined(tenant);
                             Thread.sleep(1000);// avoid to spam - softBounce
                         }
                         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
-                            tenant.getApartmentSharing().getTenants().stream().filter(user -> !Objects.equals(user.getId(), tenant.getId()) && StringUtils.isNotBlank(user.getEmail()) && user.getStatus() == TenantFileStatus.VALIDATED).forEach(mailService::sendEmailWhenAccountIsStillDeclined);
+                            tenant.getApartmentSharing().getTenants().stream().filter(user -> !Objects.equals(user.getId(), tenant.getId())
+                                    && StringUtils.isNotBlank(user.getEmail()) && user.getStatus() == TenantFileStatus.VALIDATED)
+                                    .forEach(mailService::sendEmailWhenAccountIsStillDeclined);
                         }
                     }
                 }

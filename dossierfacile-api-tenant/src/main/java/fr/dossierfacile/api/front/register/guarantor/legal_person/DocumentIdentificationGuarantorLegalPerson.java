@@ -26,8 +26,10 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class DocumentIdentificationGuarantorLegalPerson
-        extends AbstractDocumentSaveStep<DocumentIdentificationGuarantorLegalPersonForm>
-        implements SaveStep<DocumentIdentificationGuarantorLegalPersonForm> {
+        extends
+            AbstractDocumentSaveStep<DocumentIdentificationGuarantorLegalPersonForm>
+        implements
+            SaveStep<DocumentIdentificationGuarantorLegalPersonForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
@@ -38,7 +40,8 @@ public class DocumentIdentificationGuarantorLegalPerson
 
     @Override
     protected DocumentSaveResult saveDocument(Tenant tenant, DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON, documentIdentificationGuarantorLegalPersonForm.getGuarantorId())
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON, documentIdentificationGuarantorLegalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorLegalPersonForm.getGuarantorId()));
         guarantor.setLegalPersonName(documentIdentificationGuarantorLegalPersonForm.getLegalPersonName());
         guarantor.setTenant(tenant);

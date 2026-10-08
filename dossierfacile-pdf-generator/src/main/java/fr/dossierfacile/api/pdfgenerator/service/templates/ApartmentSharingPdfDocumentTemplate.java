@@ -150,8 +150,10 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     //--------------------------------------------------------------------------------------------------
     //Common dimensions
     private static final float SEPARATION_BETWEEN_GROUPS_OF_DOCUMENT_INDEXES = B_HEIGHT_TEMPLATE / 421 * 13.5f;
-    private static final float SEPARATION_BETWEEN_TITLE_AND_NAME_OF_SUBJECT_IN_GROUP_OF_DOCUMENT_INDEXES = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE - Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
-    private static final float SEPARATION_BETWEEN_NAME_OF_SUBJECT_AND_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE - Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
+    private static final float SEPARATION_BETWEEN_TITLE_AND_NAME_OF_SUBJECT_IN_GROUP_OF_DOCUMENT_INDEXES = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE
+            - Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
+    private static final float SEPARATION_BETWEEN_NAME_OF_SUBJECT_AND_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE
+            - Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
     private static final float X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES = A_WIDTH_TEMPLATE / 297.5f * 148;
     private static final float X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES = A_WIDTH_TEMPLATE / 297.5f * 282;
 
@@ -272,7 +274,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
     }
 
-    private ByteArrayOutputStream addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(List<Tenant> tenantList, String headerSentence, String bodyText, boolean hideHeaderLogos) {
+    private ByteArrayOutputStream addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(List<Tenant> tenantList, String headerSentence,
+            String bodyText, boolean hideHeaderLogos) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try (PDDocument doc = ATTACHMENTS_AND_CLARIFICATIONS.load()) {
 
@@ -406,7 +409,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
     }
 
-    private String getSentenceForGuarantorFromDocumentCategory(int numberOfGuarantor, TypeGuarantor typeGuarantor, DocumentCategory documentCategory, String tenantFirstName, int count) {
+    private String getSentenceForGuarantorFromDocumentCategory(int numberOfGuarantor, TypeGuarantor typeGuarantor, DocumentCategory documentCategory,
+            String tenantFirstName, int count) {
         switch (typeGuarantor) {
             case NATURAL_PERSON -> {
                 String followingPartOfSentence = (numberOfGuarantor > 0 ? "n°" + numberOfGuarantor : "") + " de " + tenantFirstName;
@@ -486,7 +490,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             float targetWidth = C_WIDTH_AVAILABLE_AREA_TEMPLATE;
             float targetHeight = C_WIDTH_AVAILABLE_AREA_TEMPLATE * sourceHeight / sourceWidth;
             float horizontalDisplacement = X_MARGIN_RIGHT_AVAILABLE_AREA_TEMPLATE;
-            float verticalDisplacement = B_HEIGHT_TEMPLATE - (Y_MARGIN_TOP_AVAILABLE_AREA_TEMPLATE + D_HEIGHT_AVAILABLE_AREA_TEMPLATE) + (D_HEIGHT_AVAILABLE_AREA_TEMPLATE - targetHeight) / 2;
+            float verticalDisplacement = B_HEIGHT_TEMPLATE - (Y_MARGIN_TOP_AVAILABLE_AREA_TEMPLATE + D_HEIGHT_AVAILABLE_AREA_TEMPLATE)
+                    + (D_HEIGHT_AVAILABLE_AREA_TEMPLATE - targetHeight) / 2;
             return TargetImageData.builder()
                     .targetWidth(targetWidth)
                     .targetHeight(targetHeight)
@@ -511,7 +516,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
         ByteArrayOutputStream result = new ByteArrayOutputStream();
         try {
-            TargetImageData targetImageData = adjustSourceImageToAvailableAreaInTemplate(innerPage.getMediaBox().getWidth(), innerPage.getMediaBox().getHeight());
+            TargetImageData targetImageData = adjustSourceImageToAvailableAreaInTemplate(innerPage.getMediaBox().getWidth(),
+                    innerPage.getMediaBox().getHeight());
             double widthScale = targetImageData.getTargetWidth() / innerPage.getMediaBox().getWidth();
             double heightScale = targetImageData.getTargetHeight() / innerPage.getMediaBox().getHeight();
 
@@ -568,20 +574,24 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
     }
 
-    private void addDocument(PDFMergerUtility ut, InputStream pdfDocument, List<Integer> indexPagesForDocuments, boolean newCategoryDocument, List<Tenant> tenantList, String headerSentence, boolean hideHeaderLogos) {
+    private void addDocument(PDFMergerUtility ut, InputStream pdfDocument, List<Integer> indexPagesForDocuments, boolean newCategoryDocument,
+            List<Tenant> tenantList, String headerSentence, boolean hideHeaderLogos) {
 
-        ByteArrayOutputStream templateWithTextsHeader = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, headerSentence, null, hideHeaderLogos);
+        ByteArrayOutputStream templateWithTextsHeader = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, headerSentence, null,
+                hideHeaderLogos);
 
         try (PDDocument innerDocument = Loader.loadPDF(pdfDocument.readAllBytes())) {
 
             for (PDPage innerPage : innerDocument.getPages()) {
-                ByteArrayOutputStream pdfDocPageWithAttachmentMerged = mergePageInsideTemplate(innerDocument, innerPage, templateWithTextsHeader.toByteArray(), headerSentence);
+                ByteArrayOutputStream pdfDocPageWithAttachmentMerged = mergePageInsideTemplate(innerDocument, innerPage, templateWithTextsHeader.toByteArray(),
+                        headerSentence);
                 ut.addSource(new RandomAccessReadBuffer(pdfDocPageWithAttachmentMerged.toByteArray()));
             }
             if (newCategoryDocument) {
                 indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + innerDocument.getNumberOfPages());
             } else {
-                indexPagesForDocuments.set(indexPagesForDocuments.size() - 1, indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + innerDocument.getNumberOfPages());
+                indexPagesForDocuments.set(indexPagesForDocuments.size() - 1,
+                        indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + innerDocument.getNumberOfPages());
             }
         } catch (Exception e) {
             log.error("Unable to addDocument - headerSentence:" + headerSentence, e);
@@ -589,7 +599,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     }
 
-    private void addDocumentOfClarification(PDFMergerUtility ut, List<Tenant> tenantList, Tenant mainTenant, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem, boolean hideHeaderLogos) {
+    private void addDocumentOfClarification(PDFMergerUtility ut, List<Tenant> tenantList, Tenant mainTenant, List<Integer> indexPagesForDocuments,
+            PDOutlineItem pdOutlineItem, boolean hideHeaderLogos) {
         if (StringUtils.isNotBlank(mainTenant.getClarification())) {
             //region Adding bookmark
             PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
@@ -603,7 +614,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             pdOutlineItem.addLast(pdO);
             //endregion
 
-            ByteArrayOutputStream outputStream = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, LE_MOT_DU_LOCATAIRE, mainTenant.getClarification(), hideHeaderLogos);
+            ByteArrayOutputStream outputStream = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, LE_MOT_DU_LOCATAIRE,
+                    mainTenant.getClarification(), hideHeaderLogos);
             ut.addSource(new RandomAccessReadBuffer(outputStream.toByteArray()));
             indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + 1);
         } else {
@@ -626,7 +638,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         return "";
     }
 
-    private void addFirstNamesOfTenantsInTheHeaderOfCurrentIndexPage(int indexPage, PDDocument doc, List<Tenant> tenantList, PDType0Font font) throws IOException {
+    private void addFirstNamesOfTenantsInTheHeaderOfCurrentIndexPage(int indexPage, PDDocument doc, List<Tenant> tenantList, PDType0Font font)
+            throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream1.setNonStrokingColor(GRAY);
         contentStream1.beginText();
@@ -656,7 +669,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream2.close();
     }
 
-    private void addContentInFirstRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font font, ApplicationType applicationType) throws IOException {
+    private void addContentInFirstRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font font, ApplicationType applicationType)
+            throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream1.setNonStrokingColor(LIGHT_GRAY);
         contentStream1.beginText();
@@ -683,7 +697,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream2.close();
     }
 
-    private void addContentInSecondRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font fontTitle, PDType0Font fontContent, String content) throws IOException {
+    private void addContentInSecondRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font fontTitle, PDType0Font fontContent,
+            String content) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream1.setNonStrokingColor(LIGHT_GRAY);
         contentStream1.beginText();
@@ -709,7 +724,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream2.close();
     }
 
-    private void addContentInThirdRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font fontTitle, PDType0Font fontContent, List<Tenant> tenantList) throws IOException {
+    private void addContentInThirdRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font fontTitle, PDType0Font fontContent,
+            List<Tenant> tenantList) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream1.setNonStrokingColor(LIGHT_GRAY);
         contentStream1.beginText();
@@ -766,19 +782,22 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 contentStream2.setLeading(leading);
 
                 contentStream2.newLineAtOffset(tx, ty + 2 * leading);
-                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( " + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
+                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( "
+                        + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
                 contentStream2.newLine();
                 contentStream2.showText(countOrganismGuarantors.get() + (countOrganismGuarantors.get() > 1 ? ORGANISMES_GARANTS : ORGANISME_GARANT));
                 contentStream2.newLine();
                 contentStream2.showText(countLegalGuarantors.get() + (countLegalGuarantors.get() > 1 ? GARANTS_MORAUX : GARANT_MORAL));
             } else if (countNaturalGuarantors.get() > 0 && countOrganismGuarantors.get() > 0 && countLegalGuarantors.get() == 0) {
                 contentStream2.newLineAtOffset(tx, ty + leading);
-                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( " + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
+                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( "
+                        + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
                 contentStream2.newLine();
                 contentStream2.showText(countOrganismGuarantors.get() + (countOrganismGuarantors.get() > 1 ? ORGANISMES_GARANTS : ORGANISME_GARANT));
             } else if (countNaturalGuarantors.get() > 0 && countOrganismGuarantors.get() == 0 && countLegalGuarantors.get() > 0) {
                 contentStream2.newLineAtOffset(tx, ty + leading);
-                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( " + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
+                contentStream2.showText(countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( "
+                        + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )");
                 contentStream2.newLine();
                 contentStream2.showText(countLegalGuarantors.get() + (countLegalGuarantors.get() > 1 ? GARANTS_MORAUX : GARANT_MORAL));
             } else if (countNaturalGuarantors.get() == 0 && countOrganismGuarantors.get() > 0 && countLegalGuarantors.get() > 0) {
@@ -787,7 +806,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 contentStream2.newLine();
                 contentStream2.showText(countLegalGuarantors.get() + (countLegalGuarantors.get() > 1 ? GARANTS_MORAUX : GARANT_MORAL));
             } else if (countNaturalGuarantors.get() > 0) {
-                String text = countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( " + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )";
+                String text = countNaturalGuarantors.get() + (countNaturalGuarantors.get() > 1 ? GARANTS_PHYSIQUES : GARANT_PHYSIQUE) + " ( "
+                        + totalIncomingOfAllGuarantorsNaturalPerson.get() + " € )";
                 textSize = fontSize * fontTitle.getStringWidth(text) / 1000;
                 offset = X_LOCATION_BEGIN_OF_THIRD_RECTANGULE + (WIDTH_OF_ALL_THREE_RECTANGULES - textSize) / 2;
 
@@ -814,7 +834,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream2.close();
     }
 
-    private void addFilesOfDocumentsToDossierPDF(PDFMergerUtility ut, List<Tenant> tenantList, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem, boolean hideHeaderLogos) {
+    private void addFilesOfDocumentsToDossierPDF(PDFMergerUtility ut, List<Tenant> tenantList, List<Integer> indexPagesForDocuments,
+            PDOutlineItem pdOutlineItem, boolean hideHeaderLogos) {
         for (Tenant tenant1 : tenantList) {
             boolean firstDocumentTenant = true;
             //region Adding bookmark
@@ -857,12 +878,14 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
                 //We get here the second sentence located in the header of attachment pages for the current tenant
                 String sentence = getSentenceForTenantFromDocumentCategory(tenant1, currentCategory, count);
-                addDocument(ut, documentInputStream, indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence, hideHeaderLogos);
+                addDocument(ut, documentInputStream, indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence,
+                        hideHeaderLogos);
                 firstDocumentSubject = false;
                 previousCategory = currentCategory;
             }
 
-            List<Guarantor> guarantorsOrderedByType = tenant1.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
+            List<Guarantor> guarantorsOrderedByType = tenant1.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor))
+                    .collect(Collectors.toList());
             int counterOfGuarantor = guarantorsOrderedByType.size() > 1 ? 1 : 0;
             for (Guarantor guarantor1 : guarantorsOrderedByType) {
                 boolean firstDocument = true;
@@ -923,8 +946,10 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                     //endregion
 
                     //We get here the second sentence located in the header of attachment pages for the current guarantor
-                    String sentence = getSentenceForGuarantorFromDocumentCategory(counterOfGuarantor, guarantor1.getTypeGuarantor(), currentCategory, tenant1.getFirstName(), counter);
-                    addDocument(ut, documentInputStream, indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence, hideHeaderLogos);
+                    String sentence = getSentenceForGuarantorFromDocumentCategory(counterOfGuarantor, guarantor1.getTypeGuarantor(), currentCategory,
+                            tenant1.getFirstName(), counter);
+                    addDocument(ut, documentInputStream, indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList,
+                            sentence, hideHeaderLogos);
                     firstDocumentSubject = false;
                     previousCategory = currentCategory;
 
@@ -936,7 +961,10 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
     }
 
-    private float addIndexesOfDocumentsOfTenantInCurrentPage(Tenant tenant, int indexPage, List<Integer> indexPagesForDocuments, AtomicInteger iteratorInIndexPagesForDocuments, PDDocument doc, PDType0Font fontForTitleAndSalary, PDType0Font fontIndexLines, float marginX, float yLocationFirstContentStream, float yLocationSecondContentStream, float yLocationTenantEmailContentStream, float yLocationThirdContentStream, float xLocationOfEndOfRectangule) throws IOException {
+    private float addIndexesOfDocumentsOfTenantInCurrentPage(Tenant tenant, int indexPage, List<Integer> indexPagesForDocuments,
+            AtomicInteger iteratorInIndexPagesForDocuments, PDDocument doc, PDType0Font fontForTitleAndSalary, PDType0Font fontIndexLines, float marginX,
+            float yLocationFirstContentStream, float yLocationSecondContentStream, float yLocationTenantEmailContentStream, float yLocationThirdContentStream,
+            float xLocationOfEndOfRectangule) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream1.setNonStrokingColor(GREEN);
         contentStream1.beginText();
@@ -966,7 +994,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStreamEmailTenant.beginText();
         fontSize = FONT_SIZE_FOR_CONTENT_OF_GROUP_OF_INDEXES;
         contentStreamEmailTenant.setFont(fontIndexLines, fontSize);
-        String tenantEmail = tenant.getEmail() != null ? tenant.getEmail() : "" ;
+        String tenantEmail = tenant.getEmail() != null ? tenant.getEmail() : "";
         textSize = fontSize * fontIndexLines.getStringWidth(tenantEmail) / 1000;
         offset = marginX + (WIDTH_OF_THE_TWO_COLUMNS_FOR_INDEXES - textSize) / 2;
         contentStreamEmailTenant.newLineAtOffset(offset, yLocationTenantEmailContentStream);
@@ -987,7 +1015,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         float yLocationDocTaxIndex = -1;
         float lastYLocation = yLocationThirdContentStream;
         //We obtain here the list with the categories, NOT REPEATED (distinctByKey), of documents that the tenant has. Ordered ascending by the ID of DocumentCategory.
-        List<DocumentCategory> listOfDocumentCategoryContainedForTenant = tenant.getDocuments().stream().sorted(Comparator.comparing(Document::getDocumentCategory)).filter(distinctByKey(Document::getDocumentCategory)).map(Document::getDocumentCategory).collect(Collectors.toList());
+        List<DocumentCategory> listOfDocumentCategoryContainedForTenant = tenant.getDocuments().stream()
+                .sorted(Comparator.comparing(Document::getDocumentCategory)).filter(distinctByKey(Document::getDocumentCategory))
+                .map(Document::getDocumentCategory).collect(Collectors.toList());
         for (DocumentCategory documentCategory : listOfDocumentCategoryContainedForTenant) {
             int numberOfFirstPageForCurrentTypeOfDocument = indexPagesForDocuments.get(iteratorInIndexPagesForDocuments.getAndIncrement() - 1) + 1;
             String indexText = "p." + numberOfFirstPageForCurrentTypeOfDocument + " - " + messageSource.getMessage(documentCategory.getLabel(), null, locale);
@@ -1071,12 +1101,11 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             greenBackground.curveTo(x + width + k * r, y + r, x + width + r, y + k * r, x + width + r, y);
             greenBackground.curveTo(x + width + r, y - k * r, x + width + k * r, y - r, x + width, y - r);
             greenBackground.curveTo(x + width * 2 / 3, y - r, x + width / 3, y - r, x, y - r);
-            greenBackground.curveTo(x - k * r, y - r, x - r, y - k * r, x-r, y);
+            greenBackground.curveTo(x - k * r, y - r, x - r, y - k * r, x - r, y);
             greenBackground.fill();
 
             greenBackground.fill();
             greenBackground.close();
-
 
             PDPageContentStream cSSalaryTenant = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
             cSSalaryTenant.setNonStrokingColor(DARK_GREEN);
@@ -1107,7 +1136,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         return lastYLocation;
     }
 
-    private float addIndexesOfDocumentsOfGuarantorInCurrentPage(Guarantor guarantor, int indexPage, List<Integer> indexPagesForDocuments, AtomicInteger iteratorInIndexPagesForDocuments, PDDocument doc, PDType0Font fontLinesOfTitleAndTextOfIncomingGuarantor, PDType0Font fontLinesOfDocumentIndexes, float marginX, float lastYLocation, float xLocationOfEndOfRectangule) throws IOException {
+    private float addIndexesOfDocumentsOfGuarantorInCurrentPage(Guarantor guarantor, int indexPage, List<Integer> indexPagesForDocuments,
+            AtomicInteger iteratorInIndexPagesForDocuments, PDDocument doc, PDType0Font fontLinesOfTitleAndTextOfIncomingGuarantor,
+            PDType0Font fontLinesOfDocumentIndexes, float marginX, float lastYLocation, float xLocationOfEndOfRectangule) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream1.setNonStrokingColor(GREEN);
         contentStream1.beginText();
@@ -1157,7 +1188,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         List<PDAnnotation> annotationList = doc.getPage(indexPage).getAnnotations();
         float yLocationDocFinancialIndex = -1;
         //We obtain here the list with the categories, NOT REPEATED (distinctByKey), of documents that the guarantor has. Ordered ascending by the ID of DocumentCategory.
-        List<DocumentCategory> listOfDocumentCategoryContainedForGuarantor = guarantor.getDocuments().stream().sorted(Comparator.comparing(Document::getDocumentCategory)).filter(distinctByKey(Document::getDocumentCategory)).map(Document::getDocumentCategory).collect(Collectors.toList());
+        List<DocumentCategory> listOfDocumentCategoryContainedForGuarantor = guarantor.getDocuments().stream()
+                .sorted(Comparator.comparing(Document::getDocumentCategory)).filter(distinctByKey(Document::getDocumentCategory))
+                .map(Document::getDocumentCategory).collect(Collectors.toList());
         for (DocumentCategory documentCategory : listOfDocumentCategoryContainedForGuarantor) {
             int numberOfFirstPageForCurrentTypeOfDocument = indexPagesForDocuments.get(iteratorInIndexPagesForDocuments.getAndIncrement() - 1) + 1;
             String indexText = "p." + numberOfFirstPageForCurrentTypeOfDocument + " - ";
@@ -1240,7 +1273,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     // Fills the index pages (added by createFirstsPages) with the summary boxes and
     // the clickable per-tenant document indexes. Not called for a non verified dossier
     // (TO_PROCESS or COMPLETED), which has no index pages.
-    private void fillIndexPages(PDDocument doc, ApartmentSharing apartmentSharing, List<Tenant> tenantList, List<Integer> indexPagesForDocuments) throws IOException {
+    private void fillIndexPages(PDDocument doc, ApartmentSharing apartmentSharing, List<Tenant> tenantList, List<Integer> indexPagesForDocuments)
+            throws IOException {
         PDType0Font fontSpectralExtraBold = Fonts.SPECTRAL_EXTRA_BOLD.load(doc);
         PDType0Font fontMarianneRegular = Fonts.MARIANNE_REGULAR.load(doc);
         PDType0Font fontMarianneBold = Fonts.MARIANNE_BOLD.load(doc);
@@ -1276,7 +1310,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 addContentInFirstRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, apartmentSharing.getApplicationType());
                 //endregion
                 //region Text Box (Revenus mensuels nets cumulés)
-                addContentInSecondRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, fontMarianneBold, apartmentSharing.totalSalary() + " €");
+                addContentInSecondRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, fontMarianneBold,
+                        apartmentSharing.totalSalary() + " €");
                 //endregion
                 //region Text Box (Leur garant)
                 addContentInThirdRectanguleInFirstTemplateOfIndexes(indexPage, doc, fontMarianneRegular, fontMarianneBold, tenantList);
@@ -1298,18 +1333,30 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             }
 
             //region Details of left Tenant in current page
-            float lastYLocationLeftSide = addIndexesOfDocumentsOfTenantInCurrentPage(leftTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
-            List<Guarantor> guarantorsLeftTenant = leftTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
+            float lastYLocationLeftSide = addIndexesOfDocumentsOfTenantInCurrentPage(leftTenantInPage, indexPage, indexPagesForDocuments,
+                    iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, yLocationFirstContentStream,
+                    yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream,
+                    X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
+            List<Guarantor> guarantorsLeftTenant = leftTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor))
+                    .collect(Collectors.toList());
             for (Guarantor guarantor : guarantorsLeftTenant) {
-                lastYLocationLeftSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, lastYLocationLeftSide, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
+                lastYLocationLeftSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments,
+                        iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, lastYLocationLeftSide,
+                        X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
             }
             //endregion
             //region Details of right Tenant in current page
             if (rightTenantInPage != null) {
-                float lastYLocationRightSide = addIndexesOfDocumentsOfTenantInCurrentPage(rightTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
-                List<Guarantor> guarantorsRightTenant = rightTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
+                float lastYLocationRightSide = addIndexesOfDocumentsOfTenantInCurrentPage(rightTenantInPage, indexPage, indexPagesForDocuments,
+                        iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT,
+                        yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream,
+                        X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
+                List<Guarantor> guarantorsRightTenant = rightTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor))
+                        .collect(Collectors.toList());
                 for (Guarantor guarantor : guarantorsRightTenant) {
-                    lastYLocationRightSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, lastYLocationRightSide, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
+                    lastYLocationRightSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments,
+                            iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT,
+                            lastYLocationRightSide, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
                 }
             }
             //endregion
@@ -1402,7 +1449,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
         // optimisation
         try (ByteArrayOutputStream finalResult = new ByteArrayOutputStream();
-             PDDocument originDocument = Loader.loadPDF(result.toByteArray())) {
+                PDDocument originDocument = Loader.loadPDF(result.toByteArray())) {
 
             new PdfOptimizer().optimize(originDocument);
             pdfSignatureService.signAndSave(originDocument, finalResult);

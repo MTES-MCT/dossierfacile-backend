@@ -54,7 +54,61 @@
         <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
         <org-apache-commons-lang3.version>3.18.0</org-apache-commons-lang3.version>
         <netty.version>4.1.135.Final</netty.version>
+        <!-- Keep in sync with java.checkstyle.version in .vscode/settings.json. -->
+        <checkstyle.version>14.3.0</checkstyle.version>
+        <dossierfacile.configDirectory>${maven.multiModuleProjectDirectory}/config</dossierfacile.configDirectory>
     </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>3.10.3</version>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <eclipse>
+                            <version>4.41</version>
+                            <file>${dossierfacile.configDirectory}/eclipse-formatter.xml</file>
+                        </eclipse>
+                    </java>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.6.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>${dossierfacile.configDirectory}/checkstyle.xml</configLocation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <includeResources>false</includeResources>
+                    <includeTestResources>false</includeTestResources>
+                    <excludeGeneratedSources>true</excludeGeneratedSources>
+                    <failOnViolation>true</failOnViolation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencyManagement>
         <dependencies>

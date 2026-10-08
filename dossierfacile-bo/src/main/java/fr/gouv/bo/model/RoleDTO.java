@@ -5,4 +5,5 @@ import fr.dossierfacile.common.enums.Role;
 public record RoleDTO(
         String displayValue,
         Role value
-){}
+) {
+}

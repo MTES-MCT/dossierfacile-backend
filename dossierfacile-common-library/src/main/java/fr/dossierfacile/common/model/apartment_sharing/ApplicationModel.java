@@ -29,6 +29,6 @@ public class ApplicationModel {
     private FileStatus dossierPdfDocumentStatus;
     private TenantFileStatus status;
     private List<TenantModel> tenants;
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;
 }

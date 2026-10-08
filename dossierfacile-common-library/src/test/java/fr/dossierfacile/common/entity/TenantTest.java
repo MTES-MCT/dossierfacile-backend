@@ -39,4 +39,3 @@ class TenantTest {
         assertThat(tenant.getPreferredName()).isNull();
     }
 }
-

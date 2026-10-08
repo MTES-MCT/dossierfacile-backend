@@ -21,4 +21,3 @@ public @interface CheckCoTenantCount {
 
     Class<? extends Payload>[] payload() default {};
 }
-

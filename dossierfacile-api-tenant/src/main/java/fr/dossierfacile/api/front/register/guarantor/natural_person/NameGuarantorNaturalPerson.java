@@ -46,7 +46,8 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
     @Transactional
     public TenantModel saveStep(Tenant tenant, NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
         tenant = tenantRepository.findOneById(tenant.getId());
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, nameGuarantorNaturalPersonForm.getGuarantorId())
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, nameGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(nameGuarantorNaturalPersonForm.getGuarantorId()));
 
         // special case : When optional preferred name is not set, the front send an empty string
@@ -86,6 +87,7 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
             TransactionalUtil.afterCommit(() -> mailService.sendEmailToGuarantor(guarantorEmail, guarantorName, creator));
         }
 
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
+        return tenantMapper.toTenantModel(tenantRepository.save(tenant),
+                (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 }

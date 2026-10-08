@@ -40,8 +40,7 @@ public class DocumentFinancialForm extends DocumentForm implements IDocumentFina
     private Long id;
 
     @NotNull
-    @DocumentSubcategorySubset(anyOf =
-            {SALARY, SOCIAL_SERVICE, RENT, PENSION, SCHOLARSHIP, NO_INCOME})
+    @DocumentSubcategorySubset(anyOf = {SALARY, SOCIAL_SERVICE, RENT, PENSION, SCHOLARSHIP, NO_INCOME})
     private DocumentSubCategory typeDocumentFinancial;
 
     @Nullable

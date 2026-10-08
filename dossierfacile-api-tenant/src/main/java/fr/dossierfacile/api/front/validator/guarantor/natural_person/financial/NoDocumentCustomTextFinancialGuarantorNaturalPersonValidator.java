@@ -5,21 +5,25 @@ import fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class NoDocumentCustomTextFinancialGuarantorNaturalPersonValidator implements ConstraintValidator<NoDocumentCustomTextFinancialGuarantorNaturalPerson, DocumentFinancialGuarantorNaturalPersonForm> {
+public class NoDocumentCustomTextFinancialGuarantorNaturalPersonValidator
+        implements
+            ConstraintValidator<NoDocumentCustomTextFinancialGuarantorNaturalPerson, DocumentFinancialGuarantorNaturalPersonForm> {
     @Override
     public void initialize(NoDocumentCustomTextFinancialGuarantorNaturalPerson constraintAnnotation) {
         //this method is empty
     }
 
     @Override
-    public boolean isValid(DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm,
+            ConstraintValidatorContext constraintValidatorContext) {
         if (documentFinancialGuarantorNaturalPersonForm.getNoDocument() == null) {
             return true;
         }
         boolean noDocument = documentFinancialGuarantorNaturalPersonForm.getNoDocument();
         boolean isValid = true;
         if (noDocument) {
-            isValid = documentFinancialGuarantorNaturalPersonForm.getCustomText() != null && !documentFinancialGuarantorNaturalPersonForm.getCustomText().isBlank();
+            isValid = documentFinancialGuarantorNaturalPersonForm.getCustomText() != null
+                    && !documentFinancialGuarantorNaturalPersonForm.getCustomText().isBlank();
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext

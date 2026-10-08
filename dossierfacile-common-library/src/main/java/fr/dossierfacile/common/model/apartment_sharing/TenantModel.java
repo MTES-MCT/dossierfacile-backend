@@ -35,7 +35,7 @@ public class TenantModel {
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;
     private Boolean partnerLinked;
     private Boolean honorDeclaration;

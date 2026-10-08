@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class DocumentAnalysisStatusResponse {
     private Long documentId;
     private AnalysisStatus status;
-    private Integer analyzedFiles;      // Only for IN_PROGRESS
-    private Integer totalFiles;         // Only for IN_PROGRESS
+    private Integer analyzedFiles; // Only for IN_PROGRESS
+    private Integer totalFiles; // Only for IN_PROGRESS
     private DocumentAnalysisReportModel analysisReport; // Only for COMPLETED
 }

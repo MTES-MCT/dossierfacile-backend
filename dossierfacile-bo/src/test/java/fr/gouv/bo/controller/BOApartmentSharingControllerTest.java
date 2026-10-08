@@ -94,7 +94,6 @@ class BOApartmentSharingControllerTest {
         ReflectionTestUtils.setField(controller, "tenantBaseUrl", "https://example.com");
     }
 
-
     @Test
     void enrichApartmentSharingLinks_shouldCountDownloadsBasedOnDocumentLogsOnly() throws Exception {
         // Given
@@ -127,11 +126,11 @@ class BOApartmentSharingControllerTest {
         assertThat(enrichedLink.getAccessLogs()).hasSize(5)
                 .extracting(LinkLogDTO::getLinkType)
                 .containsExactlyInAnyOrder(
-                    LinkType.DOCUMENT,
-                    LinkType.DOCUMENT,
-                    LinkType.DOCUMENT,
-                    LinkType.FULL_APPLICATION,
-                    LinkType.LIGHT_APPLICATION
+                        LinkType.DOCUMENT,
+                        LinkType.DOCUMENT,
+                        LinkType.DOCUMENT,
+                        LinkType.FULL_APPLICATION,
+                        LinkType.LIGHT_APPLICATION
                 );
     }
 

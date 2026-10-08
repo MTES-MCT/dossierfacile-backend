@@ -14,8 +14,7 @@ public enum PdfFileTemplate {
     OTHER_TABLE_OF_CONTENT_PAGES("template_Dossier_PDF_first_page_2.pdf"),
     ATTACHMENTS_AND_CLARIFICATIONS("template_Dossier_PDF_attachments_and_clarification.pdf"),
     DOCUMENT_FINANCIAL("template_document_financial.pdf"),
-    DOCUMENT_TAX("template_document_tax.pdf")
-    ;
+    DOCUMENT_TAX("template_document_tax.pdf");
 
     private final String resourcePath;
 

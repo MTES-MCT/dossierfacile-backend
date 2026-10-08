@@ -246,7 +246,6 @@ class LotteryDrawServiceImplTest {
             verify(tenantCommonRepository).refreshRank();
         }
 
-
         @Test
         void should_cancel_when_the_dossier_is_no_longer_completed() {
             mockCapacity(10);

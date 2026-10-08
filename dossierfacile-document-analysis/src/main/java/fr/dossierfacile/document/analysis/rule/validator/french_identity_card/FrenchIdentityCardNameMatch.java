@@ -50,11 +50,13 @@ public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
         }
 
         if (documentIAAnalyses.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         if (nameToMatch == null) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var isNameMatch = false;
@@ -64,7 +66,8 @@ public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
         if (extractedIdentity.isPresent() && extractedIdentity.get().isValid()) {
             isNameMatch = NameUtil.isNameMatching(nameToMatch, extractedIdentity.get());
         } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var listOfExtractedNames = List.of(
@@ -81,9 +84,11 @@ public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
         );
 
         if (isNameMatch) {
-            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);
+            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.PASSED);
         } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.FAILED);
         }
     }
 

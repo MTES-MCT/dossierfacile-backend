@@ -48,7 +48,7 @@ public class ApplicationController {
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
-                                                 @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader) {
+            @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader) {
         Tenant tenant = null;
         try {
             tenant = authenticationFacade.getLoggedTenant();
@@ -81,8 +81,8 @@ public class ApplicationController {
 
     @GetMapping(value = "/links/{token}/documents/{documentName:.+}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadDocumentByLink(@PathVariable UUID token,
-                                       @PathVariable String documentName,
-                                       HttpServletResponse response) {
+            @PathVariable String documentName,
+            HttpServletResponse response) {
         Document document;
         try {
             document = apartmentSharingService.findDocumentByLink(token, documentName);
