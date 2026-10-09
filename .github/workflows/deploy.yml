@@ -15,6 +15,11 @@ on:
         type: choice
         options:
           - preprod
+          - prod
+      confirm:
+        description: I confirm a deployment to production
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -27,7 +32,7 @@ concurrency:
 env:
   ENVIRONMENT: ${{ inputs.environment }}
   # Scalingo region hosting the apps of each environment
-  SCALINGO_REGION: ${{ fromJSON('{"preprod":"osc-fr1"}')[inputs.environment] }}
+  SCALINGO_REGION: ${{ fromJSON('{"preprod":"osc-fr1","prod":"osc-secnum-fr1"}')[inputs.environment] }}
 
 jobs:
   resolve:
@@ -43,7 +48,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REF: ${{ inputs.ref }}
+          CONFIRM: ${{ inputs.confirm }}
         run: |
+          if [[ "$ENVIRONMENT" == "prod" && "$CONFIRM" != "true" ]]; then
+            echo "::error::Production deployment not confirmed: tick the confirmation box when launching the workflow"
+            exit 1
+          fi
           sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF" --jq .sha)
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "Deploying \`$REF\` ($sha) to **$ENVIRONMENT**" >> "$GITHUB_STEP_SUMMARY"
