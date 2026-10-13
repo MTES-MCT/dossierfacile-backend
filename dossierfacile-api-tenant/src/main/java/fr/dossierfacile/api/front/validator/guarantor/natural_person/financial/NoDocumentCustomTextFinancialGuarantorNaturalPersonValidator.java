@@ -5,6 +5,8 @@ import fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+import static fr.dossierfacile.api.front.validator.CustomTextValidation.requireCustomText;
+
 public class NoDocumentCustomTextFinancialGuarantorNaturalPersonValidator
         implements
             ConstraintValidator<NoDocumentCustomTextFinancialGuarantorNaturalPerson, DocumentFinancialGuarantorNaturalPersonForm> {
@@ -19,18 +21,9 @@ public class NoDocumentCustomTextFinancialGuarantorNaturalPersonValidator
         if (documentFinancialGuarantorNaturalPersonForm.getNoDocument() == null) {
             return true;
         }
-        boolean noDocument = documentFinancialGuarantorNaturalPersonForm.getNoDocument();
-        boolean isValid = true;
-        if (noDocument) {
-            isValid = documentFinancialGuarantorNaturalPersonForm.getCustomText() != null
-                    && !documentFinancialGuarantorNaturalPersonForm.getCustomText().isBlank();
-            if (!isValid) {
-                constraintValidatorContext.disableDefaultConstraintViolation();
-                constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.NotEmpty.message}")
-                        .addPropertyNode("customText").addConstraintViolation();
-            }
+        if (documentFinancialGuarantorNaturalPersonForm.getNoDocument()) {
+            return requireCustomText(documentFinancialGuarantorNaturalPersonForm.getCustomText(), constraintValidatorContext);
         }
-        return isValid;
+        return true;
     }
 }
