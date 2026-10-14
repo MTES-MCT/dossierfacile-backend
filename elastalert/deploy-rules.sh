@@ -29,7 +29,6 @@ build() {
       OUTPUT_FILE="dist/elastalert/$(basename "$file")"
       cp "$file" "$OUTPUT_FILE"
       sed -i '' "s|{{mattermost_webhook_elk_alert_url}}|$MATTERMOST_ELK_ALERT|g" "$OUTPUT_FILE"
-      sed -i '' "s|{{mattermost_webhook_cdn_alert_url}}|$MATTERMOST_CDN_ALERT|g" "$OUTPUT_FILE"
     fi
   done
 

@@ -18,7 +18,6 @@ This shell script manages rules for ElastAlert. It provides two main features:
 
 ```
 MATTERMOST_ELK_ALERT=https://mattermost.incubateur.net/hooks/xxxx
-MATTERMOST_CDN_ALERT=https://mattermost.incubateur.net/hooks/xxxx
 ```
 
 ---
