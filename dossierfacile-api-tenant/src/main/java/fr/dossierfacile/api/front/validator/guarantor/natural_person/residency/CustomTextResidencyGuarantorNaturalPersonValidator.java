@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import static fr.dossierfacile.api.front.validator.CustomTextValidation.requireCustomText;
 import static fr.dossierfacile.api.front.validator.tenant.residency.CustomTextResidencyValidator.validateCustomText;
 
 @Slf4j
@@ -24,7 +25,14 @@ public class CustomTextResidencyGuarantorNaturalPersonValidator
         boolean isCustomTextPresent = StringUtils.isNotBlank(documentForm.getCustomText());
         DocumentSubCategory subCategory = documentForm.getTypeDocumentResidency();
 
-        return validateCustomText(constraintValidatorContext, subCategory, isCustomTextPresent);
+        if (!validateCustomText(constraintValidatorContext, subCategory, isCustomTextPresent)) {
+            return false;
+        }
+        // For a guarantor, OTHER_RESIDENCY relies on the explanation: files are optional, the text is not
+        if (subCategory == DocumentSubCategory.OTHER_RESIDENCY) {
+            return requireCustomText(documentForm.getCustomText(), constraintValidatorContext);
+        }
+        return true;
     }
 
 }

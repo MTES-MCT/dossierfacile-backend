@@ -116,21 +116,26 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         long documentId = document.getId();
         DocumentCategory documentCategory = document.getDocumentCategory();
         DocumentSubCategory documentSubCategory = document.getDocumentSubCategory();
+        List<File> files = fileRepository.findAllByDocumentId(document.getId());
+
+        // OTHER_RESIDENCY: the explanation alone stands for the document only when nothing was uploaded.
+        // Files may also be removed afterwards without noDocument being recomputed, hence the empty check.
+        boolean otherResidencyWithoutFile = documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY
+                && (Boolean.TRUE.equals(document.getNoDocument()) || CollectionUtils.isEmpty(files));
 
         if (documentSubCategory == DocumentSubCategory.MY_PARENTS
                 || documentSubCategory == DocumentSubCategory.LESS_THAN_YEAR
-                || documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY
+                || otherResidencyWithoutFile
                 || ((documentSubCategory == DocumentSubCategory.OTHER_TAX || documentCategory == DocumentCategory.FINANCIAL)
                         && document.getNoDocument())) {
             return emptyBOPdfDocumentTemplate.render(document);
         }
 
-        List<File> files = fileRepository.findAllByDocumentId(document.getId());
         if (!CollectionUtils.isEmpty(files)) {
             BOPdfDocumentTemplate pdfDocumentTemplateToUse = (documentCategory == IDENTIFICATION
                     || documentCategory == IDENTIFICATION_LEGAL_PERSON) ? identificationPdfDocumentTemplate : boPdfDocumentTemplate;
 
-            return pdfDocumentTemplateToUse.render(files.stream()
+            List<FileInputStream> fileInputStreams = files.stream()
                     .map(file -> {
                         try {
                             MediaType mediaType = MediaType.valueOf(file.getStorageFile().getContentType());
@@ -147,8 +152,13 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                         }
                     })
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList())
-            );
+                    .collect(Collectors.toList());
+
+            if (documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY) {
+                // Prepend the explanation page so the reader sees both the text and the uploaded proof
+                fileInputStreams.add(0, new FileInputStream(emptyBOPdfDocumentTemplate.render(document), MediaType.APPLICATION_PDF));
+            }
+            return pdfDocumentTemplateToUse.render(fileInputStreams);
 
         } else {
             log.error("No file were found in the database for generate document [" + documentCategory.name() + "] with ID [" + documentId + "]");
