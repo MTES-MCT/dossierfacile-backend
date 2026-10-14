@@ -41,7 +41,14 @@ def run(es, es_index, error_threshold, env, application, start_time, end_time, s
             "errors": {
                 "filter": {"terms": {"response_status": COUNTED_STATUSES}},
                 "aggs": {
-                    "by_status": {"terms": {"field": "response_status", "size": len(COUNTED_STATUSES)}},
+                    "by_status": {
+                        "filters": {
+                            "filters": {
+                                str(status): {"term": {"response_status": status}}
+                                for status in COUNTED_STATUSES
+                            }
+                        }
+                    },
                     "top_routes": {
                         "composite": {
                             "size": 1000,
@@ -69,7 +76,10 @@ def run(es, es_index, error_threshold, env, application, start_time, end_time, s
     if ratio < error_threshold or error_count < min_error_count:
         return
 
-    by_status = {b["key"]: b["doc_count"] for b in errors_agg["by_status"]["buckets"]}
+    by_status: dict[int, int] = {
+        int(status): bucket["doc_count"]
+        for status, bucket in errors_agg["by_status"]["buckets"].items()
+    }
     top_routes = sorted(errors_agg["top_routes"]["buckets"], key=lambda b: b["doc_count"], reverse=True)[:TOP_ROUTES]
 
     window_minutes = int((end_time - start_time).total_seconds() / 60)
