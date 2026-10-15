@@ -30,7 +30,7 @@ public class DeleteTemporaryFilesTask extends AbstractTask {
     private final StorageFileRepository storageFileRepository;
     private final FileStorageService fileStorageService;
 
-    @Value("${scheduled.process.storage.delete.temporary.delay.hours:24}")
+    @Value("${scheduled.process.storage.delete.temporary.delay.hours:48}")
     private Long delayBeforeDeleteHours;
 
     private void deleteTemporaryFilesForProvider(ObjectStorageProvider provider, int limit) {

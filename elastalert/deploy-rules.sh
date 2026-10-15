@@ -28,8 +28,8 @@ build() {
     if [ -f "$file" ]; then
       OUTPUT_FILE="dist/elastalert/$(basename "$file")"
       cp "$file" "$OUTPUT_FILE"
-      sed -i '' "s|{{mattermost_webhook_elk_alert_url}}|$MATTERMOST_ELK_ALERT|g" "$OUTPUT_FILE"
-      sed -i '' "s|{{mattermost_webhook_cdn_alert_url}}|$MATTERMOST_CDN_ALERT|g" "$OUTPUT_FILE"
+      # -i.bak + rm keeps the command portable between GNU sed (Linux) and BSD sed (macOS)
+      sed -i.bak "s|{{mattermost_webhook_elk_alert_url}}|$MATTERMOST_ELK_ALERT|g" "$OUTPUT_FILE" && rm -f "$OUTPUT_FILE.bak"
     fi
   done
 

@@ -4,14 +4,15 @@
       "rule_file": "rules/api_500_ratio_alert.py",
       "application": "api-tenant",
       "index": "aggregator-logs-*",
-      "error_threshold": 0.05,
+      "min_error_count": 200,
       "env": "prod"
     },
     {
       "rule_file": "rules/api_4xx_ratio_alert.py",
       "application": "api-tenant",
       "index": "aggregator-logs-*",
-      "error_threshold": 0.05,
+      "error_threshold": 0.20,
+      "min_error_count": 1000,
       "env": "prod"
     }
   ]

@@ -8,20 +8,19 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Slf4j
 @Service
 public class CleanDocumentScheduledService {
-    @Value("${file.retention.days}")
-    private long fileRetentionDays;
+    @Value("${file.retention.hours}")
+    private long fileRetentionHours;
     @Autowired
     private DocumentService documentService;
 
     @Scheduled(cron = "${cron.process.cleanup}")
     public void scheduleTaskUsingCronExpression() {
-        log.info("Delete documents schedule tasks using cron jobs");
-        LocalDateTime date = LocalDateTime.now().minusDays(fileRetentionDays).with(LocalTime.MIN);
+        LocalDateTime date = LocalDateTime.now().minusHours(fileRetentionHours);
+        log.info("Deleting watermark documents not downloaded and created before {}", date);
         documentService.cleanDocumentsBefore(date);
     }
 }
