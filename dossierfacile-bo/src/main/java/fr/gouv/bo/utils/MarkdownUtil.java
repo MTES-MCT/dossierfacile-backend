@@ -50,8 +50,7 @@ public class MarkdownUtil {
 
     private static class LinkAttributeProvider implements AttributeProvider {
 
-        public LinkAttributeProvider(AttributeProviderContext context) {
-        }
+        public LinkAttributeProvider(AttributeProviderContext context) {}
 
         @Override
         public void setAttributes(Node node, String tagName, Map<String, String> attributes) {

@@ -14,6 +14,10 @@
     <name>dossierfacile-api-owner</name>
     <description>Owner api for DossierFacile</description>
 
+    <properties>
+        <!-- This module's .mvn wrapper directory changes maven.multiModuleProjectDirectory. -->
+        <dossierfacile.configDirectory>${project.basedir}/../config</dossierfacile.configDirectory>
+    </properties>
 
     <dependencies>
         <dependency>

@@ -119,7 +119,7 @@ public abstract class User implements Serializable {
     private String acquisitionSource;
     private String acquisitionMedium;
 
-    public User(UserType userType){
+    public User(UserType userType) {
         this.userType = userType;
     }
 

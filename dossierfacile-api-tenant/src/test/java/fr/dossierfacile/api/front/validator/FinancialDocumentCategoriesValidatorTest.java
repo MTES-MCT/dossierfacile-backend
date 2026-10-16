@@ -18,7 +18,7 @@ class FinancialDocumentCategoriesValidatorTest {
     private final FinancialDocumentCategoriesValidator validator = new FinancialDocumentCategoriesValidator();
 
     record ValidatorTestParam(DocumentSubCategory subCategory, DocumentCategoryStep step, String expectedError,
-                              Boolean result) {
+            Boolean result) {
     }
 
     static Stream<Arguments> provideArgumentsForTest() {
@@ -104,7 +104,7 @@ class FinancialDocumentCategoriesValidatorTest {
                 Arguments.of(new ValidatorTestParam(
                         DocumentSubCategory.SCHOLARSHIP,
                         DocumentCategoryStep.SALARY_EMPLOYED_LESS_3_MONTHS,
-                        "For document sub category " +  DocumentSubCategory.SCHOLARSHIP + " category step has to be null",
+                        "For document sub category " + DocumentSubCategory.SCHOLARSHIP + " category step has to be null",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(
@@ -116,7 +116,7 @@ class FinancialDocumentCategoriesValidatorTest {
                 Arguments.of(new ValidatorTestParam(
                         DocumentSubCategory.NO_INCOME,
                         DocumentCategoryStep.SALARY_EMPLOYED_LESS_3_MONTHS,
-                        "For document sub category " +  DocumentSubCategory.NO_INCOME + " category step has to be null",
+                        "For document sub category " + DocumentSubCategory.NO_INCOME + " category step has to be null",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(
@@ -159,6 +159,5 @@ class FinancialDocumentCategoriesValidatorTest {
 
         assertThat(result).isEqualTo(validatorTestParam.result);
     }
-
 
 }

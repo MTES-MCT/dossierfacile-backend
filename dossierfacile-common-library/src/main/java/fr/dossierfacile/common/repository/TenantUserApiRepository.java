@@ -14,7 +14,6 @@ import java.util.Optional;
 public interface TenantUserApiRepository extends JpaRepository<TenantUserApi, TenantUserApiKey> {
     Optional<TenantUserApi> findFirstByTenantAndUserApi(Tenant tenant, UserApi userApi);
 
-
     List<TenantUserApi> findAllByTenant(Tenant tenant);
 
     @Query("""
@@ -25,13 +24,11 @@ public interface TenantUserApiRepository extends JpaRepository<TenantUserApi, Te
             """)
     List<TenantUserApi> findAllByApartmentSharingAndUserApi(@Param("apartmentSharingId") Long apartmentSharingId, @Param("userApiId") Long userApiId);
 
-    Optional<TenantUserApi> findFirstByUserApiAndTenantIn(UserApi partner, List<Tenant> tenants);
-
     @Query(value = """
             SELECT count(*) > 0
             FROM tenant_userapi
             INNER JOIN user_api ON user_api.id = tenant_userapi.userapi_id
-            WHERE tenant_userapi.tenant_id = :tenantId AND user_api.name = :userApiName 
+            WHERE tenant_userapi.tenant_id = :tenantId AND user_api.name = :userApiName
             """, nativeQuery = true)
     boolean existsByUserApiNameAndTenantId(@Param("userApiName") String userApiName, @Param("tenantId") Long tenantId);
 }

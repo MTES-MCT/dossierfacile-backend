@@ -408,7 +408,7 @@ class ApplicationFullMapperTest {
             return mapper;
         }
 
-        // An opted-in partner sees the real COMPLETED status (webhooks, api-partner)
+        // An opted-in partner sees the real COMPLETED status (webhooks)
         @Test
         void shouldKeepCompletedStatusWhenMappingForAnOptedInPartner() {
             UserApi userApi = UserApi.builder().id(200L).name("partner").build();
@@ -435,7 +435,7 @@ class ApplicationFullMapperTest {
         }
 
         // The COMPLETED status must never reach a DTO served to a partner that did not
-        // opt in (webhooks, api-partner): this test protects the defensive masking
+        // opt in (webhooks): this test protects the defensive masking
         @Test
         void shouldMaskCompletedStatusWhenMappingForAPartner() {
             UserApi userApi = UserApi.builder().id(200L).name("partner").build();

@@ -31,7 +31,7 @@ public class TenantModel {
     private TenantFileStatus status;
     private boolean honorDeclaration;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;
     private String clarification;
     private ApartmentSharingModel apartmentSharing;

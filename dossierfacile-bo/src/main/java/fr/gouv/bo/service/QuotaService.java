@@ -56,10 +56,10 @@ public class QuotaService {
 
     private int limitFor(ActionOperatorType action) {
         return switch (action) {
-            case START_PROCESS    -> limitStartProcess;
+            case START_PROCESS -> limitStartProcess;
             case VIEW_APPLICATION -> limitViewApplication;
-            case SEARCH_TENANT    -> limitSearchTenant;
-            case STOP_PROCESS     -> throw new IllegalArgumentException(
+            case SEARCH_TENANT -> limitSearchTenant;
+            case STOP_PROCESS -> throw new IllegalArgumentException(
                     "No quota is defined for action " + action);
         };
     }

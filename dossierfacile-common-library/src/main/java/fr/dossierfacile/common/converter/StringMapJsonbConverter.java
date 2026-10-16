@@ -33,10 +33,10 @@ public class StringMapJsonbConverter implements AttributeConverter<Map<String, S
             return Collections.emptyMap();
         }
         try {
-            return OBJECT_MAPPER.readValue(dbData, new TypeReference<Map<String, String>>() {});
+            return OBJECT_MAPPER.readValue(dbData, new TypeReference<Map<String, String>>() {
+            });
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to deserialize JSON to metadata map", e);
         }
     }
 }
-

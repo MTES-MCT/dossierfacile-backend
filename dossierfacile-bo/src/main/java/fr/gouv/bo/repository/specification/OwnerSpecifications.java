@@ -10,8 +10,7 @@ import java.util.Locale;
 
 public final class OwnerSpecifications {
 
-    private OwnerSpecifications() {
-    }
+    private OwnerSpecifications() {}
 
     public static Specification<Owner> emailContains(String email) {
         if (email == null || email.isBlank()) {
@@ -54,4 +53,3 @@ public final class OwnerSpecifications {
         };
     }
 }
-

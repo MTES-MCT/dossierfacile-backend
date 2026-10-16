@@ -61,7 +61,8 @@ public class AdemeApiServiceImpl implements AdemeApiService {
         this.httpClient = httpClient;
     }
 
-    public AdemeResultModel getDpeDetails(String dpeNumber) throws AdemeApiInternalServerErrorException, AdemeApiBadRequestException, AdemeApiUnauthorizedException, AdemeApiNotFoundException, InterruptedException {
+    public AdemeResultModel getDpeDetails(String dpeNumber) throws AdemeApiInternalServerErrorException, AdemeApiBadRequestException,
+            AdemeApiUnauthorizedException, AdemeApiNotFoundException, InterruptedException {
         String url = ademeApiBaseUrl + "/pub/dpe/" + dpeNumber;
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))

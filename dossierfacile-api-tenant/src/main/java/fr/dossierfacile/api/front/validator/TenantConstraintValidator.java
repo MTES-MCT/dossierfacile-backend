@@ -16,8 +16,7 @@ public abstract class TenantConstraintValidator<A extends Annotation, F extends 
     private TenantService tenantService;
 
     @Override
-    public void initialize(A constraintAnnotation) {
-    }
+    public void initialize(A constraintAnnotation) {}
 
     protected Tenant getTenant(F form) {
         return (form.getTenantId() == null) ? authenticationFacade.getLoggedTenant() : tenantService.findById(form.getTenantId());

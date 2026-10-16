@@ -141,8 +141,10 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         if (!matches(tenant, user)) {
             if (!Strings.CI.equals(tenant.getEmail(), user.getEmail())) {
                 //Don't automatically merge
-                log.error("Tenant email and current logged email mismatch FC? '%s' vs '%s' - tenant won't be synchronized".formatted(tenant.getEmail(), user.getEmail()));
-                tenant.setWarningMessage("Attention, l'email de compte est '%s' et l'email de connexion est '%s'".formatted(tenant.getEmail(), user.getEmail()));
+                log.error("Tenant email and current logged email mismatch FC? '%s' vs '%s' - tenant won't be synchronized".formatted(tenant.getEmail(),
+                        user.getEmail()));
+                tenant.setWarningMessage(
+                        "Attention, l'email de compte est '%s' et l'email de connexion est '%s'".formatted(tenant.getEmail(), user.getEmail()));
                 return tenant;
             }
             var userHasBeenLinkedToFranceConnect = false;
@@ -152,7 +154,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
                 logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
                 userHasBeenLinkedToFranceConnect = true;
-            } else if (tenant.getKeycloakId() == null ){
+            } else if (tenant.getKeycloakId() == null) {
                 log.info("First tenant connection from DF, for tenant with ID {}", tenant.getId());
                 logService.saveLog(LogType.ACCOUNT_LINK, tenant.getId());
             }
@@ -194,8 +196,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 && tenant.getFranceConnect() == user.isFranceConnect()
                 && (!user.isFranceConnect() ||
                 // TODO : The || should be a &&
-                (Strings.CI.equals(tenant.getUserFirstName(), user.getGivenName()) ||
-                        Strings.CI.equals(tenant.getUserLastName(), user.getFamilyName())
-                ));
+                        (Strings.CI.equals(tenant.getUserFirstName(), user.getGivenName()) ||
+                                Strings.CI.equals(tenant.getUserLastName(), user.getFamilyName())));
     }
 }

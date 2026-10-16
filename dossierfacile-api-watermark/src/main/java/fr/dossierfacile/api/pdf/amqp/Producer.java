@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.pdf.amqp;
 
-
 import com.google.gson.Gson;
 import fr.dossierfacile.api.pdf.amqp.model.DocumentModel;
 import lombok.RequiredArgsConstructor;

@@ -5,7 +5,7 @@ import java.awt.image.*;
 
 public final class ImageUtils {
 
-    private ImageUtils(){}
+    private ImageUtils() {}
 
     public static class GrayBytes {
         public final byte[] data;
@@ -14,7 +14,10 @@ public final class ImageUtils {
         public final int stride;
 
         public GrayBytes(byte[] data, int width, int height, int stride) {
-            this.data = data; this.width = width; this.height = height; this.stride = stride;
+            this.data = data;
+            this.width = width;
+            this.height = height;
+            this.stride = stride;
         }
     }
 

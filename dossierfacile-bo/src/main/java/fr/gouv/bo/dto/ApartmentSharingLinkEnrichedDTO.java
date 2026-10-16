@@ -16,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApartmentSharingLinkEnrichedDTO {
-    
+
     private Long id;
     private UUID token;
     private String title;
@@ -30,22 +30,22 @@ public class ApartmentSharingLinkEnrichedDTO {
     private String email;
     private Long partnerId;
     private String partnerName;
-    
+
     // Creator info
     private Long createdBy;
     private String createdByName;
-    
+
     // Visit statistics
     private long nbVisits;
     private LocalDateTime firstVisit;
     private LocalDateTime lastVisit;
-    
+
     // Download statistics (for partner links)
     private long nbDownloads;
-    
+
     // Access logs
     private List<LinkLogDTO> accessLogs;
-    
+
     // Complete URL
     private String fullUrl;
 
@@ -71,4 +71,3 @@ public class ApartmentSharingLinkEnrichedDTO {
                 .build();
     }
 }
-

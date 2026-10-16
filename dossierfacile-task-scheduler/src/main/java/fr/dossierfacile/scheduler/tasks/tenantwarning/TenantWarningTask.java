@@ -132,9 +132,9 @@ public class TenantWarningTask extends AbstractTask {
      * collects their IDs and applies the given action to each one.
      */
     private void processTenants(Page<Tenant> firstPage,
-                                          Function<Pageable, Page<Tenant>> nextPageFn,
-                                          Consumer<Tenant> action,
-                                          List<Long> ids) {
+            Function<Pageable, Page<Tenant>> nextPageFn,
+            Consumer<Tenant> action,
+            List<Long> ids) {
         Page<Tenant> currentPage = firstPage;
         while (true) {
             currentPage.stream()

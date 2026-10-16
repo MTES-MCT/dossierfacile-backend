@@ -50,12 +50,13 @@ public class AnalyticsReplicationService {
 
         // Garde-fou 2a : Vérification d'égalité d'URL pour empêcher toute destruction accidentelle
         if (sourceUrl.equalsIgnoreCase(destUrl)) {
-            throw new IllegalStateException("CRITICAL SAFETY CHECK: Destination database URL is identical to Source database URL! Aborting to prevent data loss.");
+            throw new IllegalStateException(
+                    "CRITICAL SAFETY CHECK: Destination database URL is identical to Source database URL! Aborting to prevent data loss.");
         }
 
         log.info("Connexion à la base source ({}) et destination ({})...", sourceUrl, destUrl);
         try (Connection sourceConn = DriverManager.getConnection(sourceUrl, sourceUsername, sourcePassword);
-             Connection destConn = DriverManager.getConnection(destUrl, destUsername, destPassword)) {
+                Connection destConn = DriverManager.getConnection(destUrl, destUsername, destPassword)) {
 
             // Garde-fou 1 : Verrouillage strict de la connexion source en lecture seule au niveau de la session PostgreSQL.
             // Interdit physiquement tout ordre DDL (DROP, ALTER, TRUNCATE) ou DML (INSERT, UPDATE, DELETE) sur la base source.
@@ -84,9 +85,9 @@ public class AnalyticsReplicationService {
      */
     private void assertDifferentDatabases(Connection sourceConn, Connection destConn) throws SQLException {
         try (Statement sStmt = sourceConn.createStatement();
-             Statement dStmt = destConn.createStatement();
-             ResultSet sRs = sStmt.executeQuery("SELECT inet_server_addr(), inet_server_port(), current_database();");
-             ResultSet dRs = dStmt.executeQuery("SELECT inet_server_addr(), inet_server_port(), current_database();")) {
+                Statement dStmt = destConn.createStatement();
+                ResultSet sRs = sStmt.executeQuery("SELECT inet_server_addr(), inet_server_port(), current_database();");
+                ResultSet dRs = dStmt.executeQuery("SELECT inet_server_addr(), inet_server_port(), current_database();")) {
 
             if (sRs.next() && dRs.next()) {
                 String sAddr = sRs.getString(1);
@@ -145,7 +146,7 @@ public class AnalyticsReplicationService {
         Map<String, String> mdcContext = MDC.getCopyOfContextMap();
 
         try (PipedInputStream in = new PipedInputStream(64 * 1024);
-             PipedOutputStream out = new PipedOutputStream(in)) {
+                PipedOutputStream out = new PipedOutputStream(in)) {
 
             Thread producer = Thread.ofPlatform()
                     .name("analytics-producer-" + table)
@@ -168,7 +169,8 @@ public class AnalyticsReplicationService {
         }
     }
 
-    private void runCopyOut(PGConnection sourcePg, String copyOutSql, PipedOutputStream out, String table, Map<String, String> mdcContext, AtomicReference<Exception> producerError) {
+    private void runCopyOut(PGConnection sourcePg, String copyOutSql, PipedOutputStream out, String table, Map<String, String> mdcContext,
+            AtomicReference<Exception> producerError) {
         if (mdcContext != null) {
             MDC.setContextMap(mdcContext);
         }
@@ -188,7 +190,8 @@ public class AnalyticsReplicationService {
         }
     }
 
-    private void runCopyIn(PGConnection destPg, String copyInSql, PipedInputStream in, Thread producer, String table) throws SQLException, IOException, InterruptedException {
+    private void runCopyIn(PGConnection destPg, String copyInSql, PipedInputStream in, Thread producer, String table)
+            throws SQLException, IOException, InterruptedException {
         try {
             destPg.getCopyAPI().copyIn(copyInSql, in);
         } catch (Exception e) {
@@ -208,7 +211,7 @@ public class AnalyticsReplicationService {
     private void createTableFromSourceMetadata(Connection sourceConn, Connection destConn, AnalyticsTableMapping mapping, String salt) throws SQLException {
         String query = mapping.buildSelectQuery(salt) + " LIMIT 0";
         try (Statement stmt = sourceConn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+                ResultSet rs = stmt.executeQuery(query)) {
             ResultSetMetaData md = rs.getMetaData();
             StringBuilder sb = new StringBuilder("CREATE TABLE tmp_").append(mapping.getDestTableName()).append(" (");
             for (int i = 1; i <= md.getColumnCount(); i++) {

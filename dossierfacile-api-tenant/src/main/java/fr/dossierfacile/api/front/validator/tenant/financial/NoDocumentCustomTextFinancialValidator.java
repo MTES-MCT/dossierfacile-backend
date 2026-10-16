@@ -5,6 +5,8 @@ import fr.dossierfacile.api.front.validator.annotation.tenant.financial.NoDocume
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+import static fr.dossierfacile.api.front.validator.CustomTextValidation.requireCustomText;
+
 public class NoDocumentCustomTextFinancialValidator implements ConstraintValidator<NoDocumentCustomTextFinancial, DocumentFinancialForm> {
     @Override
     public void initialize(NoDocumentCustomTextFinancial constraintAnnotation) {
@@ -16,17 +18,9 @@ public class NoDocumentCustomTextFinancialValidator implements ConstraintValidat
         if (documentFinancialForm.getNoDocument() == null) {
             return true;
         }
-        boolean noDocument = documentFinancialForm.getNoDocument();
-        boolean isValid = true;
-        if (noDocument) {
-            isValid = documentFinancialForm.getCustomText() != null && !documentFinancialForm.getCustomText().isBlank();
-            if (!isValid) {
-                constraintValidatorContext.disableDefaultConstraintViolation();
-                constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.NotEmpty.message}")
-                        .addPropertyNode("customText").addConstraintViolation();
-            }
+        if (documentFinancialForm.getNoDocument()) {
+            return requireCustomText(documentFinancialForm.getCustomText(), constraintValidatorContext);
         }
-        return isValid;
+        return true;
     }
 }

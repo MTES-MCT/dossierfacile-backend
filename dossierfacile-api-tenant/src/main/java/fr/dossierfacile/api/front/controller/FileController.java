@@ -34,7 +34,7 @@ public class FileController {
         var tenant = authenticationFacade.getLoggedTenant();
 
         fileService.delete(id, tenant);
-        
+
         return ResponseEntity.ok().build();
     }
 

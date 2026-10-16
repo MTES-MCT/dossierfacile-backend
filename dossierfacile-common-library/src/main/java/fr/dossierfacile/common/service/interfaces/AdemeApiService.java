@@ -7,5 +7,6 @@ import fr.dossierfacile.common.exceptions.AdemeApiUnauthorizedException;
 import fr.dossierfacile.common.model.AdemeResultModel;
 
 public interface AdemeApiService {
-    AdemeResultModel getDpeDetails(String dpeNumber) throws AdemeApiInternalServerErrorException, AdemeApiBadRequestException, AdemeApiUnauthorizedException, AdemeApiNotFoundException, InterruptedException;
+    AdemeResultModel getDpeDetails(String dpeNumber) throws AdemeApiInternalServerErrorException, AdemeApiBadRequestException, AdemeApiUnauthorizedException,
+            AdemeApiNotFoundException, InterruptedException;
 }

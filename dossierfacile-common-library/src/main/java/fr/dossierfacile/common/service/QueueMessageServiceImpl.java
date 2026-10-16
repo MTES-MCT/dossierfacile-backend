@@ -29,7 +29,8 @@ public class QueueMessageServiceImpl implements QueueMessageService {
     private final QueueMessageConsumerService queueMessageConsumerService;
 
     @Override
-    public void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> consumer, Consumer<JobContext> onFinish) {
+    public void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> consumer,
+            Consumer<JobContext> onFinish) {
         queueMessageRepository.cleanQueue(queueName.name());
         long toTimestamp = System.currentTimeMillis() - consumptionDelayInMillis;
         QueueMessage message = queueMessageConsumerService.popFirstMessage(queueName, toTimestamp);
@@ -57,11 +58,10 @@ public class QueueMessageServiceImpl implements QueueMessageService {
                 jobContext.setJobStatus(JobStatus.TIMED_OUT);
                 message.setStatus(QueueMessageStatus.FAILED);
                 queueMessageRepository.save(message);
-            }catch (Throwable t) {
+            } catch (Throwable t) {
                 message.setStatus(QueueMessageStatus.FAILED);
                 queueMessageRepository.save(message);
-            }
-            finally {
+            } finally {
                 if (onFinish != null) {
                     onFinish.accept(jobContext);
                 }
@@ -69,7 +69,8 @@ public class QueueMessageServiceImpl implements QueueMessageService {
         }
     }
 
-    private void consumeMessageWithTimeout(QueueName queueName, Consumer<QueueMessage> consumer, long consumptionTimeout, QueueMessage message, JobContext jobContext) throws Throwable {
+    private void consumeMessageWithTimeout(QueueName queueName, Consumer<QueueMessage> consumer, long consumptionTimeout, QueueMessage message,
+            JobContext jobContext) throws Throwable {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             // We have to init the MDC of the process thread to aggregate logs generated inside
             LoggerUtil.addProcessId(jobContext.getProcessId());

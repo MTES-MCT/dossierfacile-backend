@@ -17,7 +17,7 @@ public class KeycloakConfig {
     private String clientSecret;
     @Value("${keycloak.server.client.id}")
     private String clientId;
-    
+
     @Bean
     public RealmResource geRealmResource() {
         var keycloak = KeycloakBuilder.builder()

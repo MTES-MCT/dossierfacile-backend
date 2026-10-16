@@ -41,6 +41,3 @@ public interface BruteForceProtectionService {
      */
     boolean hasTimeWindowExpired(ApartmentSharingLink link);
 }
-
-
-

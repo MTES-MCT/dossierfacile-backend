@@ -83,11 +83,13 @@ public class PayslipNamesRule extends BaseDocumentIAValidator {
         PayslipNamesRuleData namesRuleData = new PayslipNamesRuleData(expectedName, new ArrayList<>());
 
         if (documentIAAnalyses.isEmpty() || hasAnyNonSuccessfulDocumentIAAnalyses(document)) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         if (nameToMatch == null) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         DocumentIAMultiMapper mapper = new DocumentIAMultiMapper();
@@ -121,9 +123,11 @@ public class PayslipNamesRule extends BaseDocumentIAValidator {
         }
 
         if (namesRuleData.payslipEntriesInError().isEmpty()) {
-            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);
+            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.PASSED);
         } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.FAILED);
         }
     }
 

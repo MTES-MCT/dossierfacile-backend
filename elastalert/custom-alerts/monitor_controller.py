@@ -118,7 +118,8 @@ for alert in alerts:
                 alert.get("application"),
                 start_time,
                 now,
-                alert_sender
+                alert_sender,
+                options=alert
             )
         else:
             print(f"[{module_name}] No 'run' function found.")

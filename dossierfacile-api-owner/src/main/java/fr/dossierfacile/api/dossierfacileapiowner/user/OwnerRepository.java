@@ -18,10 +18,9 @@ public interface OwnerRepository extends JpaRepository<Owner, Long> {
 
     @Query("select distinct o FROM Owner o " +
             " join o.properties p " +
-            " join p.propertiesApartmentSharing pas "+
+            " join p.propertiesApartmentSharing pas " +
             " join pas.apartmentSharing ass  " +
             " join ass.tenants t  " +
             "where t.id in (:tenantIds)")
     List<Owner> findAllByTenantIds(List<Long> tenantIds);
 }
-

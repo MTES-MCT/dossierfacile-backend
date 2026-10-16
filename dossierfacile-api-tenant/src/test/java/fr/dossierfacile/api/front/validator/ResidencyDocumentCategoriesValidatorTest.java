@@ -21,7 +21,8 @@ class ResidencyDocumentCategoriesValidatorTest {
             DocumentCategoryStep step,
             String expectedError,
             Boolean result
-    ) {}
+    ) {
+    }
 
     static Stream<Arguments> provideArgumentsForTest() {
         return Stream.of(
@@ -78,7 +79,7 @@ class ResidencyDocumentCategoriesValidatorTest {
                         false,
                         DocumentSubCategory.OWNER,
                         DocumentCategoryStep.TENANT_PROOF,
-                        "For document sub category " +  DocumentSubCategory.OWNER + " category step has to be null",
+                        "For document sub category " + DocumentSubCategory.OWNER + " category step has to be null",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(
@@ -92,7 +93,7 @@ class ResidencyDocumentCategoriesValidatorTest {
                         false,
                         DocumentSubCategory.GUEST_COMPANY,
                         DocumentCategoryStep.TENANT_PROOF,
-                        "For document sub category " +  DocumentSubCategory.GUEST_COMPANY + " category step has to be null",
+                        "For document sub category " + DocumentSubCategory.GUEST_COMPANY + " category step has to be null",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(
@@ -106,7 +107,7 @@ class ResidencyDocumentCategoriesValidatorTest {
                         false,
                         DocumentSubCategory.GUEST_ORGANISM,
                         DocumentCategoryStep.TENANT_PROOF,
-                        "For document sub category " +  DocumentSubCategory.GUEST_ORGANISM + " category step has to be null",
+                        "For document sub category " + DocumentSubCategory.GUEST_ORGANISM + " category step has to be null",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(
@@ -120,7 +121,7 @@ class ResidencyDocumentCategoriesValidatorTest {
                         false,
                         DocumentSubCategory.SHORT_TERM_RENTAL,
                         DocumentCategoryStep.TENANT_PROOF,
-                        "For document sub category " +  DocumentSubCategory.SHORT_TERM_RENTAL + " category step has to be null",
+                        "For document sub category " + DocumentSubCategory.SHORT_TERM_RENTAL + " category step has to be null",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(
@@ -134,7 +135,7 @@ class ResidencyDocumentCategoriesValidatorTest {
                         false,
                         DocumentSubCategory.OTHER_RESIDENCY,
                         DocumentCategoryStep.TENANT_PROOF,
-                        "For document sub category " +  DocumentSubCategory.OTHER_RESIDENCY + " category step has to be null",
+                        "For document sub category " + DocumentSubCategory.OTHER_RESIDENCY + " category step has to be null",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(
@@ -155,7 +156,7 @@ class ResidencyDocumentCategoriesValidatorTest {
                         true,
                         DocumentSubCategory.TENANT,
                         DocumentCategoryStep.TENANT_PROOF,
-                        "For document sub category " +  DocumentSubCategory.TENANT + " category step has to be null",
+                        "For document sub category " + DocumentSubCategory.TENANT + " category step has to be null",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(

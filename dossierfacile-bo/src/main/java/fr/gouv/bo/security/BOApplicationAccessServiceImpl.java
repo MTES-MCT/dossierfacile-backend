@@ -27,8 +27,7 @@ import java.util.List;
 @Slf4j
 public class BOApplicationAccessServiceImpl implements BOApplicationAccessService {
 
-    private static final List<ActionOperatorType> ASSIGNMENT_TYPES =
-            List.of(ActionOperatorType.START_PROCESS, ActionOperatorType.STOP_PROCESS);
+    private static final List<ActionOperatorType> ASSIGNMENT_TYPES = List.of(ActionOperatorType.START_PROCESS, ActionOperatorType.STOP_PROCESS);
 
     private final OperatorLogRepository operatorLogRepository;
     private final TenantCommonRepository tenantRepository;

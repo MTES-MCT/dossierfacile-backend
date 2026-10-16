@@ -24,9 +24,9 @@ public class XssSanitizer {
         String unescaped = Parser.unescapeEntities(value, false);
         String clean = Jsoup.clean(unescaped, Safelist.none());
         return clean.replace("&amp;", "&")
-                    .replace("&#39;", "'")
-                    .replace("&quot;", "\"")
-                    .replace("&apos;", "'");
+                .replace("&#39;", "'")
+                .replace("&quot;", "\"")
+                .replace("&apos;", "'");
     }
 
     public static String cleanHtml(String value) {

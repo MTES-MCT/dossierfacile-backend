@@ -240,7 +240,7 @@ class ApartmentSharingTrigramValidationTest {
     }
 
     private Tenant createThirdPartyTenant(String ownerLastName, String ownerPreferredName,
-                                          String tenantLastName, String tenantPreferredName) {
+            String tenantLastName, String tenantPreferredName) {
         Tenant tenant = Tenant.builder()
                 .id(1L)
                 .ownerType(TenantOwnerType.THIRD_PARTY)
@@ -253,4 +253,3 @@ class ApartmentSharingTrigramValidationTest {
         return tenant;
     }
 }
-

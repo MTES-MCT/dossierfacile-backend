@@ -28,7 +28,6 @@ public class DocumentIAServiceImpl implements DocumentIAService {
     private final DocumentAnalysisServiceImpl documentAnalysisService;
     private final DocumentIAResultSanitizer documentIAResultSanitizer;
 
-
     @Override
     @Transactional
     public void saveFileAnalysis(DocumentIAResultModel payload) {
@@ -83,7 +82,6 @@ public class DocumentIAServiceImpl implements DocumentIAService {
             documentAnalysisService.analyseDocument(document);
         }
     }
-
 
     @Override
     public void sendForAnalysis(MultipartFile multipartFile, File file, Document document, long tenantId) {

@@ -86,7 +86,8 @@ public abstract class AbstractDocumentTaxSaveStep<T extends DocumentForm & IDocu
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(ZoneId.systemDefault()), DocumentCategory.TAX);
         if (needToBeReValidated) {
-            documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToReset, List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
+            documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToReset,
+                    List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
         }
 
         if (edited) {
@@ -97,7 +98,8 @@ public abstract class AbstractDocumentTaxSaveStep<T extends DocumentForm & IDocu
         return new DocumentSaveResult(document, created, edited);
     }
 
-    private boolean hasTaxInfoChanged(Document document, DocumentSubCategory subCategory, fr.dossierfacile.common.enums.DocumentCategoryStep step, String customText) {
+    private boolean hasTaxInfoChanged(Document document, DocumentSubCategory subCategory, fr.dossierfacile.common.enums.DocumentCategoryStep step,
+            String customText) {
         return subCategory != document.getDocumentSubCategory()
                 || step != document.getDocumentCategoryStep()
                 || !Objects.equals(customText, document.getCustomText());

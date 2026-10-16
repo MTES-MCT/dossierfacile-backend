@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
-
 import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.CheckCoTenantCount;
 import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.CheckTenantTypeAcceptAccess;
 import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.CoTenantsEmailRequired;

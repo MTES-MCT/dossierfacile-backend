@@ -96,15 +96,14 @@ public class Application implements SaveStep<ApplicationFormV2> {
     protected List<Pair<Tenant, String>> getTenantWitNewEmailToUpdate(List<Tenant> oldCoTenant, ApplicationFormV2 applicationForm) {
         return applicationForm.getCoTenants().stream()
                 .map(currentTenant -> {
-                            Optional<Tenant> updatedTenant = oldCoTenant.parallelStream()
-                                    .filter(oldTenant ->
-                                            Objects.equals(oldTenant.getFirstName(), currentTenant.getFirstName())
-                                                    && Objects.equals(oldTenant.getLastName(), currentTenant.getLastName())
-                                                    && !StringUtils.equals(oldTenant.getEmail(), currentTenant.getEmail())
-                                                    && oldTenant.getEmail() == null
-                                    ).findFirst();
-                            return updatedTenant.map(tenant -> new ImmutablePair<>(tenant, currentTenant.getEmail())).orElse(null);
-                        }
+                    Optional<Tenant> updatedTenant = oldCoTenant.parallelStream()
+                            .filter(oldTenant -> Objects.equals(oldTenant.getFirstName(), currentTenant.getFirstName())
+                                    && Objects.equals(oldTenant.getLastName(), currentTenant.getLastName())
+                                    && !StringUtils.equals(oldTenant.getEmail(), currentTenant.getEmail())
+                                    && oldTenant.getEmail() == null
+                            ).findFirst();
+                    return updatedTenant.map(tenant -> new ImmutablePair<>(tenant, currentTenant.getEmail())).orElse(null);
+                }
                 )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

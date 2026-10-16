@@ -42,7 +42,8 @@ public class ApartmentSharingPdfDocumentTemplateTest {
     @BeforeEach
     void init_mocks() {
         Mockito.when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
-        Mockito.when(downloadService.getDocumentInputStream(any())).then(answer -> ApartmentSharingPdfDocumentTemplateTest.class.getResourceAsStream("/CNI.pdf"));
+        Mockito.when(downloadService.getDocumentInputStream(any()))
+                .then(answer -> ApartmentSharingPdfDocumentTemplateTest.class.getResourceAsStream("/CNI.pdf"));
     }
 
     @Test

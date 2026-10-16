@@ -14,7 +14,8 @@ import lombok.NoArgsConstructor;
 public class ContactForm {
     String firstname;
     String lastname;
-    @NotEmpty @Email
+    @NotEmpty
+    @Email
     @JsonDeserialize(using = EmailDeserializer.class)
     String email;
     @NotEmpty

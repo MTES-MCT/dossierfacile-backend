@@ -48,7 +48,7 @@ public class AdemeApiResultModelToAdemeResultModelMapper {
     }
 
     private String getTypeBatiment(AdemeApiDpeHousingJson input) {
-        if(input.getCaracteristiqueGenerale().getNombreAppartement() == null) {
+        if (input.getCaracteristiqueGenerale().getNombreAppartement() == null) {
             return "maison";
         } else {
             return "appartement";

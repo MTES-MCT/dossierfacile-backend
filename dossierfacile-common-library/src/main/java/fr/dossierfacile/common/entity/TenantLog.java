@@ -147,9 +147,9 @@ public class TenantLog implements Serializable {
         StringBuilder builder = new StringBuilder();
         ObjectNode details = this.getLogDetails();
         if (details != null
-          && details.get(DOCUMENT_SUB_CATEGORY) != null
-          && details.get(OLD_SUM) != null
-          && details.get(NEW_SUM) != null) {
+                && details.get(DOCUMENT_SUB_CATEGORY) != null
+                && details.get(OLD_SUM) != null
+                && details.get(NEW_SUM) != null) {
             builder.append(details.get(DOCUMENT_SUB_CATEGORY).asText());
             builder.append(" - Modification du ");
             builder.append(this.getCreationDateTime().format(DateTimeFormatter.ofPattern("dd.MM.yy")));

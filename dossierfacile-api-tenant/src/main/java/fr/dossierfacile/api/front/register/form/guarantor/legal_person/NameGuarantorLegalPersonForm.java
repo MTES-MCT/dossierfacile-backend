@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NameGuarantorLegalPersonForm extends DocumentGuarantorFormAbstract{
+public class NameGuarantorLegalPersonForm extends DocumentGuarantorFormAbstract {
     @NotBlank
     private String legalPersonName;
 

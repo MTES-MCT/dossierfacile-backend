@@ -39,7 +39,6 @@ public class ConfirmationToken implements Serializable {
     @JoinColumn(name = "user_id")
     private User user;
 
-
     public ConfirmationToken(User user) {
         this.user = user;
         creationDate = LocalDateTime.now();

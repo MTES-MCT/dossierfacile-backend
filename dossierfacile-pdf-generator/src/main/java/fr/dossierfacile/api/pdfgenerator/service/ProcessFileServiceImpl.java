@@ -59,8 +59,7 @@ public class ProcessFileServiceImpl implements ProcessFileService {
         // Two independent streams are required because each processor consumes its stream.
         try (
                 InputStream minifyStream = Files.newInputStream(tempFile);
-                InputStream metadataStream = Files.newInputStream(tempFile)
-        ) {
+                InputStream metadataStream = Files.newInputStream(tempFile)) {
             try {
                 minifyFileService.process(minifyStream, safeFile);
             } catch (Exception exception) {

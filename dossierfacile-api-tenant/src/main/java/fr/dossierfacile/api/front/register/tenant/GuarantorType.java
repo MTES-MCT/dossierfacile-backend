@@ -40,6 +40,7 @@ public class GuarantorType implements SaveStep<GuarantorTypeForm> {
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
+        return tenantMapper.toTenantModel(tenantRepository.save(tenant),
+                (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 }

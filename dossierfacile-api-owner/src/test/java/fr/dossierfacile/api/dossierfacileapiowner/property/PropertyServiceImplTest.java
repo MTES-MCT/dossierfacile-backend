@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-
 class PropertyServiceImplTest {
 
     // Create a new property when propertyForm.id is null
@@ -42,7 +41,8 @@ class PropertyServiceImplTest {
         JwtDecoder tenantJwtDecoder = mock(JwtDecoder.class);
         AdemeApiService ademeApiService = mock(AdemeApiService.class);
 
-        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
+        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService,
+                tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
         ReflectionTestUtils.setField(propertyService, "tenantJwtDecoder", tenantJwtDecoder);
 
         Owner owner = new Owner();
@@ -80,7 +80,8 @@ class PropertyServiceImplTest {
         JwtDecoder tenantJwtDecoder = mock(JwtDecoder.class);
         AdemeApiService ademeApiService = mock(AdemeApiService.class);
 
-        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
+        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService,
+                tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
         ReflectionTestUtils.setField(propertyService, "tenantJwtDecoder", tenantJwtDecoder);
 
         Owner owner = new Owner();
@@ -118,7 +119,8 @@ class PropertyServiceImplTest {
         JwtDecoder tenantJwtDecoder = mock(JwtDecoder.class);
         AdemeApiService ademeApiService = mock(AdemeApiService.class);
 
-        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
+        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService,
+                tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
         ReflectionTestUtils.setField(propertyService, "tenantJwtDecoder", tenantJwtDecoder);
 
         Owner owner = new Owner();
@@ -164,7 +166,8 @@ class PropertyServiceImplTest {
         JwtDecoder tenantJwtDecoder = mock(JwtDecoder.class);
         AdemeApiService ademeApiService = mock(AdemeApiService.class);
 
-        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
+        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService,
+                tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
         ReflectionTestUtils.setField(propertyService, "tenantJwtDecoder", tenantJwtDecoder);
 
         Owner owner = new Owner();
@@ -218,7 +221,8 @@ class PropertyServiceImplTest {
         JwtDecoder tenantJwtDecoder = mock(JwtDecoder.class);
         AdemeApiService ademeApiService = mock(AdemeApiService.class);
 
-        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
+        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService,
+                tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
         ReflectionTestUtils.setField(propertyService, "tenantJwtDecoder", tenantJwtDecoder);
 
         Owner owner = new Owner();

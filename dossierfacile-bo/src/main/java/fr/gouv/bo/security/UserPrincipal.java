@@ -133,7 +133,8 @@ public class UserPrincipal implements UserDetails, OidcUser, Serializable {
     public boolean hasAllRoles(String... roles) {
         Set<String> granted = getGrantedAuthorityNames();
         for (String role : roles) {
-            if (!granted.contains(role)) return false;
+            if (!granted.contains(role))
+                return false;
         }
         return true;
     }
@@ -142,7 +143,8 @@ public class UserPrincipal implements UserDetails, OidcUser, Serializable {
     public boolean hasAnyRole(String... roles) {
         Set<String> granted = getGrantedAuthorityNames();
         for (String role : roles) {
-            if (granted.contains(role)) return true;
+            if (granted.contains(role))
+                return true;
         }
         return false;
     }

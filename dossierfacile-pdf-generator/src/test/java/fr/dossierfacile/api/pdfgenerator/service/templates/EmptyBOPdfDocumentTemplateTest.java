@@ -92,7 +92,8 @@ class EmptyBOPdfDocumentTemplateTest {
                 .id(1L)
                 .documentCategory(residency)
                 .documentSubCategory(otherResidency)
-                .customText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \uD83D\uDE01")
+                .customText(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \uD83D\uDE01")
                 .build();
     }
 

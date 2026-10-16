@@ -153,7 +153,7 @@ class FileServiceImplTest {
                         .build();
                 document.getFiles().add(file);
 
-                when(fileRepository.findByIdForTenant(1L,  1L)).thenReturn(Optional.of(file));
+                when(fileRepository.findByIdForTenant(1L, 1L)).thenReturn(Optional.of(file));
                 when(tenantRepository.save(any(Tenant.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
                 assertThatCode(() -> fileService.delete(1L, tenant1)).doesNotThrowAnyException();

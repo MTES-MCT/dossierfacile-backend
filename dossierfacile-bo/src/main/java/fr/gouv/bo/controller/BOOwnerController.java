@@ -29,10 +29,10 @@ public class BOOwnerController {
 
     @GetMapping("")
     public String index(Model model,
-                        @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page,
-                        @RequestParam(value = "ownerEmail", defaultValue = "") String email,
-                        @RequestParam(value = "ownerFirstname", defaultValue = "") String firstName,
-                        @RequestParam(value = "ownerLastname", defaultValue = "") String lastName) {
+            @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page,
+            @RequestParam(value = "ownerEmail", defaultValue = "") String email,
+            @RequestParam(value = "ownerFirstname", defaultValue = "") String firstName,
+            @RequestParam(value = "ownerLastname", defaultValue = "") String lastName) {
 
         int pageSize = Integer.parseInt(MAX_PAGE_SIZE);
         int boundedPage = Math.clamp(page, 1, MAX_PAGE_NUMBER);

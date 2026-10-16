@@ -8,7 +8,8 @@ public record TaxNamesRuleData(Name expectedName, List<String> extractedIdentiti
         this(other.expectedName, List.copyOf(extractedIdentities));
     }
 
-    public record Name(String firstNames, String lastName, String preferredName) {}
+    public record Name(String firstNames, String lastName, String preferredName) {
+    }
 
     @Override
     public String getType() {

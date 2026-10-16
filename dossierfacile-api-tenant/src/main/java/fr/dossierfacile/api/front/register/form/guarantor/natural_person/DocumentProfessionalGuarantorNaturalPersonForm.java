@@ -39,9 +39,8 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.UNEMPLOYED;
 public class DocumentProfessionalGuarantorNaturalPersonForm extends DocumentGuarantorFormAbstract {
 
     @NotNull
-    @DocumentSubcategorySubset(anyOf =
-            {CDI, CDI_TRIAL, CDD, ALTERNATION, INTERNSHIP, STUDENT, PUBLIC, CTT, RETIRED, UNEMPLOYED, INDEPENDENT,
-                    INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST, OTHER})
+    @DocumentSubcategorySubset(anyOf = {CDI, CDI_TRIAL, CDD, ALTERNATION, INTERNSHIP, STUDENT, PUBLIC, CTT, RETIRED, UNEMPLOYED, INDEPENDENT,
+            INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST, OTHER})
     private DocumentSubCategory typeDocumentProfessional;
 
     private TypeGuarantor typeGuarantor = TypeGuarantor.NATURAL_PERSON;

@@ -17,8 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AtLeastOneClassificationValidatorBTest {
 
-    private final AtLeastOneClassificationValidatorB validator =
-            new AtLeastOneClassificationValidatorB(List.of("quittance", "attestation_hebergement"));
+    private final AtLeastOneClassificationValidatorB validator = new AtLeastOneClassificationValidatorB(List.of("quittance", "attestation_hebergement"));
 
     @Test
     @DisplayName("PASSED quand au moins une analyse SUCCESS a un type autorise")
@@ -93,4 +92,3 @@ class AtLeastOneClassificationValidatorBTest {
                 .build();
     }
 }
-

@@ -120,14 +120,14 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
 
     private ApartmentSharingLink buildApartmentSharingLink(UserApi userApi, ApartmentSharing apartmentSharing, boolean fullData) {
         return ApartmentSharingLink.builder()
-            .apartmentSharing(apartmentSharing)
-            .token(UUID.randomUUID())
-            .creationDate(LocalDateTime.now())
-            .fullData(fullData)
-            .linkType(ApartmentSharingLinkType.PARTNER)
-            .title(userApi.getName2())
-            .partnerId(userApi.getId())
-            .build();
+                .apartmentSharing(apartmentSharing)
+                .token(UUID.randomUUID())
+                .creationDate(LocalDateTime.now())
+                .fullData(fullData)
+                .linkType(ApartmentSharingLinkType.PARTNER)
+                .title(userApi.getName2())
+                .partnerId(userApi.getId())
+                .build();
     }
 
     private List<UserApi> findAllUserApi(ApartmentSharing as) {

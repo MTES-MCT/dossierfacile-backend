@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -106,18 +105,15 @@ public class TenantCommonServiceImpl implements TenantCommonService {
                             .filter(t -> isNotBlank(t.getEmail()))
                             .forEach(t -> {
                                 if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
-                                    mailCommonService.ifPresent(it ->
-                                            it.sendEmailToTenantAfterValidateAllTenantForGroup(t)
+                                    mailCommonService.ifPresent(it -> it.sendEmailToTenantAfterValidateAllTenantForGroup(t)
                                     );
                                 } else {
-                                    mailCommonService.ifPresent(it ->
-                                            it.sendEmailToTenantAfterValidateAllDocuments(t)
+                                    mailCommonService.ifPresent(it -> it.sendEmailToTenantAfterValidateAllDocuments(t)
                                     );
                                 }
                             });
                 } else if (apartmentSharingDto.getApplicationType() == ApplicationType.GROUP) {
-                    mailCommonService.ifPresent(it ->
-                            it.sendEmailToTenantAfterValidatedApartmentSharingNotValidated(tenantDto)
+                    mailCommonService.ifPresent(it -> it.sendEmailToTenantAfterValidatedApartmentSharingNotValidated(tenantDto)
                     );
                 }
             } catch (Exception e) {

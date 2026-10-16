@@ -49,7 +49,8 @@ public class RegisterGuarantorLegalPersonController {
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentIdentification")
     @Transactional
-    public ResponseEntity<TenantModel> documentIdentification(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
+    public ResponseEntity<TenantModel> documentIdentification(@Validated({Dossier.class,
+            DocumentIdentificationGuarantor.class}) DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationGuarantorLegalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON);
         Tenant loggedTenant = (documentIdentificationGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
@@ -59,19 +60,25 @@ public class RegisterGuarantorLegalPersonController {
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationRepresentantGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentRepresentantIdentification")
     @Transactional
-    public ResponseEntity<TenantModel> documentIdentificationRepresentant(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
+    public ResponseEntity<TenantModel> documentIdentificationRepresentant(@Validated({Dossier.class,
+            DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
-        tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
-        Tenant loggedTenant = (documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm,
+                StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
+        Tenant loggedTenant = (documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId() == null)
+                ? tenant
+                : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorRepresentantLegalPersonForm.tenantId)")
     @PostMapping("/representing-name")
     @Transactional
-    public ResponseEntity<TenantModel> guarantorRepresentingName(@Validated(Dossier.class) NameGuarantorRepresentantLegalPersonForm nameGuarantorRepresentantLegalPersonForm) {
+    public ResponseEntity<TenantModel> guarantorRepresentingName(
+            @Validated(Dossier.class) NameGuarantorRepresentantLegalPersonForm nameGuarantorRepresentantLegalPersonForm) {
         var tenant = authenticationFacade.getTenant(nameGuarantorRepresentantLegalPersonForm.getTenantId());
-        var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorRepresentantLegalPersonForm, StepRegister.NAME_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
+        var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorRepresentantLegalPersonForm,
+                StepRegister.NAME_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         Tenant loggedTenant = (nameGuarantorRepresentantLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant, null));

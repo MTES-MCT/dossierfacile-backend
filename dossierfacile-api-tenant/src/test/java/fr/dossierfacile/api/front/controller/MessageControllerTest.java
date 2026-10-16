@@ -79,7 +79,8 @@ class MessageControllerTest {
     @Nested
     class GetAllMessagesTest {
 
-        record GetAllMessagesParam(Long tenantId) {}
+        record GetAllMessagesParam(Long tenantId) {
+        }
 
         static List<Arguments> provideGetAllMessagesParameters() {
             var jwtTokenWithDossier = jwt().jwt(jwt -> jwt.subject("keycloak-user-id"))

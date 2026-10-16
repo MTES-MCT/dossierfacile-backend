@@ -11,7 +11,9 @@ import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentCategoryStep.*;
 
-public class FinancialDocumentCategoriesValidator extends AbstractDocumentCategoriesValidator implements ConstraintValidator<FinancialDocument, IDocumentFinancialForm> {
+public class FinancialDocumentCategoriesValidator extends AbstractDocumentCategoriesValidator
+        implements
+            ConstraintValidator<FinancialDocument, IDocumentFinancialForm> {
 
     @Override
     public void initialize(FinancialDocument constraintAnnotation) {
@@ -93,7 +95,8 @@ public class FinancialDocumentCategoriesValidator extends AbstractDocumentCatego
                 );
             }
             case SCHOLARSHIP, NO_INCOME -> {
-                return handleNoCategoryStep(documentFinancialForm.getCategoryStep(), documentFinancialForm.getTypeDocumentFinancial(), constraintValidatorContext);
+                return handleNoCategoryStep(documentFinancialForm.getCategoryStep(), documentFinancialForm.getTypeDocumentFinancial(),
+                        constraintValidatorContext);
             }
             default -> {
                 return handleDefaultValidationError(documentFinancialForm.getTypeDocumentFinancial(), constraintValidatorContext);

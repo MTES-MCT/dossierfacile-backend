@@ -141,10 +141,9 @@ public class VisaleCertificateNameMatch extends BaseDocumentIAValidator {
         namesRuleData = new NamesRuleData(namesRuleData.expectedName(), extractedNames);
 
         // Check if any of the names to match corresponds to any beneficiary
-        boolean isNameMatch = namesToMatch.stream().anyMatch(nameToMatch ->
-                beneficiaires.stream()
-                        .filter(VisaleBeneficiaire::isValid)
-                        .anyMatch(beneficiaire -> isNameMatchingWithFallback(nameToMatch, beneficiaire))
+        boolean isNameMatch = namesToMatch.stream().anyMatch(nameToMatch -> beneficiaires.stream()
+                .filter(VisaleBeneficiaire::isValid)
+                .anyMatch(beneficiaire -> isNameMatchingWithFallback(nameToMatch, beneficiaire))
         );
 
         if (isNameMatch) {
@@ -222,11 +221,11 @@ public class VisaleCertificateNameMatch extends BaseDocumentIAValidator {
             return true;
         }
         return hasFuzzyTokenMatch(
-            identityTokens(nameToMatch.getFirstNames()),
-            identityTokens(beneficiaire.getFirstNames())
+                identityTokens(nameToMatch.getFirstNames()),
+                identityTokens(beneficiaire.getFirstNames())
         ) && hasFuzzyTokenMatch(
-            identityTokens(lastNameTokens(nameToMatch.getLastName(), nameToMatch.getPreferredName())),
-            identityTokens(lastNameTokens(beneficiaire.getLastName(), beneficiaire.getPreferredName()))
+                identityTokens(lastNameTokens(nameToMatch.getLastName(), nameToMatch.getPreferredName())),
+                identityTokens(lastNameTokens(beneficiaire.getLastName(), beneficiaire.getPreferredName()))
         );
     }
 
@@ -248,8 +247,8 @@ public class VisaleCertificateNameMatch extends BaseDocumentIAValidator {
 
     private Stream<String> splitTokens(String value) {
         return TOKEN_SEPARATOR.splitAsStream(value.replaceAll("[-'_]", " "))
-            .filter(Objects::nonNull)
-            .filter(token -> !token.isBlank());
+                .filter(Objects::nonNull)
+                .filter(token -> !token.isBlank());
     }
 
     private boolean hasFuzzyTokenMatch(List<String> expectedTokens, List<String> extractedTokens) {

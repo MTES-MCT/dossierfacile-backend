@@ -145,8 +145,7 @@ class ApartmentSharingServiceImplTest {
             void shouldThrowApartmentSharingNotFoundException() {
                 tenant.setApartmentSharing(null);
 
-                assertThrows(ApartmentSharingNotFoundException.class, () ->
-                        apartmentSharingService.downloadFullPdfForTenant(tenant)
+                assertThrows(ApartmentSharingNotFoundException.class, () -> apartmentSharingService.downloadFullPdfForTenant(tenant)
                 );
             }
         }
@@ -157,8 +156,7 @@ class ApartmentSharingServiceImplTest {
             void shouldThrowIllegalStateException() {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.IN_PROGRESS);
 
-                assertThrows(IllegalStateException.class, () ->
-                        apartmentSharingService.downloadFullPdfForTenant(tenant)
+                assertThrows(IllegalStateException.class, () -> apartmentSharingService.downloadFullPdfForTenant(tenant)
                 );
             }
         }
@@ -169,8 +167,7 @@ class ApartmentSharingServiceImplTest {
             void shouldThrowFileNotFoundException() {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.FAILED);
 
-                assertThrows(FileNotFoundException.class, () ->
-                        apartmentSharingService.downloadFullPdfForTenant(tenant)
+                assertThrows(FileNotFoundException.class, () -> apartmentSharingService.downloadFullPdfForTenant(tenant)
                 );
             }
         }
@@ -182,8 +179,7 @@ class ApartmentSharingServiceImplTest {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
                 when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
 
-                assertThrows(IllegalStateException.class, () ->
-                        apartmentSharingService.downloadFullPdfForTenant(tenant)
+                assertThrows(IllegalStateException.class, () -> apartmentSharingService.downloadFullPdfForTenant(tenant)
                 );
 
                 verify(producer).generateFullPdf(apartmentSharing.getId());
@@ -197,8 +193,7 @@ class ApartmentSharingServiceImplTest {
                 apartmentSharing.setDossierPdfDocumentStatus(null);
                 when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(0);
 
-                assertThrows(IllegalStateException.class, () ->
-                        apartmentSharingService.downloadFullPdfForTenant(tenant)
+                assertThrows(IllegalStateException.class, () -> apartmentSharingService.downloadFullPdfForTenant(tenant)
                 );
 
                 verify(producer).generateFullPdf(apartmentSharing.getId());
@@ -215,8 +210,7 @@ class ApartmentSharingServiceImplTest {
             void shouldThrowApartmentSharingNotFoundException() {
                 tenant.setApartmentSharing(null);
 
-                assertThrows(ApartmentSharingNotFoundException.class, () ->
-                        apartmentSharingService.createFullPdfForTenant(tenant)
+                assertThrows(ApartmentSharingNotFoundException.class, () -> apartmentSharingService.createFullPdfForTenant(tenant)
                 );
             }
         }
@@ -281,8 +275,7 @@ class ApartmentSharingServiceImplTest {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
                 when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(1);
 
-                assertThrows(ApartmentSharingUnexpectedException.class, () ->
-                        apartmentSharingService.createFullPdfForTenant(tenant)
+                assertThrows(ApartmentSharingUnexpectedException.class, () -> apartmentSharingService.createFullPdfForTenant(tenant)
                 );
 
                 verify(producer, Mockito.never()).generateFullPdf(anyLong());
@@ -296,8 +289,7 @@ class ApartmentSharingServiceImplTest {
                 apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
                 when(tenantRepository.countTenantsBlockingFullPdfGeneration(anyLong())).thenReturn(2);
 
-                assertThrows(ApartmentSharingUnexpectedException.class, () ->
-                        apartmentSharingService.createFullPdfForTenant(tenant)
+                assertThrows(ApartmentSharingUnexpectedException.class, () -> apartmentSharingService.createFullPdfForTenant(tenant)
                 );
 
                 verify(producer, Mockito.never()).generateFullPdf(anyLong());
@@ -490,8 +482,7 @@ class ApartmentSharingServiceImplTest {
                 when(apartmentSharingLinkRepository.findValidLinkByToken(token, true))
                         .thenReturn(Optional.empty());
 
-                assertThrows(ApartmentSharingNotFoundException.class, () ->
-                        apartmentSharingService.findDocumentByLink(token, documentName)
+                assertThrows(ApartmentSharingNotFoundException.class, () -> apartmentSharingService.findDocumentByLink(token, documentName)
                 );
             }
         }
@@ -508,8 +499,7 @@ class ApartmentSharingServiceImplTest {
                 when(documentRepository.findByNameForApartmentSharing(documentName, apartmentSharing.getId()))
                         .thenReturn(Optional.empty());
 
-                assertThrows(ApartmentSharingNotFoundException.class, () ->
-                        apartmentSharingService.findDocumentByLink(token, documentName)
+                assertThrows(ApartmentSharingNotFoundException.class, () -> apartmentSharingService.findDocumentByLink(token, documentName)
                 );
             }
         }

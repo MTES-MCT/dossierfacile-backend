@@ -30,4 +30,3 @@ public interface MailCommonService {
     void sendEmailCompletedSurvey(TenantDto tenant);
 
 }
-

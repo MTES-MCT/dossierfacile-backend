@@ -30,8 +30,6 @@ public interface TenantService {
 
     Optional<Tenant> findByEmail(String email);
 
-    List<TenantUpdate> findTenantUpdateByCreatedAndPartner(LocalDateTime from, UserApi userApi, Long limit);
-
     List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime from, UserApi userApi, Long limit, boolean includeDeleted, boolean includeRevoked);
 
     void sendFileByMail(Tenant tenant, ShareFileByMailForm form);

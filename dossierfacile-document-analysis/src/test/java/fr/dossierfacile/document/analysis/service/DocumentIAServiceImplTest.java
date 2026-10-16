@@ -164,9 +164,8 @@ class DocumentIAServiceImplTest {
         documentIAService.sendForAnalysis(multipartFile, file, document, tenantId);
 
         // Then
-        verify(documentIAFileAnalysisRepository).save(argThat(analysis ->
-                analysis.getAnalysisStatus() == DocumentIAFileAnalysisStatus.FAILED
-                        && analysis.getFile() == file
+        verify(documentIAFileAnalysisRepository).save(argThat(analysis -> analysis.getAnalysisStatus() == DocumentIAFileAnalysisStatus.FAILED
+                && analysis.getFile() == file
         ));
     }
 

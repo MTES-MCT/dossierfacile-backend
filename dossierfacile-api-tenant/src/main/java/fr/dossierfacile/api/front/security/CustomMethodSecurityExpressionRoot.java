@@ -22,8 +22,7 @@ public class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot i
     private String getKeycloakClientId() {
         try {
             String clientId = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("client_id");
-            return (clientId != null) ? clientId :
-                    ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("clientId");
+            return (clientId != null) ? clientId : ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("clientId");
         } catch (Throwable t) {
             return null;
         }
@@ -34,9 +33,9 @@ public class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot i
     }
 
     public boolean hasPermissionOnTenant(Long tenantId) {
-        return (isClient()) ?
-                tenantPermissionsService.clientCanAccess(getKeycloakClientId(), tenantId) :
-                tenantPermissionsService.canAccess(getKeycloakId(), tenantId);
+        return (isClient())
+                ? tenantPermissionsService.clientCanAccess(getKeycloakClientId(), tenantId)
+                : tenantPermissionsService.canAccess(getKeycloakId(), tenantId);
     }
 
     @Override

@@ -1,0 +1,37 @@
+#!/bin/sh
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+
+if ! command -v mvn >/dev/null 2>&1; then
+    echo "Pre-commit: Maven is required. Make sure mvn is available on PATH." >&2
+    exit 1
+fi
+
+# The Maven checks read working files. Require them to match the staged versions
+# so unstaged edits cannot hide a problem in the commit or be staged accidentally.
+set -- \
+    'pom.xml' \
+    ':(glob)**/pom.xml' \
+    ':(glob)**/src/main/java/**/*.java' \
+    ':(glob)**/src/test/java/**/*.java' \
+    ':(glob)config/**' \
+    ':(glob).mvn/**'
+
+if ! git diff --quiet -- "$@" ||
+    [ -n "$(git ls-files --others --exclude-standard -- "$@")" ]; then
+    echo "Pre-commit: Java sources or Maven/lint/formatter configuration have unstaged changes." >&2
+    echo "Stage the intended changes or stash the remaining work, then retry the commit." >&2
+    exit 1
+fi
+
+echo "Pre-commit: running format and lint..."
+if ! mvn --batch-mode --no-transfer-progress spotless:apply validate; then
+    echo "Pre-commit: format and lint failed. Fix the reported issues, review and stage changes, then retry." >&2
+    exit 1
+fi
+
+if ! git diff --quiet -- "$@"; then
+    echo "Pre-commit: formatting changed files. Review git diff, stage the changes you want, then retry." >&2
+    exit 1
+fi

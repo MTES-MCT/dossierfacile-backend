@@ -54,7 +54,8 @@ class AbstractDocumentSaveStepTest {
     @Mock
     private TenantAutoValidationService tenantAutoValidationService;
 
-    private static class TestDocumentForm extends DocumentForm {}
+    private static class TestDocumentForm extends DocumentForm {
+    }
 
     private static class TestDocumentSaveStep extends AbstractDocumentSaveStep<TestDocumentForm> {
         public Document documentToReturn;

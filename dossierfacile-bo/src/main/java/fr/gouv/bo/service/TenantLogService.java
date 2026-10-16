@@ -72,8 +72,8 @@ public class TenantLogService {
 
     public List<TenantLog> getDocumentLogs(List<TenantLog> logs, Long documentId) {
         return logs.stream()
-            .filter(l -> documentId.equals(l.getLogDetails().get("documentId").asLong()))
-            .toList();
+                .filter(l -> documentId.equals(l.getLogDetails().get("documentId").asLong()))
+                .toList();
     }
 
     public void addOperatorCommentLog(Long operatorId, Long tenantId, String operatorComment) {
@@ -89,45 +89,45 @@ public class TenantLogService {
 
     public void addDeleteDocumentLog(Long tenantId, Long operatorId, Document document) {
         TenantLog log = TenantLog.builder()
-            .logType(LogType.DOCUMENT_DELETED)
-            .tenantId(tenantId)
-            .operatorId(operatorId)
-            .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(DocumentLogDetails.from(document)))
-            .build();
+                .logType(LogType.DOCUMENT_DELETED)
+                .tenantId(tenantId)
+                .operatorId(operatorId)
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsObjectNode(DocumentLogDetails.from(document)))
+                .build();
         tenantLogCommonService.saveTenantLog(log);
     }
 
     public void addReprocessTenantLog(Long tenantId, Long operatorId, int documentCount) {
         TenantLog log = TenantLog.builder()
-            .logType(LogType.ACCOUNT_REPROCESSED)
-            .tenantId(tenantId)
-            .operatorId(operatorId)
-            .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(Map.of("documentCount", documentCount)))
-            .build();
+                .logType(LogType.ACCOUNT_REPROCESSED)
+                .tenantId(tenantId)
+                .operatorId(operatorId)
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsObjectNode(Map.of("documentCount", documentCount)))
+                .build();
         tenantLogCommonService.saveTenantLog(log);
     }
 
     public void addDeleteFileLog(Long tenantId, Long operatorId, File file) {
         TenantLog log = TenantLog.builder()
-            .logType(LogType.FILE_DELETED)
-            .tenantId(tenantId)
-            .operatorId(operatorId)
-            .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(FileLogDetails.from(file)))
-            .build();
+                .logType(LogType.FILE_DELETED)
+                .tenantId(tenantId)
+                .operatorId(operatorId)
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsObjectNode(FileLogDetails.from(file)))
+                .build();
         tenantLogCommonService.saveTenantLog(log);
     }
 
     public void addUpdateAmountLog(Long tenantId, Long operatorId, Document document, Integer newSum) {
         TenantLog log = TenantLog.builder()
-            .logType(LogType.ACCOUNT_EDITED)
-            .tenantId(tenantId)
-            .operatorId(operatorId)
-            .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(UpdateMonthlySum.from(document, newSum)))
-            .build();
+                .logType(LogType.ACCOUNT_EDITED)
+                .tenantId(tenantId)
+                .operatorId(operatorId)
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsObjectNode(UpdateMonthlySum.from(document, newSum)))
+                .build();
         tenantLogCommonService.saveTenantLog(log);
     }
 

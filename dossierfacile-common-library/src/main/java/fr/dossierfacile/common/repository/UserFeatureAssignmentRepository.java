@@ -16,5 +16,6 @@ public interface UserFeatureAssignmentRepository extends JpaRepository<UserFeatu
 
     @Modifying
     @Query("UPDATE UserFeatureAssignment u SET u.rolloutPct = :newRolloutPct, u.enabled = CASE WHEN u.bucket < :newRolloutPct THEN true ELSE false END WHERE u.featureFlag.key = :featureKey AND u.assignmentSource = :source")
-    void updateRolloutPctAndEnabled(@Param("featureKey") String featureKey, @Param("newRolloutPct") Integer newRolloutPct, @Param("source") FeatureAssignmentSource source);
+    void updateRolloutPctAndEnabled(@Param("featureKey") String featureKey, @Param("newRolloutPct") Integer newRolloutPct,
+            @Param("source") FeatureAssignmentSource source);
 }

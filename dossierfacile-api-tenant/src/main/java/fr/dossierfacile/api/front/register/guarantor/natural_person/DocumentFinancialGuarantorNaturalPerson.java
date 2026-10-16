@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentFinancialSaveStep<DocumentFinancialGuarantorNaturalPersonForm> implements SaveStep<DocumentFinancialGuarantorNaturalPersonForm> {
+public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentFinancialSaveStep<DocumentFinancialGuarantorNaturalPersonForm>
+        implements
+            SaveStep<DocumentFinancialGuarantorNaturalPersonForm> {
 
     private final GuarantorRepository guarantorRepository;
 
@@ -40,10 +42,12 @@ public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentFin
 
     @Override
     protected DocumentSaveResult saveDocument(Tenant tenant, DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentFinancialGuarantorNaturalPersonForm.getGuarantorId())
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentFinancialGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentFinancialGuarantorNaturalPersonForm.getGuarantorId()));
 
-        Document document = documentRepository.findByDocumentCategoryAndGuarantorAndId(DocumentCategory.FINANCIAL, guarantor, documentFinancialGuarantorNaturalPersonForm.getDocumentId())
+        Document document = documentRepository
+                .findByDocumentCategoryAndGuarantorAndId(DocumentCategory.FINANCIAL, guarantor, documentFinancialGuarantorNaturalPersonForm.getDocumentId())
                 .orElse(Document.builder()
                         .documentCategory(DocumentCategory.FINANCIAL)
                         .documentCategoryStep(documentFinancialGuarantorNaturalPersonForm.getCategoryStep())

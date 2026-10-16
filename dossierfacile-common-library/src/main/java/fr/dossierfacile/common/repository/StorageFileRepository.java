@@ -41,7 +41,6 @@ public interface StorageFileRepository extends JpaRepository<StorageFile, Long> 
             """, nativeQuery = true)
     List<StorageFile> findAllWithOneProviderAndCopyFailed(Pageable pageable);
 
-
     @Query(value = "SELECT path FROM storage_file WHERE path IN (:pathsToSearch)",
             nativeQuery = true)
     List<String> findExistingPathsIn(@Param("pathsToSearch") List<String> paths);

@@ -1,6 +1,5 @@
 package fr.gouv.bo.dto;
 
-
 import fr.dossierfacile.common.enums.ApplicationType;
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;

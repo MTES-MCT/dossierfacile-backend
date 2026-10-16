@@ -61,7 +61,7 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
             return false;
         }
 
-        if (!featureFlag.isActive()){
+        if (!featureFlag.isActive()) {
             return false;
         }
 
@@ -93,7 +93,8 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
         if (featureFlag.isOnlyForNewUser()) {
             // We need to have a safe check for the deployment date.
             if (featureFlag.getDeploymentDate() == null) {
-                log.warn("Feature flag {} is only for new users, but no deployment date is set. User {} will not have the feature enabled.", featureFlag.getKey(), userId);
+                log.warn("Feature flag {} is only for new users, but no deployment date is set. User {} will not have the feature enabled.",
+                        featureFlag.getKey(), userId);
                 return false;
             }
             // If the user is created before the deployment date, we disable the feature.
@@ -147,8 +148,7 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
         // When we activate the feature flag we set the deployment date to now.
         if (enabled) {
             featureFlag.setDeploymentDate(LocalDateTime.now());
-        }
-        else {
+        } else {
             featureFlag.setDeploymentDate(null);
         }
         featureFlagRepository.save(featureFlag);

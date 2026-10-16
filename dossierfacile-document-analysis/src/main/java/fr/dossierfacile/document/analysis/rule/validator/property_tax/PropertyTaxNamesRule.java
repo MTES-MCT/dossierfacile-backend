@@ -61,7 +61,8 @@ public class PropertyTaxNamesRule extends BaseDocumentIAValidator {
 
         // No candidate identity in the dossier: cannot conclude.
         if (nameToMatch == null) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         // Merge the two identity sources (owners + recipients) and drop redundant entries.
@@ -89,11 +90,13 @@ public class PropertyTaxNamesRule extends BaseDocumentIAValidator {
             return reject(namesRuleData);
         }
 
-        return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);
+        return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData),
+                RuleValidatorOutput.RuleLevel.PASSED);
     }
 
     private RuleValidatorOutput reject(TaxNamesRuleData ruleData) {
-        return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.FAILED);
+        return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData),
+                RuleValidatorOutput.RuleLevel.FAILED);
     }
 
     @Override

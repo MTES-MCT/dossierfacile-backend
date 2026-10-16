@@ -27,7 +27,9 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DocumentIdentificationGuarantorNaturalPersonFile extends AbstractDocumentSaveStep<DocumentIdentificationGuarantorNaturalPersonFileForm> implements SaveStep<DocumentIdentificationGuarantorNaturalPersonFileForm> {
+public class DocumentIdentificationGuarantorNaturalPersonFile extends AbstractDocumentSaveStep<DocumentIdentificationGuarantorNaturalPersonFileForm>
+        implements
+            SaveStep<DocumentIdentificationGuarantorNaturalPersonFileForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
@@ -37,8 +39,10 @@ public class DocumentIdentificationGuarantorNaturalPersonFile extends AbstractDo
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
-    protected DocumentSaveResult saveDocument(Tenant tenant, DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentIdentificationGuarantorNaturalPersonFileForm.getGuarantorId())
+    protected DocumentSaveResult saveDocument(Tenant tenant,
+            DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentIdentificationGuarantorNaturalPersonFileForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorNaturalPersonFileForm.getGuarantorId()));
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);

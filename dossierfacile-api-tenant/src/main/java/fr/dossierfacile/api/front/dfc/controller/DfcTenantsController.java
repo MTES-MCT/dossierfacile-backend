@@ -101,7 +101,8 @@ public class DfcTenantsController {
     @ApiResponse(responseCode = "200", description = "The tenant's connected profile")
     @ApiResponse(responseCode = "400", description = "Invalid path parameter (e.g. `tenantId` is not a number)", content = @Content)
     @ApiResponse(responseCode = "401", description = "Missing or invalid access token", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Access token is missing the `dfc` scope, or the tenant has not consented to this partner", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Access token is missing the `dfc` scope, or the tenant has not consented to this partner",
+            content = @Content)
     @ApiResponse(responseCode = "404", description = "No tenant found for this id", content = @Content)
     @GetMapping(value = "/{tenantId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ConnectedTenantModel> get(
@@ -125,8 +126,11 @@ public class DfcTenantsController {
                     schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "400", description = "Invalid path parameter (e.g. `tenantId` is not a number)", content = @Content)
     @ApiResponse(responseCode = "401", description = "Missing or invalid access token", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Access token is missing the `dfc`/`dfc-documents` scopes, or the tenant has not consented to this partner", content = @Content)
-    @ApiResponse(responseCode = "404", description = "Unknown tenant, or the document does not belong to this tenant's apartment sharing (or has no watermarked version yet)", content = @Content)
+    @ApiResponse(responseCode = "403",
+            description = "Access token is missing the `dfc`/`dfc-documents` scopes, or the tenant has not consented to this partner", content = @Content)
+    @ApiResponse(responseCode = "404",
+            description = "Unknown tenant, or the document does not belong to this tenant's apartment sharing (or has no watermarked version yet)",
+            content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded for document downloads", content = @Content)
     @GetMapping(value = "/{tenantId}/documents/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadDocument(

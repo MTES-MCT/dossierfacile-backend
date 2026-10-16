@@ -36,26 +36,34 @@ class FrenchIdentityCardExpirationRuleTest {
         ExtractionModel extraction = ExtractionModel.builder()
                 .type("cni")
                 .properties(Stream.of(
-                        birthDate != null ? GenericProperty.builder()
-                                .name("date_naissance")
-                                .type("date")
-                                .value(birthDate)
-                                .build() : null,
-                        deliveryDate != null ? GenericProperty.builder()
-                                .name("date_delivrance")
-                                .type("date")
-                                .value(deliveryDate)
-                                .build() : null,
-                        expirationDate != null ? GenericProperty.builder()
-                                .name("date_expiration")
-                                .type("date")
-                                .value(expirationDate)
-                                .build() : null,
-                        cardNumber != null ? GenericProperty.builder()
-                                .name("numero_document")
-                                .type("string")
-                                .value(cardNumber)
-                                .build() : null
+                        birthDate != null
+                                ? GenericProperty.builder()
+                                        .name("date_naissance")
+                                        .type("date")
+                                        .value(birthDate)
+                                        .build()
+                                : null,
+                        deliveryDate != null
+                                ? GenericProperty.builder()
+                                        .name("date_delivrance")
+                                        .type("date")
+                                        .value(deliveryDate)
+                                        .build()
+                                : null,
+                        expirationDate != null
+                                ? GenericProperty.builder()
+                                        .name("date_expiration")
+                                        .type("date")
+                                        .value(expirationDate)
+                                        .build()
+                                : null,
+                        cardNumber != null
+                                ? GenericProperty.builder()
+                                        .name("numero_document")
+                                        .type("string")
+                                        .value(cardNumber)
+                                        .build()
+                                : null
                 ).filter(Objects::nonNull).toList())
                 .build();
 
@@ -80,26 +88,34 @@ class FrenchIdentityCardExpirationRuleTest {
         BarcodeModel barcode = BarcodeModel.builder()
                 .type("DATA_MATRIX")
                 .typedData(Stream.of(
-                        birthDate != null ? GenericProperty.builder()
-                                .name("date_naissance")
-                                .type("date")
-                                .value(birthDate)
-                                .build() : null,
-                        deliveryDate != null ? GenericProperty.builder()
-                                .name("date_debut_validite")
-                                .type("date")
-                                .value(deliveryDate)
-                                .build() : null,
-                        expirationDate != null ? GenericProperty.builder()
-                                .name("date_fin_validite")
-                                .type("date")
-                                .value(expirationDate)
-                                .build() : null,
-                        cardNumber != null ? GenericProperty.builder()
-                                .name("numero_document")
-                                .type("string")
-                                .value(cardNumber)
-                                .build() : null
+                        birthDate != null
+                                ? GenericProperty.builder()
+                                        .name("date_naissance")
+                                        .type("date")
+                                        .value(birthDate)
+                                        .build()
+                                : null,
+                        deliveryDate != null
+                                ? GenericProperty.builder()
+                                        .name("date_debut_validite")
+                                        .type("date")
+                                        .value(deliveryDate)
+                                        .build()
+                                : null,
+                        expirationDate != null
+                                ? GenericProperty.builder()
+                                        .name("date_fin_validite")
+                                        .type("date")
+                                        .value(expirationDate)
+                                        .build()
+                                : null,
+                        cardNumber != null
+                                ? GenericProperty.builder()
+                                        .name("numero_document")
+                                        .type("string")
+                                        .value(cardNumber)
+                                        .build()
+                                : null
                 ).filter(Objects::nonNull).toList())
                 .build();
 

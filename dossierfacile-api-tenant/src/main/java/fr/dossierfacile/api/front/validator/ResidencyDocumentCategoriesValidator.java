@@ -11,7 +11,9 @@ import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentCategoryStep.*;
 
-public class ResidencyDocumentCategoriesValidator extends AbstractDocumentCategoriesValidator implements ConstraintValidator<ResidencyDocument, IDocumentResidencyForm> {
+public class ResidencyDocumentCategoriesValidator extends AbstractDocumentCategoriesValidator
+        implements
+            ConstraintValidator<ResidencyDocument, IDocumentResidencyForm> {
 
     private boolean isGuarantorMode;
 
@@ -45,7 +47,8 @@ public class ResidencyDocumentCategoriesValidator extends AbstractDocumentCatego
                             constraintValidatorContext
                     );
                 } else {
-                    return handleNoCategoryStep(documentResidencyForm.getCategoryStep(), documentResidencyForm.getTypeDocumentResidency(), constraintValidatorContext);
+                    return handleNoCategoryStep(documentResidencyForm.getCategoryStep(), documentResidencyForm.getTypeDocumentResidency(),
+                            constraintValidatorContext);
                 }
             }
             case GUEST -> {
@@ -61,7 +64,8 @@ public class ResidencyDocumentCategoriesValidator extends AbstractDocumentCatego
                 );
             }
             case OWNER, GUEST_COMPANY, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY -> {
-                return handleNoCategoryStep(documentResidencyForm.getCategoryStep(), documentResidencyForm.getTypeDocumentResidency(), constraintValidatorContext);
+                return handleNoCategoryStep(documentResidencyForm.getCategoryStep(), documentResidencyForm.getTypeDocumentResidency(),
+                        constraintValidatorContext);
             }
             default -> {
                 return handleDefaultValidationError(documentResidencyForm.getTypeDocumentResidency(), constraintValidatorContext);

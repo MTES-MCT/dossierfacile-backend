@@ -17,10 +17,10 @@ class MimeTypeDetectionServiceTest {
 
     static Stream<Arguments> knownMimeTypes() {
         return Stream.of(
-                Arguments.of("doc.pdf",  "%PDF-1.4".getBytes(),                                         "application/pdf"),
-                Arguments.of("img.jpg",  new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF},            "image/jpeg"),
-                Arguments.of("img.png",  new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A},       "image/png"),
-                Arguments.of("file.exe", "MZ executable".getBytes(),                                    "application/x-dosexec")
+                Arguments.of("doc.pdf", "%PDF-1.4".getBytes(), "application/pdf"),
+                Arguments.of("img.jpg", new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF}, "image/jpeg"),
+                Arguments.of("img.png", new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A}, "image/png"),
+                Arguments.of("file.exe", "MZ executable".getBytes(), "application/x-dosexec")
         );
     }
 

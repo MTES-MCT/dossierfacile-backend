@@ -28,5 +28,6 @@ public interface FileStorageService {
 
     StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException;
 
-    StorageFile uploadToProvider(InputStream inputStream, StorageFile storageFile, ObjectStorageProvider provider) throws RetryableOperationException, IOException;
+    StorageFile uploadToProvider(InputStream inputStream, StorageFile storageFile, ObjectStorageProvider provider)
+            throws RetryableOperationException, IOException;
 }

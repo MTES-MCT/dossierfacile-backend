@@ -71,13 +71,15 @@ class UserServiceImplTest {
 
         @Bean
         public UserService userService(TenantMapperForMailImpl tenantMapperForMail) {
-            return new UserServiceImpl(userRepository, passwordRecoveryTokenRepository, mailService, tenantMapper, tenantRepository, logService, keycloakService, userApiService, partnerCallBackService, apartmentSharingService, tenantCommonService, tenantMapperForMail);
+            return new UserServiceImpl(userRepository, passwordRecoveryTokenRepository, mailService, tenantMapper, tenantRepository, logService,
+                    keycloakService, userApiService, partnerCallBackService, apartmentSharingService, tenantCommonService, tenantMapperForMail);
         }
     }
 
     @BeforeEach
     void before() {
-        reset(userRepository, passwordRecoveryTokenRepository, mailService, tenantMapper, tenantRepository, logService, keycloakService, userApiService, partnerCallBackService, apartmentSharingService, tenantCommonService);
+        reset(userRepository, passwordRecoveryTokenRepository, mailService, tenantMapper, tenantRepository, logService, keycloakService, userApiService,
+                partnerCallBackService, apartmentSharingService, tenantCommonService);
     }
 
     @Nested
@@ -109,14 +111,12 @@ class UserServiceImplTest {
             when(passwordRecoveryTokenRepository.findByToken("token")).thenReturn(Optional.of(passwordRecoveryToken));
             when(keycloakService.getKeycloakId(tenant.getEmail())).thenReturn(tenant.getKeycloakId());
 
-
             userService.createPassword("token", "password");
 
             verify(userRepository, times(0)).save(tenant);
             verify(keycloakService, times(1)).createKeyCloakPassword(tenant.getKeycloakId(), "password");
             verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(tenant.getId()), null);
             verify(passwordRecoveryTokenRepository, times(1)).delete(passwordRecoveryToken);
-
 
         }
 

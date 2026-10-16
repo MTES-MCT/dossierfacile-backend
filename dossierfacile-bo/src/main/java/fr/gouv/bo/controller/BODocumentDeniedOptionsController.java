@@ -39,7 +39,8 @@ public class BODocumentDeniedOptionsController {
         documentDeniedOptions.sort(DocumentDeniedOptions::compareDocumentDeniedOptions);
         model.addAttribute("documentDeniedOptions", documentDeniedOptions);
         model.addAttribute("documentUndefinedSubCategory", DocumentSubCategory.UNDEFINED);
-        model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentSubCategory.UNDEFINED));
+        model.addAttribute("documentSubCategories",
+                DocumentSubCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentSubCategory.UNDEFINED));
         model.addAttribute("documentUndefinedCategory", DocumentCategory.NULL);
         model.addAttribute("documentCategories", DocumentCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentCategory.NULL));
         model.addAttribute("documentLabelUtils", new DocumentLabelUtils());
@@ -67,7 +68,8 @@ public class BODocumentDeniedOptionsController {
         model.addAttribute("documentUndefinedCategory", DocumentSubCategory.UNDEFINED);
         model.addAttribute("documentNullCategory", DocumentCategory.NULL);
         model.addAttribute("documentCategories", DocumentCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentCategory.NULL));
-        model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentSubCategory.UNDEFINED));
+        model.addAttribute("documentSubCategories",
+                DocumentSubCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentSubCategory.UNDEFINED));
         model.addAttribute("documentUserTypes", DOCUMENT_USER_TYPES);
         model.addAttribute("documentDeniedOption", new DocumentDeniedOptionsDTO());
         model.addAttribute("documentLabelUtils", new DocumentLabelUtils());
@@ -86,7 +88,7 @@ public class BODocumentDeniedOptionsController {
 
     @PostMapping("/{id}")
     public String saveDocumentDeniedOption(@PathVariable(value = "id") int id,
-                                           @ModelAttribute("documentDeniedOption") DocumentDeniedOptionsDTO modifiedOption) {
+            @ModelAttribute("documentDeniedOption") DocumentDeniedOptionsDTO modifiedOption) {
         service.updateMessage(id, modifiedOption.getMessageValue());
         return "redirect:/bo/documentDeniedOptions";
     }

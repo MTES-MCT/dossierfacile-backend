@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -51,8 +50,10 @@ public class PasswordRecoveryToken implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
         PasswordRecoveryToken that = (PasswordRecoveryToken) o;
         return id != null && Objects.equals(id, that.id);
     }

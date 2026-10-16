@@ -71,7 +71,8 @@ public class PropertyTaxYearRule extends BaseDocumentIAValidator {
 
         // The year was not extracted: refused (decision "missing data -> refusal").
         if (extractedYearString == null) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), yearRuleData), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), yearRuleData),
+                    RuleValidatorOutput.RuleLevel.FAILED);
         }
 
         try {
@@ -79,12 +80,15 @@ public class PropertyTaxYearRule extends BaseDocumentIAValidator {
             yearRuleData = new TaxYearsRuleData(yearRuleData, List.of(extractedYear));
 
             if (expectedYears.contains(extractedYear)) {
-                return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), yearRuleData), RuleValidatorOutput.RuleLevel.PASSED);
+                return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), yearRuleData),
+                        RuleValidatorOutput.RuleLevel.PASSED);
             }
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), yearRuleData), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), yearRuleData),
+                    RuleValidatorOutput.RuleLevel.FAILED);
         } catch (NumberFormatException e) {
             // Present but unparseable: cannot conclude.
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), yearRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), yearRuleData),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
     }
 

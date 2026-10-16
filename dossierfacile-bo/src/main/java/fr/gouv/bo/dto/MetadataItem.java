@@ -13,5 +13,5 @@ import java.util.Map;
 @Builder
 public class MetadataItem {
     String fileName;
-    Map<String,String> metadata;
+    Map<String, String> metadata;
 }

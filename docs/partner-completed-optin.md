@@ -92,7 +92,7 @@ Préparation : flag `tenant_completed_optin` actif à 100 %, `tenant_lottery` OF
 |---|---|---|
 | S1 | Flag `partner_completed_optin` **inactif**, `P_open` coché : liaison DFC d'un dossier COMPLETED | Bascule TO_PROCESS, mail 174, `CREATED_ACCOUNT` avec `status=TO_PROCESS` |
 | S2 | Idem, flag actif mais aucun partenaire coché | Idem S1 |
-| S3 | Flag actif, compte lié à `P_open` avant soumission → signature | `COMPLETED`, `COMPLETED_ACCOUNT` avec `status=COMPLETED` aux deux niveaux, `dossierUrl` / `dossierPdfUrl` renseignés ; GET api-partner : `optInEligible=false`, pas de `validationRequested` ; encart opt-in visible côté locataire |
+| S3 | Flag actif, compte lié à `P_open` avant soumission → signature | `COMPLETED`, `COMPLETED_ACCOUNT` avec `status=COMPLETED` aux deux niveaux, `dossierUrl` / `dossierPdfUrl` renseignés ; GET DFC `/dfc/api/v1/tenants/{id}` : `optInEligible=false`, pas de `validationRequested` ; encart opt-in visible côté locataire |
 | S4 | S3 → opt-in « oui » (loterie OFF) | TO_PROCESS, **aucune** nouvelle ligne `callback_log` ; annulation → COMPLETED, nouveau `COMPLETED_ACCOUNT` |
 | S5 | S3 → loterie ON, ticket tiré | TO_PROCESS sans webhook ; validation opérateur → `VERIFIED_ACCOUNT` |
 | S6 | S3 → liaison à `P_closed` | Bascule TO_PROCESS, mail 174 nommant `P_closed`, `CREATED_ACCOUNT` à `P_closed` seulement ; `optInEligible=false` côté locataire (plus éligible) ; re-soumission ultérieure → TO_PROCESS |

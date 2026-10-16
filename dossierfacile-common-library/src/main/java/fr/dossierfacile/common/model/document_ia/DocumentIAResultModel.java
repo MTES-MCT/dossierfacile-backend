@@ -17,5 +17,3 @@ public class DocumentIAResultModel {
     private DocumentIAFileAnalysisStatus status;
     private DocumentIaResultDataModel data;
 }
-
-

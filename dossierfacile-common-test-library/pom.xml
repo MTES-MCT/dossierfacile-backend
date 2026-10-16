@@ -12,6 +12,8 @@
                 <version>${kotlin.version}</version>
                 <executions>
                     <execution>
+                        <!-- Build from IDE (m2e, embedded in the VS Code Java tooling) -->
+                        <?m2e execute onConfiguration,onIncremental?>
                         <id>compile</id>
                         <phase>compile</phase>
                         <goals>

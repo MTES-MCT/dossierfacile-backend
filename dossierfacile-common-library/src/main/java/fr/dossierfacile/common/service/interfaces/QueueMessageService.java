@@ -17,5 +17,6 @@ public interface QueueMessageService {
      * @param consumptionTimeout       indicated the timeout before interruption
      * @param messageConsumer          processed function
      */
-    void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> messageConsumer, Consumer<JobContext> onFinish);
+    void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> messageConsumer,
+            Consumer<JobContext> onFinish);
 }

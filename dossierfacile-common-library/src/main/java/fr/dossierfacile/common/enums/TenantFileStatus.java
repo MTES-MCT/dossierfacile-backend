@@ -9,7 +9,6 @@ public enum TenantFileStatus {
     COMPLETED("complété"),
     ARCHIVED("");
 
-
     private final String label;
 
     TenantFileStatus(String label) {

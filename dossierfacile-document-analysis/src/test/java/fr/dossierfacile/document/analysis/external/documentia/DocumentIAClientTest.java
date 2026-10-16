@@ -49,7 +49,8 @@ class DocumentIAClientTest {
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("X-Api-Key", API_KEY))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.MULTIPART_FORM_DATA))
-                .andRespond(withSuccess("{\"status\":\"STARTED\",\"data\":{\"execution_id\":\"exec-1\",\"workflow_id\":\"wf-test\"}}", MediaType.APPLICATION_JSON));
+                .andRespond(
+                        withSuccess("{\"status\":\"STARTED\",\"data\":{\"execution_id\":\"exec-1\",\"workflow_id\":\"wf-test\"}}", MediaType.APPLICATION_JSON));
 
         // When
         DocumentIAResponse response = documentIAClient.sendForAnalysis(request, "wf-test");
@@ -74,7 +75,8 @@ class DocumentIAClientTest {
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("X-Api-Key", API_KEY))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.MULTIPART_FORM_DATA))
-                .andRespond(withSuccess("{\"status\":\"STARTED\",\"data\":{\"execution_id\":\"exec-2\",\"workflow_id\":\"wf-test\"}}", MediaType.APPLICATION_JSON));
+                .andRespond(
+                        withSuccess("{\"status\":\"STARTED\",\"data\":{\"execution_id\":\"exec-2\",\"workflow_id\":\"wf-test\"}}", MediaType.APPLICATION_JSON));
 
         // When
         DocumentIAResponse response = documentIAClient.sendForAnalysis(request, "wf-test");
@@ -96,8 +98,7 @@ class DocumentIAClientTest {
                 .build();
 
         // When & Then
-        Exception exception = assertThrows(IllegalArgumentException.class, () ->
-                documentIAClient.sendForAnalysis(request, "wf-test")
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> documentIAClient.sendForAnalysis(request, "wf-test")
         );
         assertEquals("Cannot provide both file and fileUrl", exception.getMessage());
     }
@@ -110,8 +111,7 @@ class DocumentIAClientTest {
                 .build();
 
         // When & Then
-        Exception exception = assertThrows(IllegalArgumentException.class, () ->
-                documentIAClient.sendForAnalysis(request, "wf-test")
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> documentIAClient.sendForAnalysis(request, "wf-test")
         );
         assertEquals("Exactly one of file or fileUrl must be provided", exception.getMessage());
     }
@@ -134,7 +134,8 @@ class DocumentIAClientTest {
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.MULTIPART_FORM_DATA))
                 // Note: Spring's multipart writer sends parts. We check the HTTP request was sent successfully
-                .andRespond(withSuccess("{\"status\":\"STARTED\",\"data\":{\"execution_id\":\"exec-3\",\"workflow_id\":\"wf-test\"}}", MediaType.APPLICATION_JSON));
+                .andRespond(
+                        withSuccess("{\"status\":\"STARTED\",\"data\":{\"execution_id\":\"exec-3\",\"workflow_id\":\"wf-test\"}}", MediaType.APPLICATION_JSON));
 
         // When
         DocumentIAResponse response = documentIAClient.sendForAnalysis(request, "wf-test");
@@ -154,7 +155,8 @@ class DocumentIAClientTest {
         mockServer.expect(requestTo(expectedUrl))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header("X-Api-Key", API_KEY))
-                .andRespond(withSuccess("{\"id\":\"exec-abc\",\"status\":\"SUCCESS\",\"data\":{\"total_processing_time_ms\":250}}", MediaType.APPLICATION_JSON));
+                .andRespond(
+                        withSuccess("{\"id\":\"exec-abc\",\"status\":\"SUCCESS\",\"data\":{\"total_processing_time_ms\":250}}", MediaType.APPLICATION_JSON));
 
         // When
         DocumentIAResultModel response = documentIAClient.checkAnalysisStatus(executionId);

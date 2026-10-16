@@ -97,7 +97,7 @@ public class Tenant extends User implements Person, Serializable {
     @Enumerated(EnumType.STRING)
     private TenantOwnerType ownerType;
 
-    @Column(name="search_text")
+    @Column(name = "search_text")
     private String searchText;
 
     private transient String warningMessage;
@@ -114,7 +114,6 @@ public class Tenant extends User implements Person, Serializable {
         }
         return status;
     }
-
 
     @PrePersist
     @PreUpdate
@@ -154,12 +153,12 @@ public class Tenant extends User implements Person, Serializable {
         }
 
         // Gets all tenant documents
-        List<Document> allDocuments = (guarantors == null) ?
-                documents :
-                Stream.concat(documents.stream(),
-                                guarantors.stream()
-                                        .map(Guarantor::getDocuments)
-                                        .flatMap(List::stream))
+        List<Document> allDocuments = (guarantors == null)
+                ? documents
+                : Stream.concat(documents.stream(),
+                        guarantors.stream()
+                                .map(Guarantor::getDocuments)
+                                .flatMap(List::stream))
                         .toList();
         // Check documents status
         if (allDocuments != null && allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == DECLINED)) {
@@ -212,7 +211,8 @@ public class Tenant extends User implements Person, Serializable {
                     return false;
                 } else if (guarantor.getTypeGuarantor() == TypeGuarantor.ORGANISM) {
                     // Must have exactly one Document of type GUARANTEE_PROVIDER_CERTIFICATE
-                    if (guarantor.getDocuments().size() != 1 || !guarantor.getDocuments().get(0).getDocumentCategory().equals(DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE)) {
+                    if (guarantor.getDocuments().size() != 1
+                            || !guarantor.getDocuments().get(0).getDocumentCategory().equals(DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE)) {
                         return false;
                     }
                 } else if (guarantor.getTypeGuarantor() == TypeGuarantor.NATURAL_PERSON) {
@@ -380,8 +380,8 @@ public class Tenant extends User implements Person, Serializable {
             normalizedLastName = StringUtils.stripAccents(StringUtils.trimToEmpty(getPreferredName()));
         }
         return String.format("%s_%s",
-            StringUtils.capitalize(normalizedFirstName),
-            StringUtils.capitalize(normalizedLastName));
+                StringUtils.capitalize(normalizedFirstName),
+                StringUtils.capitalize(normalizedLastName));
     }
 
 }

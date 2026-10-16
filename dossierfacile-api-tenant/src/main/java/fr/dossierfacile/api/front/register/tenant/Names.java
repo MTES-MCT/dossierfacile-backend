@@ -49,17 +49,17 @@ public class Names implements SaveStep<NamesForm> {
         var tenantPreferredName = StringUtils.trimToNull(tenant.getPreferredName());
 
         boolean tenantIdentityHasChanged = !StringUtils.equals(tenant.getFirstName(), namesForm.getFirstName())
-            || !StringUtils.equals(tenant.getLastName(), namesForm.getLastName())
-            || !StringUtils.equals(tenantPreferredName, preferredName);
+                || !StringUtils.equals(tenant.getLastName(), namesForm.getLastName())
+                || !StringUtils.equals(tenantPreferredName, preferredName);
 
         // any change of first, last and preferred names triggers a document status reset and re-analysis
         List<Document> documentsToProcess = List.of();
-        
+
         if (tenantIdentityHasChanged) {
             documentsToProcess = new ArrayList<>(CollectionUtils.emptyIfNull(tenant.getDocuments()));
             if (CollectionUtils.isNotEmpty(tenant.getGuarantors())
                     && (tenant.getGuarantors().getFirst().getTypeGuarantor() == TypeGuarantor.LEGAL_PERSON
-                    || tenant.getGuarantors().getFirst().getTypeGuarantor() == TypeGuarantor.ORGANISM)) {
+                            || tenant.getGuarantors().getFirst().getTypeGuarantor() == TypeGuarantor.ORGANISM)) {
                 documentsToProcess.addAll(tenant.getGuarantors().getFirst().getDocuments());
             }
             documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToProcess, Arrays.asList(DocumentCategory.values()));

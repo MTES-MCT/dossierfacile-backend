@@ -6,20 +6,18 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class OtherTaxCustomTextGuarantorNaturalPersonValidator implements ConstraintValidator<OtherTaxCustomTextGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
+import static fr.dossierfacile.api.front.validator.CustomTextValidation.requireCustomText;
+
+public class OtherTaxCustomTextGuarantorNaturalPersonValidator
+        implements
+            ConstraintValidator<OtherTaxCustomTextGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
 
     @Override
     public boolean isValid(DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        boolean isValid = true;
-        if (documentTaxGuarantorNaturalPersonForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && documentTaxGuarantorNaturalPersonForm.getNoDocument() && documentTaxGuarantorNaturalPersonForm.getCategoryStep() == null) {
-            isValid = documentTaxGuarantorNaturalPersonForm.getCustomText() != null && !documentTaxGuarantorNaturalPersonForm.getCustomText().isBlank();
-            if (!isValid) {
-                constraintValidatorContext.disableDefaultConstraintViolation();
-                constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.NotEmpty.message}")
-                        .addPropertyNode("customText").addConstraintViolation();
-            }
+        if (documentTaxGuarantorNaturalPersonForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && documentTaxGuarantorNaturalPersonForm.getNoDocument()
+                && documentTaxGuarantorNaturalPersonForm.getCategoryStep() == null) {
+            return requireCustomText(documentTaxGuarantorNaturalPersonForm.getCustomText(), constraintValidatorContext);
         }
-        return isValid;
+        return true;
     }
 }

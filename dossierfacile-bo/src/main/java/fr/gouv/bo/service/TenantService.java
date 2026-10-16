@@ -104,7 +104,6 @@ public class TenantService {
         return tenantRepository.findTenantByWordsAnywhere(searchWords, pageable);
     }
 
-
     public Tenant findTenantById(Long id) {
         return tenantRepository.findOneById(id);
     }
@@ -279,19 +278,17 @@ public class TenantService {
             ItemDetail messageItem1 = messageItem.getItemDetailList().stream().filter(ItemDetail::isCheck).findAny().orElse(null);
 
             if (messageItem1 == null && messageItem.getCommentDoc().isEmpty()) {
-                documentRepository.findById(messageItem.getDocumentId()).
-                        ifPresent(d -> {
-                            d.setDocumentStatus(DocumentStatus.VALIDATED);
-                            d.setDocumentDeniedReasons(null);
-                            documentRepository.save(d);
-                        });
+                documentRepository.findById(messageItem.getDocumentId()).ifPresent(d -> {
+                    d.setDocumentStatus(DocumentStatus.VALIDATED);
+                    d.setDocumentDeniedReasons(null);
+                    documentRepository.save(d);
+                });
             } else {
                 areAllDocumentsValid = false;
-                documentRepository.findById(messageItem.getDocumentId()).
-                        ifPresent(d -> {
-                            d.setDocumentStatus(DocumentStatus.DECLINED);
-                            documentRepository.save(d);
-                        });
+                documentRepository.findById(messageItem.getDocumentId()).ifPresent(d -> {
+                    d.setDocumentStatus(DocumentStatus.DECLINED);
+                    documentRepository.save(d);
+                });
             }
 
         }
@@ -303,19 +300,17 @@ public class TenantService {
                 ItemDetail messageItem1 = messageItem.getItemDetailList().stream().filter(ItemDetail::isCheck).findAny().orElse(null);
 
                 if (messageItem1 == null && messageItem.getCommentDoc().isEmpty()) {
-                    documentRepository.findById(messageItem.getDocumentId()).
-                            ifPresent(d -> {
-                                d.setDocumentStatus(DocumentStatus.VALIDATED);
-                                d.setDocumentDeniedReasons(null);
-                                documentRepository.save(d);
-                            });
+                    documentRepository.findById(messageItem.getDocumentId()).ifPresent(d -> {
+                        d.setDocumentStatus(DocumentStatus.VALIDATED);
+                        d.setDocumentDeniedReasons(null);
+                        documentRepository.save(d);
+                    });
                 } else {
                     areAllDocumentsValid = false;
-                    documentRepository.findById(messageItem.getDocumentId()).
-                            ifPresent(d -> {
-                                d.setDocumentStatus(DocumentStatus.DECLINED);
-                                documentRepository.save(d);
-                            });
+                    documentRepository.findById(messageItem.getDocumentId()).ifPresent(d -> {
+                        d.setDocumentStatus(DocumentStatus.DECLINED);
+                        documentRepository.save(d);
+                    });
                 }
             }
         }
@@ -335,8 +330,10 @@ public class TenantService {
             documentDeniedReasons.setComment(messageItem.getCommentDoc());
         }
 
-        if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
-            Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
+        if (!documentDeniedReasons.getCheckedOptionsId().isEmpty()
+                || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
+            Document document = documentRepository.findById(messageItem.getDocumentId())
+                    .orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
             documentDeniedReasons.setDocument(document);
             documentDeniedReasons.setDocumentCategory(document.getDocumentCategory());
             documentDeniedReasons.setDocumentSubCategory(document.getDocumentSubCategory());
@@ -730,8 +727,10 @@ public class TenantService {
             }
         }
         html.append("<p>👉 Vous pouvez consulter la version mise à jour dans votre espace.</p>");
-        html.append("<p>Si vous souhaitez modifier ce montant, vous êtes libre de le faire, mais votre dossier devra alors repasser par le processus complet de validation.<br/> ");
-        html.append("<strong>Pour un traitement plus rapide, nous vous invitons à contacter notre support via ce lien : <a href=\"/contact?open=form\">Lien support</a>.</strong></p>");
+        html.append(
+                "<p>Si vous souhaitez modifier ce montant, vous êtes libre de le faire, mais votre dossier devra alors repasser par le processus complet de validation.<br/> ");
+        html.append(
+                "<strong>Pour un traitement plus rapide, nous vous invitons à contacter notre support via ce lien : <a href=\"/contact?open=form\">Lien support</a>.</strong></p>");
         html.append("<p><em>Rappel : vous avez accepté que notre équipe procède à cet ajustement en cas d’incohérence.</em></p>");
         html.append("<p>Bonne journée</p>");
         messageService.create(MessageDTO.builder().message(html.toString()).build(), tenant, false, false);
@@ -773,7 +772,6 @@ public class TenantService {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
-
     @Transactional
     protected void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
@@ -789,7 +787,6 @@ public class TenantService {
         }
     }
 
-
     private void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
         // Call core validation logic
         tenantCommonService.changeTenantStatusToValidated(tenant);
@@ -797,7 +794,8 @@ public class TenantService {
         // Add operator-specific logging
         messageService.markReadAdmin(tenant);
         tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
-        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
+        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(),
+                processedDocuments.timeSpent()));
     }
 
     private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
@@ -807,7 +805,8 @@ public class TenantService {
         lotteryTicketService.consumeDrawnTicket(tenant.getId());
         messageService.markReadAdmin(tenant);
 
-        tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
+        tenantLogCommonService
+                .saveTenantLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()
         ));

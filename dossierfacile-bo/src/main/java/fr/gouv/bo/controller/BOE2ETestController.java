@@ -82,7 +82,7 @@ public class BOE2ETestController {
 
     @PostMapping("/tenant/{tenantEmail}/decline")
     public ResponseEntity<Void> declineTenant(@PathVariable String tenantEmail,
-                                              @RequestBody DeclineRequest body) {
+            @RequestBody DeclineRequest body) {
         ResponseEntity<Void> rejection = rejectIfForbidden(tenantEmail, "decline");
         if (rejection != null) {
             return rejection;
@@ -193,10 +193,12 @@ public class BOE2ETestController {
         return userService.findOrCreateOperatorByEmail(operatorEmail);
     }
 
-    public record DeclineRequest(String messageBody, List<String> documentCategories) {}
+    public record DeclineRequest(String messageBody, List<String> documentCategories) {
+    }
 
     public record CreateUserRequest(
             @NotBlank @Email String email,
             @NotBlank String password
-    ) {}
+    ) {
+    }
 }

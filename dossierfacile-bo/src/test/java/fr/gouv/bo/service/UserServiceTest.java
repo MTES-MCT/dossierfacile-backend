@@ -38,7 +38,7 @@ class UserServiceTest {
                 null, // apartmentSharingService
                 null, // partnerCallBackService
                 null, // tenantLogCommonService
-                null  // tenantMapperForMail
+                null // tenantMapperForMail
         );
     }
 

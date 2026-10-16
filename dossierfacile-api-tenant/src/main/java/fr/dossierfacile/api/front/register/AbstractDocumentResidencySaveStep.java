@@ -46,7 +46,8 @@ public abstract class AbstractDocumentResidencySaveStep<T extends DocumentForm &
                 && targetNoDocument;
 
         // Détecte si des informations du formulaire ont changé (sous-catégorie, étape ou texte d'explication)
-        boolean infoChanged = hasResidencyInfoChanged(document, documentSubCategory, documentResidencyForm.getCategoryStep(), documentResidencyForm.getCustomText());
+        boolean infoChanged = hasResidencyInfoChanged(document, documentSubCategory, documentResidencyForm.getCategoryStep(),
+                documentResidencyForm.getCustomText());
 
         // Si le document reste sans fichier ET qu'aucune info n'a changé, pas besoin de réinitialiser le statut
         boolean isUnchangedNoDocument = isStayingNoDocument && !infoChanged;
@@ -91,7 +92,8 @@ public abstract class AbstractDocumentResidencySaveStep<T extends DocumentForm &
                 && !document.getFiles().isEmpty();
     }
 
-    private boolean computeTargetNoDocument(DocumentSubCategory subCategory, boolean hasNewFiles, boolean hasExistingFiles, DocumentSubCategory previousSubCategory) {
+    private boolean computeTargetNoDocument(DocumentSubCategory subCategory, boolean hasNewFiles, boolean hasExistingFiles,
+            DocumentSubCategory previousSubCategory) {
         if (subCategory != DocumentSubCategory.OTHER_RESIDENCY) {
             return false;
         }
@@ -116,4 +118,3 @@ public abstract class AbstractDocumentResidencySaveStep<T extends DocumentForm &
         documentHelperService.deleteFiles(document);
     }
 }
-

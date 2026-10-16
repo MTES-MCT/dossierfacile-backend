@@ -112,7 +112,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
         // 5. Save log and return the application model
         // unless the authenticated tenant is a tenant of the apartment sharing
-        if (loggedInTenant == null || loggedInTenant.getApartmentSharing() == null || !Objects.equals(loggedInTenant.getApartmentSharing().getId(), apartmentSharing.getId())) {
+        if (loggedInTenant == null || loggedInTenant.getApartmentSharing() == null
+                || !Objects.equals(loggedInTenant.getApartmentSharing().getId(), apartmentSharing.getId())) {
             saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
         }
         ApplicationModel applicationModel = applicationFullMapper.toApplicationModelWithToken(apartmentSharing, token);
@@ -126,7 +127,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
         return applicationModel;
     }
-
 
     @Override
     public ApplicationModel light(UUID token) {
@@ -220,16 +220,18 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         String normalizedTrigram = trigram.strip().toUpperCase();
 
         // Get valid trigrams for this apartment sharing (from lastName and preferredName of tenant and account owner)
-        List<String> validTrigrams = apartmentSharing.getTenants() == null ? List.of() : apartmentSharing.getTenants().stream()
-                .flatMap(tenant -> Stream.of(
-                        tenant.getLastName(),
-                        tenant.getPreferredName(),
-                        tenant.getUserLastName(),
-                        tenant.getUserPreferredName()))
-                .map(TrigramUtils::compute)
-                .flatMap(Optional::stream)
-                .distinct()
-                .toList();
+        List<String> validTrigrams = apartmentSharing.getTenants() == null
+                ? List.of()
+                : apartmentSharing.getTenants().stream()
+                        .flatMap(tenant -> Stream.of(
+                                tenant.getLastName(),
+                                tenant.getPreferredName(),
+                                tenant.getUserLastName(),
+                                tenant.getUserPreferredName()))
+                        .map(TrigramUtils::compute)
+                        .flatMap(Optional::stream)
+                        .distinct()
+                        .toList();
 
         // Check if the provided trigram matches any valid trigram
         boolean trigramMatches = validTrigrams.stream().anyMatch(candidate -> candidate.equalsIgnoreCase(normalizedTrigram));
@@ -289,12 +291,10 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         } finally {
             try {
                 Files.delete(Path.of(zipFileName));
-            } catch (IOException ignored) {
-            }
+            } catch (IOException ignored) {}
         }
         return null;
     }
-
 
     @Override
     public void createFullPdfForTenant(Tenant tenant) {
@@ -304,7 +304,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         }
         requestFullPdfGeneration(apartmentSharing, null);
     }
-
 
     @Override
     public FullFolderFile downloadFullPdfForTenant(Tenant tenant) throws IOException {
@@ -341,7 +340,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                     }
                     // This should not happen
                     catch (AccessDeniedException e) {
-                        log.warn("Tenant with ID [{}] tried to access analysis status of a document with ID [{}] that he doesn't have access to", tenant.getId(), it.getId());
+                        log.warn("Tenant with ID [{}] tried to access analysis status of a document with ID [{}] that he doesn't have access to",
+                                tenant.getId(), it.getId());
                         return null;
                     }
                 })
@@ -403,7 +403,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             }
         }
     }
-
 
     private String getFullFolderName(ApartmentSharing apartmentSharing, String extension) {
         var fileName = String.format("DossierFacile.%s", extension);

@@ -85,7 +85,8 @@ public class RegisterController {
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyForm.tenantId)")
     @PostMapping(value = "/documentResidency", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity<TenantModel> documentResidency(@Validated({Dossier.class, ResidencyDocumentGroup.class}) DocumentResidencyForm documentResidencyForm) {
+    public ResponseEntity<TenantModel> documentResidency(
+            @Validated({Dossier.class, ResidencyDocumentGroup.class}) DocumentResidencyForm documentResidencyForm) {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
         Tenant loggedTenant = (documentResidencyForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
@@ -111,7 +112,8 @@ public class RegisterController {
             @ApiResponse(code = 400, message = "Wrong request params")
     })
     @Transactional
-    public ResponseEntity<TenantModel> documentFinancial(@Validated({Dossier.class, FinancialDocumentGroup.class}) DocumentFinancialForm documentFinancialForm) {
+    public ResponseEntity<TenantModel> documentFinancial(
+            @Validated({Dossier.class, FinancialDocumentGroup.class}) DocumentFinancialForm documentFinancialForm) {
         Tenant tenant = authenticationFacade.getTenant(documentFinancialForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentFinancialForm, StepRegister.DOCUMENT_FINANCIAL);
         Tenant loggedTenant = (documentFinancialForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();

@@ -115,9 +115,11 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public StorageFile uploadToProvider(InputStream inputStream, StorageFile storageFile, ObjectStorageProvider provider) throws RetryableOperationException, IOException {
+    public StorageFile uploadToProvider(InputStream inputStream, StorageFile storageFile, ObjectStorageProvider provider)
+            throws RetryableOperationException, IOException {
         if (provider == ObjectStorageProvider.S3) {
-            getStorageService(provider).uploadV2(storageFile.getBucket(), storageFile.getPath(), inputStream, storageFile.getContentType(), storageFile.getEncryptionKey());
+            getStorageService(provider).uploadV2(storageFile.getBucket(), storageFile.getPath(), inputStream, storageFile.getContentType(),
+                    storageFile.getEncryptionKey());
         } else {
             getStorageService(provider)
                     .upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
@@ -140,7 +142,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (providers.contains(ObjectStorageProvider.S3)) {
             return ObjectStorageProvider.S3;
         } else {
-            return  providers.stream().findFirst().orElse(ObjectStorageProvider.LOCAL);
+            return providers.stream().findFirst().orElse(ObjectStorageProvider.LOCAL);
         }
     }
 

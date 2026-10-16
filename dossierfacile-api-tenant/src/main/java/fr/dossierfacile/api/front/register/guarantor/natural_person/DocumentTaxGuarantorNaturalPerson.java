@@ -39,7 +39,8 @@ public class DocumentTaxGuarantorNaturalPerson extends AbstractDocumentTaxSaveSt
 
     @Override
     protected DocumentSaveResult saveDocument(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentTaxGuarantorNaturalPersonForm.getGuarantorId())
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentTaxGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentTaxGuarantorNaturalPersonForm.getGuarantorId()));
 
         Document document = documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.TAX, guarantor)

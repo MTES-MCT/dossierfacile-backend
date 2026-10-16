@@ -10,4 +10,3 @@ public class ApplicationLinkBlockedException extends RuntimeException {
         super(message);
     }
 }
-

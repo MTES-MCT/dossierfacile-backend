@@ -110,7 +110,6 @@ public class DeleteFilesTask extends AbstractTask {
         deleteFilesForProvider(ObjectStorageProvider.OVH, batchSize);
     }
 
-
     /**
      * Generic retry task for all providers.
      * Retries files that previously failed to delete.

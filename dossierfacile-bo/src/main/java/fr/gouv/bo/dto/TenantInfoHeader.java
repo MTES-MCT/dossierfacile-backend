@@ -27,7 +27,8 @@ public class TenantInfoHeader {
 
     public static TenantInfoHeader build(Tenant tenant, List<UserApi> partners, List<TenantLog> tenantLogs) {
         List<HeaderElement> elements = List.of(
-                new HeaderElement("FranceConnecté", (tenant.getFranceConnect() == Boolean.TRUE && tenant.getOwnerType() == TenantOwnerType.SELF) ? "Oui" : "Non"),
+                new HeaderElement("FranceConnecté",
+                        (tenant.getFranceConnect() == Boolean.TRUE && tenant.getOwnerType() == TenantOwnerType.SELF) ? "Oui" : "Non"),
                 new HeaderElement("Nom", tenant.getFullName()),
                 new HeaderElement("Dossier", getApplicationType(tenant)),
                 new HeaderElement("Partenaires", getPartnerNames(partners)),

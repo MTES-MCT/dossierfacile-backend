@@ -5,4 +5,3 @@ public enum FeatureAssignmentReason {
     ROLLOUT_INCREASED,
     ROLLBACK;
 }
-

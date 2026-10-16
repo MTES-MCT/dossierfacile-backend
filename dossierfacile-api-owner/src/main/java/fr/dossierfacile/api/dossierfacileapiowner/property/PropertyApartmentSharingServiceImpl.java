@@ -35,10 +35,10 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
         ApartmentSharing apartmentSharing = propertyApartmentSharing.getApartmentSharing();
         Long id = propertyApartmentSharing.getProperty().getId();
         Optional<ApartmentSharingLink> link = apartmentSharing
-            .getApartmentSharingLinks()
-            .stream()
-            .filter(l -> id.equals(l.getPropertyId()))
-            .findFirst();
+                .getApartmentSharingLinks()
+                .stream()
+                .filter(l -> id.equals(l.getPropertyId()))
+                .findFirst();
         if (link.isPresent()) {
             apartmentSharingLinkRepository.delete(link.get());
         }
@@ -56,10 +56,10 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
                 .findByPropertyAndApartmentSharing(property, apartmentSharing);
         if (existingPropertyApartmentSharing.isEmpty()) {
             PropertyApartmentSharing propertyApartmentSharing = PropertyApartmentSharing.builder()
-                            .accessFull(hasAccess)
-                            .property(property)
-                            .apartmentSharing(apartmentSharing)
-                            .build();
+                    .accessFull(hasAccess)
+                    .property(property)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
             propertyApartmentSharingRepository.save(propertyApartmentSharing);
             createOwnerLinkAndNotify(apartmentSharing, property, tenant, hasAccess);
         } else {

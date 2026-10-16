@@ -71,7 +71,8 @@ public class FileServiceImpl implements FileService {
     public File getFileForTenantOrCouple(Long fileId, Tenant tenant) throws FileNotFoundException {
 
         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
-            return fileRepository.findByIdForAppartmentSharing(fileId, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(fileId));
+            return fileRepository.findByIdForAppartmentSharing(fileId, tenant.getApartmentSharing().getId())
+                    .orElseThrow(() -> new FileNotFoundException(fileId));
         }
         return fileRepository.findByIdForTenant(fileId, tenant.getId()).orElseThrow(() -> new FileNotFoundException(fileId));
     }

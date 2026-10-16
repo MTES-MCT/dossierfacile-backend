@@ -23,7 +23,7 @@ class MarkdownUtilTest {
     void should_ignore_new_lines() {
         assertThat(markdownToHtml("""
                 Abc
-                                
+
                 Abc
                 """)).isEqualTo("Abc Abc");
     }

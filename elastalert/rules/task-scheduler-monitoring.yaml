@@ -5,7 +5,6 @@ type: any
 index: aggregator-logs-%Y.%m.%d
 use_strftime_index: true
 
-#The maximum time between changes. After this time period, ElastAlert 2 will forget the old value of the compare_key field.
 timeframe:
   hours: 1
 
@@ -16,6 +15,19 @@ filter:
       application: "task-scheduler"
   - match_phrase:
       task_status: "ERROR"
+  # High-cadence jobs have their own frequency rule (task-<job>.yaml) with a threshold
+  # around 75 % of their hourly runs; here a single error of a daily/weekly/hourly job alerts.
+  - bool:
+      must_not:
+        - terms:
+            task_name.keyword:
+              - STORAGE_FILES_DELETION
+              - STORAGE_FILES_DELETION_RETRY
+              - GARBAGE_COLLECTION_V2
+              - GARBAGE_COLLECTION
+              - SYNCHRONISE_DOCUMENT_IA
+              - TENANT_AUTO_VALIDATION
+              - CHECK_API_ADEME
 
 query_key: task_name
 realert:

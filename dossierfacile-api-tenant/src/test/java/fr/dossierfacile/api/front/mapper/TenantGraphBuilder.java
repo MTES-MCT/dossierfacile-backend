@@ -142,7 +142,6 @@ public class TenantGraphBuilder {
             return this;
         }
 
-
         public DocumentBuilder withWatermarkFile() {
             this.hasWatermarkFile = true;
             return this;

@@ -187,7 +187,7 @@ class DfcTenantsControllerIntegrationTest {
 
         expectedDocumentUrl = "https://api.test.com/api/application/links/"
                 + fullLinkToken + "/documents/" + document.getName();
-        
+
         expectedToken = fullLinkToken.toString();
         expectedPublicToken = restrictedLinkToken.toString();
 

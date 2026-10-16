@@ -29,7 +29,8 @@ public class TenantAutoValidationTask extends AbstractTask {
         super.startTask(TaskName.TENANT_AUTO_VALIDATION);
         try {
             LocalDateTime maxLastUpdateDate = LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(tenantMinAgeInMinutes);
-            log.info("Starting tenant auto validation task for tenants flagged since more than {} minutes (lastUpdateDate <= {})", tenantMinAgeInMinutes, maxLastUpdateDate);
+            log.info("Starting tenant auto validation task for tenants flagged since more than {} minutes (lastUpdateDate <= {})", tenantMinAgeInMinutes,
+                    maxLastUpdateDate);
 
             List<Tenant> tenantsToValidate = tenantAutoValidationService.listTenantsToAutoValidate(maxLastUpdateDate);
             countTenantIdForLogging(tenantsToValidate.stream().map(Tenant::getId).toList());

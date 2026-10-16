@@ -56,7 +56,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(DfcTenantController.class)
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
-@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
+@ContextConfiguration(
+        classes = {TestApplication.class, TenantMapperImpl.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
 class DfcTenantControllerTest {
 
     @Autowired
@@ -112,9 +113,11 @@ class DfcTenantControllerTest {
             clientClaimsMap.put("azp", "client_id");
             var jwt = getDummyJwtWithCustomClaims(claimsMap);
 
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDfc = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dfc")).jwt(jwtWithClientClaims);
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDfc = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dfc"))
+                    .jwt(jwtWithClientClaims);
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtWithClaimsMap = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dfc")).jwt(jwt);
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtWithWrongScope = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier")).jwt(jwtWithClientClaims);
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtWithWrongScope = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"))
+                    .jwt(jwtWithClientClaims);
 
             var apartmentSharing = ApartmentSharing.builder()
                     .id(1L)

@@ -122,8 +122,8 @@ class LotteryTicketServiceImplTest {
             lotteryTicketService.cancelActiveTicket(tenant);
 
             assertThat(pending.getStatus()).isEqualTo(LotteryTicketStatus.CANCELLED);
-            verify(tenantLogCommonService).saveTenantLog(argThat((TenantLog log) ->
-                    log.getLogType() == LogType.LOTTERY_TICKET_CANCELLED && log.getTenantId().equals(TENANT_ID)));
+            verify(tenantLogCommonService)
+                    .saveTenantLog(argThat((TenantLog log) -> log.getLogType() == LogType.LOTTERY_TICKET_CANCELLED && log.getTenantId().equals(TENANT_ID)));
         }
 
         @Test

@@ -74,7 +74,6 @@ public class PdfSignatureServiceImpl implements PdfSignatureService {
         }
     }
 
-
     private Certificate[] loadCertifcateChain() throws Exception {
         byte[] certBytes = Base64.getDecoder().decode(certificate);
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");

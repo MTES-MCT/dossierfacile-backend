@@ -49,4 +49,3 @@ public class DossierFacileWebhookApiKeyFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-

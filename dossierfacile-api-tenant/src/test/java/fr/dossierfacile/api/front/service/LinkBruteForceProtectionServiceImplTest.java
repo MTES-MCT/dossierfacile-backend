@@ -36,7 +36,7 @@ class LinkBruteForceProtectionServiceImplTest {
         bruteForceProtectionService = new LinkBruteForceProtectionServiceImpl(
                 apartmentSharingLinkRepository,
                 3, // maxFailedAttempts
-                1  // timeWindowHours
+                1 // timeWindowHours
         );
 
         // Setup test link
@@ -264,7 +264,7 @@ class LinkBruteForceProtectionServiceImplTest {
         // Then - should treat null as 0 and increment
         ArgumentCaptor<ApartmentSharingLink> captor = ArgumentCaptor.forClass(ApartmentSharingLink.class);
         verify(apartmentSharingLinkRepository).save(captor.capture());
-        
+
         assertThat(captor.getValue().getFailedAttemptCount()).isEqualTo(1);
     }
 
@@ -286,6 +286,3 @@ class LinkBruteForceProtectionServiceImplTest {
         assertThat(savedLink.getFirstFailedAttemptAt()).isNull();
     }
 }
-
-
-

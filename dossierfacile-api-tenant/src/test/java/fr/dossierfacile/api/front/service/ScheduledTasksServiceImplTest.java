@@ -25,8 +25,8 @@ class ScheduledTasksServiceImplTest {
     private final ConfirmationTokenRepository confirmationTokenRepository = mock(ConfirmationTokenRepository.class);
     private final MailService mailService = mock(MailService.class);
     private final StatsService statsService = mock(StatsService.class);
-    private final ScheduledTasksService scheduledTasksService =
-            new ScheduledTasksServiceImpl(tenantRepository, confirmationTokenRepository, mailService, statsService);
+    private final ScheduledTasksService scheduledTasksService = new ScheduledTasksServiceImpl(tenantRepository, confirmationTokenRepository, mailService,
+            statsService);
 
     @BeforeEach
     void beforEach() {

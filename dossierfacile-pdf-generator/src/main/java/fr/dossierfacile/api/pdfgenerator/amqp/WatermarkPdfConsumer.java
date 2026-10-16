@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.pdfgenerator.amqp;
 
-
 import com.google.gson.Gson;
 import fr.dossierfacile.api.pdfgenerator.amqp.model.DocumentModel;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
@@ -46,8 +45,7 @@ public class WatermarkPdfConsumer {
                         jobContext.getStartTime(),
                         JobContextUtil.prepareJobAttributes(jobContext)
                 );
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 log.error("Error while sending logs for processId: {}", jobContext.getProcessId(), e);
             }
         }

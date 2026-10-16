@@ -44,8 +44,7 @@ public class DocumentFinancialGuarantorNaturalPersonForm extends DocumentGuarant
     private Long documentId;
 
     @NotNull
-    @DocumentSubcategorySubset(anyOf =
-            {SALARY, SOCIAL_SERVICE, RENT, PENSION, SCHOLARSHIP})
+    @DocumentSubcategorySubset(anyOf = {SALARY, SOCIAL_SERVICE, RENT, PENSION, SCHOLARSHIP})
     private DocumentSubCategory typeDocumentFinancial;
 
     @Nullable

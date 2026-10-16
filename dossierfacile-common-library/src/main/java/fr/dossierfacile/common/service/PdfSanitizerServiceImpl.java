@@ -36,13 +36,12 @@ import java.util.Set;
 public class PdfSanitizerServiceImpl implements PdfSanitizerService {
 
     private static final Set<PosixFilePermission> OWNER_ONLY = PosixFilePermissions.fromString("rw-------");
-    private static final boolean POSIX_SUPPORTED =
-            FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+    private static final boolean POSIX_SUPPORTED = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
 
     private final long maxMainMemoryBytes;
 
     public PdfSanitizerServiceImpl(
-        @Value("${pdfbox.sanitizer.max-main-memory-bytes:16777216}") long maxMainMemoryBytes) {
+            @Value("${pdfbox.sanitizer.max-main-memory-bytes:16777216}") long maxMainMemoryBytes) {
         this.maxMainMemoryBytes = maxMainMemoryBytes;
     }
 

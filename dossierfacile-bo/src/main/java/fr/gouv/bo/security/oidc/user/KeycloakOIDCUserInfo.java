@@ -42,4 +42,3 @@ public class KeycloakOIDCUserInfo extends OIDCUserInfo {
         }
     }
 }
-

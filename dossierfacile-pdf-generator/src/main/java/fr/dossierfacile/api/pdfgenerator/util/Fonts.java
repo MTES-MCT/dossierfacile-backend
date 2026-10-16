@@ -17,8 +17,7 @@ public enum Fonts {
     SPECTRAL_EXTRA_BOLD("Spectral-ExtraBold.ttf"),
     SPECTRAL_ITALIC("Spectral-Italic.ttf"),
     ARIAL_NOVA_LIGHT("ArialNova-Light.ttf"),
-    NOTO_EMOJI_MEDIUM("Noto/NotoEmoji-Medium.ttf")
-    ;
+    NOTO_EMOJI_MEDIUM("Noto/NotoEmoji-Medium.ttf");
 
     private final String path;
 

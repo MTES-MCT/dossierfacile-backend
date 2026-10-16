@@ -7,5 +7,5 @@ public record BarcodeBbox(
         BarcodePoint bottomRight,
         int width,
         int height
-) {}
-
+) {
+}

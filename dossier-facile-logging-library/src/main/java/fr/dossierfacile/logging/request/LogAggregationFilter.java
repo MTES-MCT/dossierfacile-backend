@@ -71,14 +71,11 @@ public class LogAggregationFilter extends OncePerRequestFilter {
 
         try {
             filterChain.doFilter(requestWrapped, responseWrapped);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             requestFinishedInError = true;
             logger.error("Uncaught exception during the request : ", e);
             throw e;
-        }
-        finally
-        {
+        } finally {
             // Set normalized URI using the Spring MVC matched route pattern (available after dispatch)
             LoggerUtil.setNormalizedUri(request);
             LoggerUtil.addRequestStatusToMdc(responseWrapped.getStatus());

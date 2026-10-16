@@ -46,7 +46,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(DfcSettingsController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, PartnerSettingsMapperImpl.class, ResourceServerConfig.class, PartnerSettings.class, GlobalExceptionHandler.class})
+@ContextConfiguration(
+        classes = {TestApplication.class, PartnerSettingsMapperImpl.class, ResourceServerConfig.class, PartnerSettings.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class DfcSettingsControllerTest {
 
@@ -86,7 +87,8 @@ class DfcSettingsControllerTest {
             var jwt = getDummyJwtWithCustomClaims(claimsMap);
 
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDfc = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dfc")).jwt(jwt);
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtWithWrongScope = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier")).jwt(jwt);
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtWithWrongScope = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"))
+                    .jwt(jwt);
 
             UserApi userApi = UserApi.builder()
                     .id(1L)
@@ -168,7 +170,8 @@ class DfcSettingsControllerTest {
             var jwt = getDummyJwtWithCustomClaims(claimsMap);
 
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDfc = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dfc")).jwt(jwt);
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtWithWrongScope = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier")).jwt(jwt);
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtWithWrongScope = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"))
+                    .jwt(jwt);
 
             UserApi userApi = UserApi.builder()
                     .id(1L)

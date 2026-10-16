@@ -95,7 +95,8 @@ public abstract class ApplicationFullMapper extends MasksCompletedStatusForPartn
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
 
-    @Mapping(target = "partnerLinked", expression = "java((userApi == null)? null : tenant.getTenantsUserApi() != null && tenant.getTenantsUserApi().stream().anyMatch( t -> t.getUserApi().getId() == userApi.getId()))")
+    @Mapping(target = "partnerLinked",
+            expression = "java((userApi == null)? null : tenant.getTenantsUserApi() != null && tenant.getTenantsUserApi().stream().anyMatch( t -> t.getUserApi().getId() == userApi.getId()))")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 
     private Optional<String> resolvePartnerToken(ApartmentSharing apartmentSharing, UserApi userApi) {
@@ -103,11 +104,11 @@ public abstract class ApplicationFullMapper extends MasksCompletedStatusForPartn
             return Optional.empty();
         }
         return apartmentSharing.getApartmentSharingLinks().stream()
-            .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
-                && Objects.equals(l.getPartnerId(), userApi.getId())
-                && l.isFullData())
-            .findFirst()
-            .map(l -> l.getToken().toString());
+                .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
+                        && Objects.equals(l.getPartnerId(), userApi.getId())
+                        && l.isFullData())
+                .findFirst()
+                .map(l -> l.getToken().toString());
     }
 
     private void buildDocumentUrls(ApplicationModel model, String urlPrefix) {

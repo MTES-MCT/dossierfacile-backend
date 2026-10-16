@@ -26,11 +26,11 @@ public class FileUtility {
     public static String computeMediaType(String filename) {
         String extension = FilenameUtils.getExtension(filename);
         switch (extension) {
-            case "pdf":
+            case "pdf" :
                 return MediaType.APPLICATION_PDF_VALUE;
-            case "jpg", "jpeg":
+            case "jpg", "jpeg" :
                 return MediaType.IMAGE_JPEG_VALUE;
-            case "png":
+            case "png" :
                 return MediaType.IMAGE_PNG_VALUE;
         }
         // default contentType for files
@@ -134,8 +134,8 @@ public class FileUtility {
      * @throws IOException if streaming fails
      */
     public static void streamFileToResponse(InputStream inputStream, String contentType,
-                                            @Nullable String filename, boolean inline,
-                                            HttpServletResponse response) throws IOException {
+            @Nullable String filename, boolean inline,
+            HttpServletResponse response) throws IOException {
         response.setContentType(contentType);
         response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
         ContentDisposition contentDisposition = (inline ? ContentDisposition.inline() : ContentDisposition.attachment())

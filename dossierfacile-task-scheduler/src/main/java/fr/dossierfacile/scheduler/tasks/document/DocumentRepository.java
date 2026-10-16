@@ -27,8 +27,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             SELECT d
             FROM Document d
             LEFT JOIN FETCH d.guarantor g
-            WHERE d.watermarkFile IS NULL 
-            AND ((d.lastModifiedDate IS NOT NULL AND d.lastModifiedDate < :to) 
+            WHERE d.watermarkFile IS NULL
+            AND ((d.lastModifiedDate IS NOT NULL AND d.lastModifiedDate < :to)
             OR (d.lastModifiedDate IS NULL AND d.creationDateTime < :to))
             ORDER BY d.lastModifiedDate DESC
             """)

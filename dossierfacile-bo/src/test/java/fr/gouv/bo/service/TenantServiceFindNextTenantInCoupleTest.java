@@ -55,7 +55,7 @@ class TenantServiceFindNextTenantInCoupleTest {
                 null, // completedDossierService
                 null, // operatorReviewPolicy
                 null, // featureFlagService
-                null  // lotteryTicketService
+                null // lotteryTicketService
         );
     }
 

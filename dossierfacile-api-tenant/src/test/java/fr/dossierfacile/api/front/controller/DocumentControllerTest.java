@@ -111,8 +111,7 @@ class DocumentControllerTest {
         }
 
         static List<Arguments> provideGetDocumentResourceParameters() {
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier =
-                    jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
             ApartmentSharing apartmentSharing = new ApartmentSharing();
             apartmentSharing.setId(1L);
@@ -211,7 +210,8 @@ class DocumentControllerTest {
     @Nested
     class CommentAnalysisTest {
 
-        record CommentAnalysisParam(CommentAnalysisForm form) {}
+        record CommentAnalysisParam(CommentAnalysisForm form) {
+        }
 
         static List<Arguments> provideCommentAnalysisParameters() {
             var jwtTokenWithDossier = jwt().jwt(jwt -> jwt.subject("keycloak-user-id"))

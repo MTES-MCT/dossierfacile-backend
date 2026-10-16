@@ -22,7 +22,8 @@ import java.lang.management.MemoryMXBean;
 @EnableJpaRepositories(basePackages = "fr.dossierfacile")
 @EnableJpaAuditing
 @ServletComponentScan(basePackages = "fr.dossierfacile")
-@ComponentScan(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class, basePackages = "fr.dossierfacile", excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {WebFilter.class}))
+@ComponentScan(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class, basePackages = "fr.dossierfacile",
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {WebFilter.class}))
 @EnableScheduling
 @EnableCaching
 @Slf4j

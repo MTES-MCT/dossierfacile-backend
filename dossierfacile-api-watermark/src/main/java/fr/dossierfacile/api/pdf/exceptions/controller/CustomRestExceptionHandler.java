@@ -33,7 +33,8 @@ import java.util.Objects;
 public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex, final HttpHeaders headers,
+            final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(ex.getMessage(), ex);
 
@@ -42,7 +43,8 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleTypeMismatch(final TypeMismatchException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
+    protected ResponseEntity<Object> handleTypeMismatch(final TypeMismatchException ex, final HttpHeaders headers, final HttpStatusCode status,
+            final WebRequest request) {
         assert ex != null;
         logger.error(ex.getMessage(), ex);
 
@@ -51,7 +53,8 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleMissingServletRequestPart(final MissingServletRequestPartException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
+    protected ResponseEntity<Object> handleMissingServletRequestPart(final MissingServletRequestPartException ex, final HttpHeaders headers,
+            final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(ex.getMessage(), ex);
 
@@ -60,7 +63,8 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(final MissingServletRequestParameterException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(final MissingServletRequestParameterException ex, final HttpHeaders headers,
+            final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(ex.getMessage(), ex);
 
@@ -86,7 +90,8 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleNoHandlerFoundException(final NoHandlerFoundException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
+    protected ResponseEntity<Object> handleNoHandlerFoundException(final NoHandlerFoundException ex, final HttpHeaders headers, final HttpStatusCode status,
+            final WebRequest request) {
         assert ex != null;
         logger.error(ex.getMessage(), ex);
 
@@ -95,7 +100,8 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers,
+            final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(ex.getMessage(), ex);
 
@@ -104,7 +110,8 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(final HttpMediaTypeNotSupportedException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(final HttpMediaTypeNotSupportedException ex, final HttpHeaders headers,
+            final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(ex.getMessage(), ex);
 

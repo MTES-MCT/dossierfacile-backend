@@ -30,7 +30,6 @@ public class DocumentAnalysisRule {
     @JdbcTypeCode(SqlTypes.JSON)
     private RuleData ruleData;
 
-
     public static DocumentAnalysisRule documentFailedRuleFrom(DocumentRule rule) {
         return DocumentAnalysisRule.builder()
                 .rule(rule)
@@ -47,7 +46,6 @@ public class DocumentAnalysisRule {
                 .ruleData(ruleData)
                 .build();
     }
-
 
     public static DocumentAnalysisRule documentPassedRuleFrom(DocumentRule rule) {
         return DocumentAnalysisRule.builder()

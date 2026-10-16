@@ -37,7 +37,8 @@ public class FrenchIdentityCardExpirationRule extends BaseDocumentIAValidator {
         var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
 
         if (documentIAAnalyses.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var isCardValid = Optional.of(false);
@@ -47,11 +48,13 @@ public class FrenchIdentityCardExpirationRule extends BaseDocumentIAValidator {
         if (extractedDates.isPresent()) {
             isCardValid = isIdentityCardValid(extractedDates.get());
         } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         if (isCardValid.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()),
+                    RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         boolean cardValid = isCardValid.orElse(false);

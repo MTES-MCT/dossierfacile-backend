@@ -96,8 +96,10 @@ public class DocumentService {
         documentRepository.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, documentId);
     }
 
-    public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory, String documentUserType) {
-        return documentDeniedOptionsRepository.findAllByDocumentCategoryAndDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentCategory.name(), documentSubCategory.name(), documentUserType);
+    public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(DocumentCategory documentCategory,
+            DocumentSubCategory documentSubCategory, String documentUserType) {
+        return documentDeniedOptionsRepository.findAllByDocumentCategoryAndDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentCategory.name(),
+                documentSubCategory.name(), documentUserType);
     }
 
     public List<MetadataItem> getFilesMetadata(Document document) {

@@ -56,27 +56,26 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     private final EncryptionKeyService encryptionKeyService;
     private final DocumentRepository documentRepository;
 
-
     @Value("${pdf.generation.reattempts}")
     private Integer maxRetries;
 
     private InputStream inputStreamOfPdfResult(Collection<StorageFile> files, String watermarkText) throws Exception {
         return boPdfDocumentTemplate.render(files.stream()
-                        .map(file -> {
-                            try {
-                                MediaType mediaType = MediaType.valueOf(file.getContentType());
-                                if (!mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
-                                    throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getId() + "]");
-                                }
-                                return new FileInputStream(fileStorageService.download(file), mediaType);
+                .map(file -> {
+                    try {
+                        MediaType mediaType = MediaType.valueOf(file.getContentType());
+                        if (!mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
+                            throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getId() + "]");
+                        }
+                        return new FileInputStream(fileStorageService.download(file), mediaType);
 
-                            } catch (Exception e) {
-                                log.error("File [" + file.getId() + "] won't be added to the pdf " + e.getMessage());
-                            }
-                            return null;
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList()),
+                    } catch (Exception e) {
+                        log.error("File [" + file.getId() + "] won't be added to the pdf " + e.getMessage());
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()),
                 watermarkText
         );
     }
@@ -117,41 +116,54 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         long documentId = document.getId();
         DocumentCategory documentCategory = document.getDocumentCategory();
         DocumentSubCategory documentSubCategory = document.getDocumentSubCategory();
+        List<File> files = fileRepository.findAllByDocumentId(document.getId());
+
+        // OTHER_RESIDENCY: the explanation alone stands for the document only when nothing was uploaded.
+        // Files may also be removed afterwards without noDocument being recomputed, hence the empty check.
+        boolean otherResidencyWithoutFile = documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY
+                && (Boolean.TRUE.equals(document.getNoDocument()) || CollectionUtils.isEmpty(files));
 
         if (documentSubCategory == DocumentSubCategory.MY_PARENTS
                 || documentSubCategory == DocumentSubCategory.LESS_THAN_YEAR
-                || documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY
+                || otherResidencyWithoutFile
                 || ((documentSubCategory == DocumentSubCategory.OTHER_TAX || documentCategory == DocumentCategory.FINANCIAL)
-                && document.getNoDocument())) {
+                        && document.getNoDocument())) {
             return emptyBOPdfDocumentTemplate.render(document);
         }
 
-        List<File> files = fileRepository.findAllByDocumentId(document.getId());
         if (!CollectionUtils.isEmpty(files)) {
             BOPdfDocumentTemplate pdfDocumentTemplateToUse = (documentCategory == IDENTIFICATION
                     || documentCategory == IDENTIFICATION_LEGAL_PERSON) ? identificationPdfDocumentTemplate : boPdfDocumentTemplate;
 
-            return pdfDocumentTemplateToUse.render(files.stream()
+            List<FileInputStream> fileInputStreams = files.stream()
                     .map(file -> {
                         try {
                             MediaType mediaType = MediaType.valueOf(file.getStorageFile().getContentType());
-                            if (!mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
+                            if (!mediaType
+                                    .isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
                                 throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getStorageFile().getId() + "]");
                             }
                             return new FileInputStream(fileStorageService.download(file.getStorageFile()), mediaType);
 
                         } catch (Exception e) {
-                            log.error(e.getMessage() + ". It will not be added to the pdf of document [" + documentCategory.name() + "] with ID [" + documentId + "]");
+                            log.error(e.getMessage() + ". It will not be added to the pdf of document [" + documentCategory.name() + "] with ID [" + documentId
+                                    + "]");
                             throw new RuntimeException("Unable to get a file input stream on fileId :" + file.getId() + " docId:" + documentId);
                         }
                     })
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList())
-            );
+                    .collect(Collectors.toList());
+
+            if (documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY) {
+                // Prepend the explanation page so the reader sees both the text and the uploaded proof
+                fileInputStreams.add(0, new FileInputStream(emptyBOPdfDocumentTemplate.render(document), MediaType.APPLICATION_PDF));
+            }
+            return pdfDocumentTemplateToUse.render(fileInputStreams);
 
         } else {
             log.error("No file were found in the database for generate document [" + documentCategory.name() + "] with ID [" + documentId + "]");
-            throw new FileNotFoundException("No file were found in the database for generate document [" + documentCategory.name() + "] with ID [" + documentId + "]");
+            throw new FileNotFoundException(
+                    "No file were found in the database for generate document [" + documentCategory.name() + "] with ID [" + documentId + "]");
         }
     }
 

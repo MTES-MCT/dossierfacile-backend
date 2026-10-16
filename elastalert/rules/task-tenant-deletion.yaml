@@ -1,4 +1,4 @@
-name: tenant-deletion
+name: task-tenant-deletion
 
 type: flatline
 
@@ -38,21 +38,5 @@ alert_text_type: alert_text_only
 
 alert_text: |
   **Détail de l'incident** :
-  La tâche `{0}` de l'application `{1}` n'a enregistré aucun succès sur la période surveillée (2 semaines).
-alert_text_args:
-  - task_name
-  - application
-
-slack_alert_fields:
-  - title: Environnement
-    value: "environment"
-    short: true
-  - title: Application
-    value: "application"
-    short: true
-  - title: Tâche
-    value: "task_name"
-    short: true
-  - title: Dernière détection
-    value: "@timestamp"
-    short: true
+  La tâche `TENANT_DELETION` de l'application `task-scheduler` n'a enregistré aucun succès en prod sur les 2 dernières semaines : les comptes inactifs ne sont plus supprimés (engagement RGPD).
+  Vérifier que le task-scheduler tourne et consulter les dernières exécutions de la tâche via le lien Kibana.

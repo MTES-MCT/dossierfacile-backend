@@ -137,7 +137,7 @@ public abstract class TenantMapper extends MasksCompletedStatusForPartner {
     public abstract FileModel toFileModel(File documentFile);
 
     protected String buildPreviewUrl(File documentFile) {
-        if( documentFile.getPreview() == null) {
+        if (documentFile.getPreview() == null) {
             return null;
         }
         return UriComponentsBuilder
@@ -156,7 +156,7 @@ public abstract class TenantMapper extends MasksCompletedStatusForPartner {
             updateTokens(tenant, apartmentSharingModel,
                     l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
                             && Objects.equals(l.getPartnerId(), userApi.getId()));
-        // For regular tenants, resolve generic LINK links (public/full application links)
+            // For regular tenants, resolve generic LINK links (public/full application links)
         } else {
             updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.LINK);
         }
@@ -194,12 +194,14 @@ public abstract class TenantMapper extends MasksCompletedStatusForPartner {
                     hideDocumentAnalysisReportInfoLevel(coTenantModel.getDocuments());
                     // Apply the same routing rules (preview vs file path) to each co-tenant guarantor
                     Optional.ofNullable(coTenantModel.getGuarantors())
-                            .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, true)));
+                            .ifPresent(guarantorModels -> guarantorModels.forEach(
+                                    guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, true)));
                 }));
 
         // Finally, apply routing rules to the current tenant's own guarantor documents
         Optional.ofNullable(tenantModel.getGuarantors())
-                .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, false)));
+                .ifPresent(guarantorModels -> guarantorModels
+                        .forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, false)));
 
     }
 
@@ -213,12 +215,12 @@ public abstract class TenantMapper extends MasksCompletedStatusForPartner {
             if (links != null) {
                 // fullLink: PARTNER or LINK entry with fullData = true (full application)
                 Optional<ApartmentSharingLink> fullLink = links.stream()
-                    .filter(l -> isRightLink.test(l) && l.isFullData())
-                    .findFirst();
+                        .filter(l -> isRightLink.test(l) && l.isFullData())
+                        .findFirst();
                 // link: PARTNER or LINK entry with fullData = false (restricted/public view)
                 Optional<ApartmentSharingLink> restrictedLink = links.stream()
-                    .filter(l -> isRightLink.test(l) && !l.isFullData())
-                    .findFirst();
+                        .filter(l -> isRightLink.test(l) && !l.isFullData())
+                        .findFirst();
                 // When a full link exists, also populate the dossierPdfUrl and dossierUrl helpers
                 if (fullLink.isPresent()) {
                     token = fullLink.get().getToken().toString();
@@ -272,20 +274,23 @@ public abstract class TenantMapper extends MasksCompletedStatusForPartner {
     }
 
     @AfterMapping
-    void modificationsAfterMapping(@MappingTarget ConnectedTenantModel.ConnectedTenantModelBuilder connectedTenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
+    void modificationsAfterMapping(@MappingTarget ConnectedTenantModel.ConnectedTenantModelBuilder connectedTenantModelBuilder, @Context UserApi userApi,
+            Tenant tenant) {
         // Build the immutable ConnectedTenantModel instance from the builder
         ConnectedTenantModel connectedTenantModel = connectedTenantModelBuilder.build();
         // Retrieve the DFC-specific apartment sharing model attached to the connected tenant
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
         // Populate partner tokens (full and public) for this apartment sharing when a matching PARTNER link exists
-        updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && userApi != null && Objects.equals(l.getPartnerId(), userApi.getId()));
+        updateTokens(tenant, apartmentSharingModel,
+                l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && userApi != null && Objects.equals(l.getPartnerId(), userApi.getId()));
 
         // For DFC consumers, always expose only preview routes (no direct file download links) for tenant documents
-        connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true));
+        connectedTenantModel.getApartmentSharing().getTenants()
+                .forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true));
         // Apply the same preview-only logic to all guarantor documents of each tenant
-        connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
-                Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
-                        guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true))));
+        connectedTenantModel.getApartmentSharing().getTenants()
+                .forEach(tenantModel -> Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels -> guarantorModels
+                        .forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true))));
     }
 
     private String resolvePartnerToken(Document document, UserApi userApi) {

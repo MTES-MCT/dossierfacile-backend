@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

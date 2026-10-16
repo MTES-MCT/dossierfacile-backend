@@ -58,7 +58,7 @@ public class File implements Serializable {
     // Otherwise, we get an exception transient object error.
 
     @Nullable
-    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy= "file", fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy = "file", fetch = FetchType.LAZY)
     private DocumentIAFileAnalysis documentIAFileAnalysis;
 
     @Nullable
@@ -75,8 +75,10 @@ public class File implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
         File file = (File) o;
         return id != null && Objects.equals(id, file.id);
     }

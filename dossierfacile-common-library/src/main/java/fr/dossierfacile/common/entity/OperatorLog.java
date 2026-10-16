@@ -23,7 +23,6 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
-
 @Entity
 @Table(name = "operator_log")
 @Getter
@@ -65,7 +64,8 @@ public class OperatorLog {
     @Column(columnDefinition = "jsonb")
     private ObjectNode metadata;
 
-    public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType, Integer processedDocuments, Integer timeSpent) {
+    public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType, Integer processedDocuments,
+            Integer timeSpent) {
         this.tenant = tenant;
         this.operator = operator;
         this.tenantFileStatus = tenantFileStatus;

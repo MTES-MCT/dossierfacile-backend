@@ -76,7 +76,6 @@ class UserControllerTest {
         ).andDo(print()).andExpect(status().is(403));
     }
 
-
     @Nested
     class CreatePasswordWithTokenTests {
 
@@ -127,7 +126,8 @@ class UserControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new PasswordRecoveryTokenNotFoundException(invalidToken)).when(self.userService).createPassword(invalidToken, validPassword);
+                                        doThrow(new PasswordRecoveryTokenNotFoundException(invalidToken)).when(self.userService).createPassword(invalidToken,
+                                                validPassword);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -170,7 +170,6 @@ class UserControllerTest {
         }
 
     }
-
 
     @Nested
     class DeleteAccountTests {

@@ -239,7 +239,7 @@ class ApplicationControllerIntegrationTest {
     @Test
     void shouldReturn200ForTenantDocument() throws Exception {
         mockMvc.perform(get("/api/application/links/{token}/documents/{documentName}",
-                        validToken, tenantDocName))
+                validToken, tenantDocName))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pdf"));
     }
@@ -247,42 +247,42 @@ class ApplicationControllerIntegrationTest {
     @Test
     void shouldReturn200ForCoTenantDocument() throws Exception {
         mockMvc.perform(get("/api/application/links/{token}/documents/{documentName}",
-                        validToken, coTenantDocName))
+                validToken, coTenantDocName))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldReturn200ForGuarantorDocument() throws Exception {
         mockMvc.perform(get("/api/application/links/{token}/documents/{documentName}",
-                        validToken, guarantorDocName))
+                validToken, guarantorDocName))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldReturn404WhenLinkDisabled() throws Exception {
         mockMvc.perform(get("/api/application/links/{token}/documents/{documentName}",
-                        disabledToken, tenantDocName))
+                disabledToken, tenantDocName))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturn404WhenLinkDeleted() throws Exception {
         mockMvc.perform(get("/api/application/links/{token}/documents/{documentName}",
-                        deletedToken, tenantDocName))
+                deletedToken, tenantDocName))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturn404WhenLinkExpired() throws Exception {
         mockMvc.perform(get("/api/application/links/{token}/documents/{documentName}",
-                        expiredToken, tenantDocName))
+                expiredToken, tenantDocName))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturn404WhenDocumentFromOtherSharing() throws Exception {
         mockMvc.perform(get("/api/application/links/{token}/documents/{documentName}",
-                        otherSharingToken, tenantDocName))
+                otherSharingToken, tenantDocName))
                 .andExpect(status().isNotFound());
     }
 }

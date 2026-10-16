@@ -74,7 +74,8 @@ public class RoleService {
         for (String candidate : reachableNames) {
             boolean impliedByAnother = false;
             for (String other : reachableNames) {
-                if (candidate.equals(other)) continue;
+                if (candidate.equals(other))
+                    continue;
                 Collection<? extends GrantedAuthority> fromOther = roleHierarchy.getReachableGrantedAuthorities(
                         List.of(new SimpleGrantedAuthority(other))
                 );

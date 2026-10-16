@@ -29,32 +29,32 @@ class TenantServiceRegroupTenantTest {
         apartmentSharingService = mock(ApartmentSharingService.class);
         tenantService = new TenantService(
                 mock(), // tenantRepository
-                null,   // mailService
-                null,   // partnerCallBackService
-                null,   // userService
-                null,   // messageSource
-                null,   // documentRepository
-                null,   // documentDeniedReasonsRepository
-                null,   // messageService
+                null, // mailService
+                null, // partnerCallBackService
+                null, // userService
+                null, // messageSource
+                null, // documentRepository
+                null, // documentDeniedReasonsRepository
+                null, // messageService
                 apartmentSharingRepository,
-                null,   // operatorLogRepository
-                null,   // documentDeniedReasonsService
-                null,   // documentService
-                null,   // tenantLogService
-                null,   // keycloakService
+                null, // operatorLogRepository
+                null, // documentDeniedReasonsService
+                null, // documentService
+                null, // tenantLogService
+                null, // keycloakService
                 apartmentSharingService,
-                null,   // apartmentSharingLinkService
-                null,   // guarantorRepository
-                null,   // tenantMapperForMail
-                null,   // apartmentSharingMapperForMail
-                null,   // tenantCommonService
-                null,   // tenantLogCommonService
-                null,   // quotaService
-                null,   // sharedFileRepository
-                null,   // completedDossierService
-                null,   // operatorReviewPolicy
-                null,   // featureFlagService
-                mock()  // lotteryTicketService
+                null, // apartmentSharingLinkService
+                null, // guarantorRepository
+                null, // tenantMapperForMail
+                null, // apartmentSharingMapperForMail
+                null, // tenantCommonService
+                null, // tenantLogCommonService
+                null, // quotaService
+                null, // sharedFileRepository
+                null, // completedDossierService
+                null, // operatorReviewPolicy
+                null, // featureFlagService
+                mock() // lotteryTicketService
         );
     }
 

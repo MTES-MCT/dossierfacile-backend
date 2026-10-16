@@ -33,7 +33,7 @@ public class CheckFranceConnectValidator extends TenantConstraintValidator<Check
                 return true;
             }
             // Otherwise, verify that the names match
-            return Objects.equals(tenant.getUserFirstName(), namesForm.getFirstName()) 
+            return Objects.equals(tenant.getUserFirstName(), namesForm.getFirstName())
                     && Objects.equals(tenant.getUserLastName(), namesForm.getLastName());
         }
         return true;

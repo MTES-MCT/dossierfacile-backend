@@ -1,6 +1,5 @@
 package fr.dossierfacile.scheduler.tasks;
 
-
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.logging.util.LoggerUtil;

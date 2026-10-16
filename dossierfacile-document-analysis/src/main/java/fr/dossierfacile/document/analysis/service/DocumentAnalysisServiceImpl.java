@@ -38,13 +38,13 @@ public class DocumentAnalysisServiceImpl {
             // Empty set -> undefined
             if (!hasFailed && !hasInconclusive && !hasPassed) {
                 report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
-            // Any failed -> denied
+                // Any failed -> denied
             } else if (hasFailed) {
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            // No failed, but some inconclusive -> undefined
+                // No failed, but some inconclusive -> undefined
             } else if (hasInconclusive) {
                 report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
-            // Only passed -> checked
+                // Only passed -> checked
             } else {
                 report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
             }

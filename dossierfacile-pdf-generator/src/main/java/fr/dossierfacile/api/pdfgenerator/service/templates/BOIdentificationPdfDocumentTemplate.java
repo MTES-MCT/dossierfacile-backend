@@ -123,4 +123,3 @@ public class BOIdentificationPdfDocumentTemplate extends BOPdfDocumentTemplate i
     }
 
 }
-

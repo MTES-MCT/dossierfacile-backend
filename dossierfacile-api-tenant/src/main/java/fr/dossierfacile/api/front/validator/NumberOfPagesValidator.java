@@ -147,11 +147,13 @@ public class NumberOfPagesValidator extends TenantConstraintValidator<NumberOfPa
         if (totalPages <= max) {
             log.info("Number of new pages [" + numberOfNewPages + "], max = [" + max + "] for document [" + documentCategory.name() + "]");
             log.info("Number of old pages [" + numberOfOldPages + "], max = [" + max + "] for document [" + documentCategory.name() + "]");
-            log.info("Validation with result [" + (totalPages <= max) + "], total = [" + totalPages + "], max = [" + max + "] for document [" + documentCategory.name() + "]");
+            log.info("Validation with result [" + (totalPages <= max) + "], total = [" + totalPages + "], max = [" + max + "] for document ["
+                    + documentCategory.name() + "]");
         } else {
             log.error("Number of new pages [" + numberOfNewPages + "], max = [" + max + "] for document [" + documentCategory.name() + "]");
             log.error("Number of old pages [" + numberOfOldPages + "], max = [" + max + "] for document [" + documentCategory.name() + "]");
-            log.error("Validation with result [" + (totalPages <= max) + "], total = [" + totalPages + "], max = [" + max + "] for document [" + documentCategory.name() + "]");
+            log.error("Validation with result [" + (totalPages <= max) + "], total = [" + totalPages + "], max = [" + max + "] for document ["
+                    + documentCategory.name() + "]");
         }
         return totalPages <= max;
     }

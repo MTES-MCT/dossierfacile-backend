@@ -195,8 +195,7 @@ class DocumentServiceImplTest {
 
                 when(documentRepository.findFirstByName(DOCUMENT_NAME)).thenReturn(Optional.of(document));
 
-                assertThrows(AccessDeniedException.class, () ->
-                        documentService.getAuthorizedDocument(DOCUMENT_NAME, tenant1)
+                assertThrows(AccessDeniedException.class, () -> documentService.getAuthorizedDocument(DOCUMENT_NAME, tenant1)
                 );
             }
         }
@@ -209,8 +208,7 @@ class DocumentServiceImplTest {
 
                 when(documentRepository.findFirstByName(DOCUMENT_NAME)).thenReturn(Optional.empty());
 
-                assertThrows(DocumentNotFoundException.class, () ->
-                        documentService.getAuthorizedDocument(DOCUMENT_NAME, tenant)
+                assertThrows(DocumentNotFoundException.class, () -> documentService.getAuthorizedDocument(DOCUMENT_NAME, tenant)
                 );
             }
         }
@@ -239,8 +237,7 @@ class DocumentServiceImplTest {
 
                 when(documentRepository.findByIdForApartmentSharing(1L, 1L)).thenReturn(Optional.of(document));
 
-                assertThrows(AccessDeniedException.class, () ->
-                        documentService.delete(1L, tenant1)
+                assertThrows(AccessDeniedException.class, () -> documentService.delete(1L, tenant1)
                 );
             }
         }
@@ -414,8 +411,7 @@ class DocumentServiceImplTest {
             when(documentRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(DocumentNotFoundException.class, () ->
-                    documentService.getDocumentAnalysisStatus(999L, tenant)
+            assertThrows(DocumentNotFoundException.class, () -> documentService.getDocumentAnalysisStatus(999L, tenant)
             );
         }
 
@@ -430,8 +426,7 @@ class DocumentServiceImplTest {
             when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
 
             // When & Then
-            assertThrows(AccessDeniedException.class, () ->
-                    documentService.getDocumentAnalysisStatus(1L, otherTenant)
+            assertThrows(AccessDeniedException.class, () -> documentService.getDocumentAnalysisStatus(1L, otherTenant)
             );
         }
 
@@ -452,8 +447,7 @@ class DocumentServiceImplTest {
             when(documentRepository.findById(6L)).thenReturn(Optional.of(coTenantGuarantorDoc));
 
             // When & Then
-            assertThrows(AccessDeniedException.class, () ->
-                    documentService.getDocumentAnalysisStatus(6L, tenant)
+            assertThrows(AccessDeniedException.class, () -> documentService.getDocumentAnalysisStatus(6L, tenant)
             );
         }
 
@@ -468,8 +462,7 @@ class DocumentServiceImplTest {
             when(documentRepository.findById(7L)).thenReturn(Optional.of(unrelatedDoc));
 
             // When & Then
-            assertThrows(AccessDeniedException.class, () ->
-                    documentService.getDocumentAnalysisStatus(7L, tenant)
+            assertThrows(AccessDeniedException.class, () -> documentService.getDocumentAnalysisStatus(7L, tenant)
             );
         }
 

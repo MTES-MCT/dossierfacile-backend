@@ -59,8 +59,7 @@ class AnalyticsTableMappingTest {
 
         // 2. tenant : exclus first_name, last_name, preferred_name, beneficiary_email, clarification, operator_comment
         AnalyticsTableMapping tenant = AnalyticsTableMapping.TENANT;
-        assertThat(tenant.getColumns()).noneMatch(col ->
-                col.contains("tenant_first_name") ||
+        assertThat(tenant.getColumns()).noneMatch(col -> col.contains("tenant_first_name") ||
                 col.contains("tenant_last_name") ||
                 col.contains("tenant_preferred_name") ||
                 col.contains("beneficiary_email") ||
@@ -86,16 +85,14 @@ class AnalyticsTableMappingTest {
 
         // 7. property : exclus address, ademe_number, ademe_api_result
         AnalyticsTableMapping property = AnalyticsTableMapping.PROPERTY;
-        assertThat(property.getColumns()).noneMatch(col ->
-                col.equalsIgnoreCase("address") ||
+        assertThat(property.getColumns()).noneMatch(col -> col.equalsIgnoreCase("address") ||
                 col.equalsIgnoreCase("ademe_number") ||
                 col.equalsIgnoreCase("ademe_api_result")
         );
 
         // 8. user_account : exclus email, first_name, last_name, preferred_name, keycloak_id, image_url, france_connect_*
         AnalyticsTableMapping userAccount = AnalyticsTableMapping.USER_ACCOUNT;
-        assertThat(userAccount.getColumns()).noneMatch(col ->
-                col.equalsIgnoreCase("email") ||
+        assertThat(userAccount.getColumns()).noneMatch(col -> col.equalsIgnoreCase("email") ||
                 col.equalsIgnoreCase("first_name") ||
                 col.equalsIgnoreCase("last_name") ||
                 col.equalsIgnoreCase("preferred_name") ||
@@ -106,8 +103,7 @@ class AnalyticsTableMappingTest {
 
         // 9. user_api : exclus email, url_callback, partner_api_key_callback
         AnalyticsTableMapping userApi = AnalyticsTableMapping.USER_API;
-        assertThat(userApi.getColumns()).noneMatch(col ->
-                col.equalsIgnoreCase("email") ||
+        assertThat(userApi.getColumns()).noneMatch(col -> col.equalsIgnoreCase("email") ||
                 col.equalsIgnoreCase("url_callback") ||
                 col.equalsIgnoreCase("partner_api_key_callback")
         );
@@ -122,8 +118,7 @@ class AnalyticsTableMappingTest {
 
         // 12. apartment_sharing_link : exclus email, title
         AnalyticsTableMapping link = AnalyticsTableMapping.APARTMENT_SHARING_LINK;
-        assertThat(link.getColumns()).noneMatch(col ->
-                col.equalsIgnoreCase("email") ||
+        assertThat(link.getColumns()).noneMatch(col -> col.equalsIgnoreCase("email") ||
                 col.equalsIgnoreCase("title")
         );
 
@@ -160,7 +155,8 @@ class AnalyticsTableMappingTest {
 
         String query = mapping.buildSelectQuery("dummy_salt");
         assertThat(query)
-                .startsWith("SELECT id, creation_date AS created_at, email, first_name, last_name, last_login_date, update_date_time AS updated_at FROM user_account WHERE user_type = 'BO'");
+                .startsWith(
+                        "SELECT id, creation_date AS created_at, email, first_name, last_name, last_login_date, update_date_time AS updated_at FROM user_account WHERE user_type = 'BO'");
     }
 
     @Test
@@ -178,9 +174,12 @@ class AnalyticsTableMappingTest {
         String query = report.buildSelectQuery("dummy_salt");
 
         assertThat(query)
-                .contains("CASE WHEN failed_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(failed_rules) AS elem), '[]'::jsonb) END AS failed_rules")
-                .contains("CASE WHEN passed_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(passed_rules) AS elem), '[]'::jsonb) END AS passed_rules")
-                .contains("CASE WHEN inconclusive_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(inconclusive_rules) AS elem), '[]'::jsonb) END AS inconclusive_rules");
+                .contains(
+                        "CASE WHEN failed_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(failed_rules) AS elem), '[]'::jsonb) END AS failed_rules")
+                .contains(
+                        "CASE WHEN passed_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(passed_rules) AS elem), '[]'::jsonb) END AS passed_rules")
+                .contains(
+                        "CASE WHEN inconclusive_rules IS NULL THEN NULL ELSE COALESCE((SELECT jsonb_agg(elem - ARRAY['ruleData']) FROM jsonb_array_elements(inconclusive_rules) AS elem), '[]'::jsonb) END AS inconclusive_rules");
     }
 
     @Test
@@ -190,6 +189,7 @@ class AnalyticsTableMappingTest {
         String query = mapping.buildSelectQuery("dummy_salt");
 
         assertThat(query)
-                .startsWith("SELECT id, tenant_id, operator_id, log_type, creation_date, CASE WHEN log_type = 'OPERATOR_COMMENT' THEN NULL WHEN log_details IS NULL THEN NULL ELSE log_details - ARRAY['email', 'fileName', 'comment'] END AS log_details FROM tenant_log");
+                .startsWith(
+                        "SELECT id, tenant_id, operator_id, log_type, creation_date, CASE WHEN log_type = 'OPERATOR_COMMENT' THEN NULL WHEN log_details IS NULL THEN NULL ELSE log_details - ARRAY['email', 'fileName', 'comment'] END AS log_details FROM tenant_log");
     }
 }

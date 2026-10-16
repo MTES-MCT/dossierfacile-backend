@@ -103,10 +103,8 @@ public class RegisterServiceImpl implements RegisterService {
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
                 .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
 
-        if (
-                passwordRecoveryToken.getExpirationDate() == null ||
-                        passwordRecoveryToken.getExpirationDate().isBefore(LocalDateTime.now(ZoneId.systemDefault()))
-        ) {
+        if (passwordRecoveryToken.getExpirationDate() == null ||
+                passwordRecoveryToken.getExpirationDate().isBefore(LocalDateTime.now(ZoneId.systemDefault()))) {
             passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
             throw new PasswordRecoveryTokenNotFoundException(token);
         }

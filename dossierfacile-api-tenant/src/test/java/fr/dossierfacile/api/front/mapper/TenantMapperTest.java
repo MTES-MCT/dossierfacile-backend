@@ -122,7 +122,6 @@ class TenantMapperTest {
 
     /**
      * This method is used for all tenant account facing endpoints
-     * plus the deprecated partner endpoint (/api-partner/email/{email}/tenant)
      */
     @Nested
     class ToTenantModel {
@@ -283,7 +282,7 @@ class TenantMapperTest {
                     .documents(new ArrayList<>())
                     .guarantors(List.of(guarantor))
                     .build();
-            
+
             guarantor.setTenant(tenant);
 
             setupApartmentSharing(tenant, new ArrayList<>());

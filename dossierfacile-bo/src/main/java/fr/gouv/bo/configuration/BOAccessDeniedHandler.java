@@ -13,8 +13,9 @@ import java.io.IOException;
 public class BOAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        request.setAttribute("errorMessage",accessDeniedException.getMessage());
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
+            throws IOException, ServletException {
+        request.setAttribute("errorMessage", accessDeniedException.getMessage());
         request.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, HttpStatus.FORBIDDEN.value());
         request.setAttribute(RequestDispatcher.ERROR_MESSAGE, HttpStatus.FORBIDDEN.getReasonPhrase());
         request.getRequestDispatcher("/error").forward(request, response);

@@ -27,9 +27,8 @@ public class ApplicationV2Tests {
             null,
             null,
             null,
-            null ,
+            null,
             null);
-
 
     @Nested
     class GetTenantsToDelete {
@@ -47,7 +46,7 @@ public class ApplicationV2Tests {
                             )
                     )
                     .build();
-            var result = application.getTenantsToDelete(oldTenants,applicationForm);
+            var result = application.getTenantsToDelete(oldTenants, applicationForm);
             assertThat(result).isEmpty();
         }
 
@@ -77,7 +76,7 @@ public class ApplicationV2Tests {
                             )
                     )
                     .build();
-            var result = application.getTenantsToDelete(oldTenants,applicationForm);
+            var result = application.getTenantsToDelete(oldTenants, applicationForm);
             assertThat(result).isEmpty();
         }
 
@@ -103,7 +102,7 @@ public class ApplicationV2Tests {
                             )
                     )
                     .build();
-            var result = application.getTenantsToDelete(oldTenants,applicationForm);
+            var result = application.getTenantsToDelete(oldTenants, applicationForm);
             assertThat(result).isEmpty();
         }
 
@@ -128,7 +127,7 @@ public class ApplicationV2Tests {
                             )
                     )
                     .build();
-            var result = application.getTenantsToDelete(oldTenants,applicationForm);
+            var result = application.getTenantsToDelete(oldTenants, applicationForm);
             assertThat(result).isNotEmpty().size().isEqualTo(1);
             assertThat(result.getFirst().getEmail()).isEqualTo("test2@test.fr");
         }
@@ -158,11 +157,10 @@ public class ApplicationV2Tests {
                             )
                     )
                     .build();
-            var result = application.getTenantsToDelete(oldTenants,applicationForm);
+            var result = application.getTenantsToDelete(oldTenants, applicationForm);
             assertThat(result).isNotEmpty().size().isEqualTo(1);
             assertThat(result.getFirst().getEmail()).isEqualTo("test2@test.fr");
         }
-
 
     }
 
@@ -182,7 +180,7 @@ public class ApplicationV2Tests {
                     )
                     .build();
 
-            var result = application.getTenantsToCreate(oldTenants,applicationForm);
+            var result = application.getTenantsToCreate(oldTenants, applicationForm);
             assertThat(result).isNotEmpty().size().isEqualTo(1);
         }
 
@@ -204,7 +202,7 @@ public class ApplicationV2Tests {
                     )
                     .build();
 
-            var result = application.getTenantsToCreate(oldTenants,applicationForm);
+            var result = application.getTenantsToCreate(oldTenants, applicationForm);
             assertThat(result).isEmpty();
         }
 
@@ -229,7 +227,7 @@ public class ApplicationV2Tests {
                     )
                     .build();
 
-            var result = application.getTenantsToCreate(oldTenants,applicationForm);
+            var result = application.getTenantsToCreate(oldTenants, applicationForm);
             assertThat(result).isNotEmpty().size().isEqualTo(1);
             assertThat(result.getFirst().getEmail()).isEqualTo("test2@test.fr");
         }

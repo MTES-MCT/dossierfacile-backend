@@ -1,0 +1,48 @@
+name: task-storage-files-deletion-errors
+# Per-job error-rate rule for a high-cadence scheduled task (658 runs/hour in prod).
+# Fires only when the job fails about 75 % of the time over one hour (500 errors), so isolated
+# timeouts (Brevo, OVH, PostgreSQL) never alert while a real outage alerts within minutes.
+# Low-cadence jobs (daily, weekly, hourly) stay on task-scheduler-monitoring.yaml (any single error).
+type: frequency
+
+index: aggregator-logs-%Y.%m.%d
+use_strftime_index: true
+
+num_events: 500
+timeframe:
+  hours: 1
+
+filter:
+  - match_phrase:
+      environment: "prod"
+  - match_phrase:
+      application: "task-scheduler"
+  - match_phrase:
+      task_status: "ERROR"
+  - term:
+      task_name.keyword: "STORAGE_FILES_DELETION"
+
+realert:
+  hours: 24
+
+alert:
+  - slack
+
+slack_webhook_url: "{{mattermost_webhook_elk_alert_url}}"
+slack_msg_color: danger
+slack_title: "🚨 **ALERTE PROD** : la tâche STORAGE_FILES_DELETION échoue en continu"
+slack_username_override: "AlerteFacile"
+slack_emoji_override: ":no_entry_sign:"
+
+# Empêche ElastAlert de dumper tout le document brut
+alert_text_type: alert_text_only
+
+alert_text: |
+  **Détail de l'incident** :
+  La tâche `STORAGE_FILES_DELETION` de l'application `task-scheduler` a échoué au moins 500 fois dans la dernière heure (environ 658 exécutions par heure en temps normal) : les fichiers en TO_DELETE ne sont plus supprimés du stockage (S3 et OVH, toutes les 10 s).
+  Consulter les dernières exécutions via le lien Kibana.
+
+slack_alert_fields:
+  - title: Dernière détection
+    value: "@timestamp"
+    short: true

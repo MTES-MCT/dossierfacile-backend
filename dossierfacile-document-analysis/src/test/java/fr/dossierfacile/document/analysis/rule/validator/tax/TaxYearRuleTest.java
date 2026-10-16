@@ -202,7 +202,6 @@ class TaxYearRuleTest {
                 .build();
     }
 
-
     private DocumentIAFileAnalysis fakeOtherDocument() {
         BarcodeModel barcode = BarcodeModel.builder()
                 .type("2D_DOC")

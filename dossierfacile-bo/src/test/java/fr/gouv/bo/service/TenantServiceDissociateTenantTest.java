@@ -82,8 +82,8 @@ class TenantServiceDissociateTenantTest {
                 null,
                 null,
                 null, // operatorReviewPolicy
-                null, 
-                null 
+                null,
+                null
         );
     }
 

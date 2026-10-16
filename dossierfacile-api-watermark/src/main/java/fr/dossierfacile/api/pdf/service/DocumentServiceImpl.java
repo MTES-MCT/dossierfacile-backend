@@ -101,15 +101,15 @@ public class DocumentServiceImpl implements DocumentService {
                 .orElseThrow(() -> new DocumentTokenNotFoundException(token));
 
         switch (document.getPdfStatus()) {
-            case IN_PROGRESS:
+            case IN_PROGRESS :
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("PDF generation still IN PROGRESS for Document with ID [" + "]");
-            case FAILED:
+            case FAILED :
                 return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("Document with ID [" + "] not generated due to error");
-            case DELETED:
+            case DELETED :
                 return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("Document with ID [" + "] has been deleted");
-            case NONE:
+            case NONE :
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document with ID [" + "] not generated");
-            default: // continue
+            default : // continue
         }
 
         DocumentUrlResponse documentUrlResponse = DocumentUrlResponse.builder()

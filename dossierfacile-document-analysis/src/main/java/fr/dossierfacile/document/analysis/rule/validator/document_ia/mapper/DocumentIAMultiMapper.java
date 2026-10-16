@@ -14,22 +14,22 @@ It prioritizes 2DDoc data over Extraction data
 public class DocumentIAMultiMapper extends BaseDocumentIAMapper {
 
     public <T> List<T> map(List<DocumentIAFileAnalysis> documentIAAnalyses, Class<T> targetClass) {
-            var listOfResults = new ArrayList<T>();
+        var listOfResults = new ArrayList<T>();
 
-            for (DocumentIAFileAnalysis documentIAFileAnalysis : documentIAAnalyses) {
+        for (DocumentIAFileAnalysis documentIAFileAnalysis : documentIAAnalyses) {
 
-                List<GenericProperty> doc2DProperties = extract2DDocItems(documentIAFileAnalysis);
-                List<GenericProperty> extractionProperties = extractExtractionItems(documentIAFileAnalysis);
+            List<GenericProperty> doc2DProperties = extract2DDocItems(documentIAFileAnalysis);
+            List<GenericProperty> extractionProperties = extractExtractionItems(documentIAFileAnalysis);
 
-                var instantiated = instantiate(
-                        doc2DProperties,
-                        extractionProperties,
-                        targetClass
-                );
-                instantiated.ifPresent(listOfResults::add);
-            }
+            var instantiated = instantiate(
+                    doc2DProperties,
+                    extractionProperties,
+                    targetClass
+            );
+            instantiated.ifPresent(listOfResults::add);
+        }
 
-            return listOfResults;
+        return listOfResults;
     }
 
     private List<GenericProperty> extract2DDocItems(DocumentIAFileAnalysis documentIAAnalyse) {

@@ -94,7 +94,8 @@ public class UserServiceImpl implements UserService {
         String keycloakId = tenant.getKeycloakId();
 
         if (tenant.getTenantType() == TenantType.CREATE) {
-            for (Tenant coTenant : tenant.getApartmentSharing().getTenants().stream().filter(t -> t.getTenantType().equals(TenantType.JOIN)).collect(Collectors.toSet())) {
+            for (Tenant coTenant : tenant.getApartmentSharing().getTenants().stream().filter(t -> t.getTenantType().equals(TenantType.JOIN))
+                    .collect(Collectors.toSet())) {
                 deleteAccount(coTenant);
             }
             apartmentSharingService.delete(tenant.getApartmentSharing());
@@ -103,7 +104,6 @@ public class UserServiceImpl implements UserService {
             apartmentSharingService.removeTenant(tenant.getApartmentSharing(), tenant);
         }
         webhookDTOMap.forEach((tenantUserApi, webhookDTO) -> partnerCallBackService.sendCallBack(tenant, tenantUserApi.getUserApi(), webhookDTO));
-
 
         TransactionalUtil.afterCommit(() -> {
             mailService.sendEmailAccountDeleted(tenantToDeleteDto);

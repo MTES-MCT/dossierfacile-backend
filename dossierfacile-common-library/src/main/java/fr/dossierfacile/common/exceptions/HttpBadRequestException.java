@@ -12,4 +12,4 @@ public class HttpBadRequestException extends RuntimeException {
     public HttpBadRequestException() {
         super();
     }
-}   
+}

@@ -34,7 +34,6 @@ public class DocumentIdentification extends AbstractDocumentSaveStep<DocumentIde
     @Autowired
     private ApartmentSharingService apartmentSharingService;
 
-
     protected DocumentSaveResult saveDocument(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
         DocumentSubCategory documentSubCategory = documentIdentificationForm.getTypeDocumentIdentification();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.IDENTIFICATION, tenant)

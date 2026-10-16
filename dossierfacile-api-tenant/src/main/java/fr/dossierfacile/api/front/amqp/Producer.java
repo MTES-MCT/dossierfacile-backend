@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.amqp;
 
-
 import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.messaging.QueueMessage;

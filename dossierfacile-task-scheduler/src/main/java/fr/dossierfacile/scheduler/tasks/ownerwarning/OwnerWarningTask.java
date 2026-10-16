@@ -80,9 +80,9 @@ public class OwnerWarningTask extends AbstractTask {
         Page<Owner> ownerPage = ownerRepository.findByLastLoginDate(pageable, localDateTime, warnings);
         switch (warnings) {
             case 0 ->
-                    log.info("Found {} owners who will be warned for FIRST time by email", ownerPage.getTotalElements());
+                log.info("Found {} owners who will be warned for FIRST time by email", ownerPage.getTotalElements());
             case 1 ->
-                    log.info("Found {} owners who will be warned for SECOND time by email", ownerPage.getTotalElements());
+                log.info("Found {} owners who will be warned for SECOND time by email", ownerPage.getTotalElements());
             case 2 -> log.info("Found {} owners whose account will be deleted", ownerPage.getTotalElements());
         }
 

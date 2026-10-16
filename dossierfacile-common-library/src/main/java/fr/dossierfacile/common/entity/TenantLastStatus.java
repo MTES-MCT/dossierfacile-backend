@@ -16,5 +16,3 @@ public class TenantLastStatus {
     private LocalDateTime lastStatusDate;
     private Long lastLogId;
 }
-
-

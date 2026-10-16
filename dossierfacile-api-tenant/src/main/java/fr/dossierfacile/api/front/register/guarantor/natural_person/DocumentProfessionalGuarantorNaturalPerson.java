@@ -27,7 +27,9 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class DocumentProfessionalGuarantorNaturalPerson extends AbstractDocumentSaveStep<DocumentProfessionalGuarantorNaturalPersonForm> implements SaveStep<DocumentProfessionalGuarantorNaturalPersonForm> {
+public class DocumentProfessionalGuarantorNaturalPerson extends AbstractDocumentSaveStep<DocumentProfessionalGuarantorNaturalPersonForm>
+        implements
+            SaveStep<DocumentProfessionalGuarantorNaturalPersonForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
@@ -38,12 +40,14 @@ public class DocumentProfessionalGuarantorNaturalPerson extends AbstractDocument
 
     @Override
     protected DocumentSaveResult saveDocument(Tenant tenant, DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
-        Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentProfessionalGuarantorNaturalPersonForm.getGuarantorId()).orElseThrow(() -> new GuarantorNotFoundException(documentProfessionalGuarantorNaturalPersonForm.getGuarantorId()));
+        Guarantor guarantor = guarantorRepository
+                .findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentProfessionalGuarantorNaturalPersonForm.getGuarantorId())
+                .orElseThrow(() -> new GuarantorNotFoundException(documentProfessionalGuarantorNaturalPersonForm.getGuarantorId()));
 
         DocumentSubCategory documentSubCategory = documentProfessionalGuarantorNaturalPersonForm.getTypeDocumentProfessional();
         Document document = documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.PROFESSIONAL, guarantor)
                 .orElse(
-                    Document.builder().documentCategory(DocumentCategory.PROFESSIONAL).guarantor(guarantor).build()
+                        Document.builder().documentCategory(DocumentCategory.PROFESSIONAL).guarantor(guarantor).build()
                 );
         boolean created = document.getId() == null;
 
@@ -55,7 +59,8 @@ public class DocumentProfessionalGuarantorNaturalPerson extends AbstractDocument
         saveFiles(documentProfessionalGuarantorNaturalPersonForm, document);
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.PROFESSIONAL);
-        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(guarantor.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
+        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(guarantor.getDocuments(),
+                List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
 
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());

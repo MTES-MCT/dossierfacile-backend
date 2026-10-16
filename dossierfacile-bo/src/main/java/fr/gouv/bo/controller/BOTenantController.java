@@ -71,7 +71,8 @@ public class BOTenantController {
     ) {
         Tenant tenant = requireTenant(id);
         if (tenant.getTenantType() == TenantType.CREATE) {
-            throw new IllegalArgumentException("Delete main tenant is not allowed - set another user as main tenant before OR delete the entire apartmentSharing");
+            throw new IllegalArgumentException(
+                    "Delete main tenant is not allowed - set another user as main tenant before OR delete the entire apartmentSharing");
         }
         BOUser operator = userService.findUserByEmail(principal.getEmail());
         userService.deleteCoTenant(tenant, operator);
@@ -209,11 +210,11 @@ public class BOTenantController {
 
     @GetMapping("/{id}/processFile")
     public String processFileForm(Model model, @PathVariable("id") Long id,
-                                  @AuthenticationPrincipal UserPrincipal principal) {
-        
-        Tenant tenant = requireTenant(id);                            
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        Tenant tenant = requireTenant(id);
         applicationAccessService.checkTenantAccess(principal, tenant.getId());
-        
+
         List<TenantLog> logs = logService.getLogByTenantId(id);
         TenantInfoHeader header = TenantInfoHeader.build(tenant, userApiService.findPartnersLinkedToTenant(id), logs);
         List<TenantLog> modificationLogs = logs.stream()
@@ -264,7 +265,7 @@ public class BOTenantController {
     ) {
         Tenant tenant = requireTenant(id);
         applicationAccessService.checkTenantAccess(principal, tenant.getId());
-        
+
         tenantService.processFile(id, customMessage, principal);
 
         // Si returnToHome est demandé, retourner à l'accueil
@@ -286,13 +287,13 @@ public class BOTenantController {
 
     @PostMapping("/{id}/comment")
     public String addOperatorComment(@PathVariable("id") Long tenantId,
-                                     @RequestParam String comment,
-                                     @RequestParam(value = "returnTo", required = false) String returnTo,
-                                     @AuthenticationPrincipal UserPrincipal principal) {
-        
+            @RequestParam String comment,
+            @RequestParam(value = "returnTo", required = false) String returnTo,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
         Tenant tenant = requireTenant(tenantId);
         applicationAccessService.checkTenantAccess(principal, tenant.getId());
-        
+
         tenantService.addOperatorComment(principal, tenant.getId(), comment);
         if ("processFile".equals(returnTo)) {
             return REDIRECT_BO_HOME + "/tenant/" + tenant.getId() + "/processFile";
@@ -313,10 +314,12 @@ public class BOTenantController {
         return REDIRECT_BO_COLOCATION + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
-    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory, String documentUserType) {
+    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory,
+            String documentUserType) {
 
         List<ItemDetail> itemDetails = new ArrayList<>();
-        for (DocumentDeniedOptions documentDeniedOptions : documentService.findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentCategory, documentSubCategory, documentUserType)) {
+        for (DocumentDeniedOptions documentDeniedOptions : documentService
+                .findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentCategory, documentSubCategory, documentUserType)) {
             ItemDetail itemDetail1 = ItemDetail.builder()
                     .check(false)
                     .message(documentDeniedOptions.getMessageValue())
@@ -341,17 +344,22 @@ public class BOTenantController {
                         .documentCategory(document.getDocumentCategory())
                         .documentSubCategory(document.getDocumentSubCategory())
                         .documentCategoryStep(document.getDocumentCategoryStep())
-                        .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), isForGuarantor ? GUARANTOR : TENANT))
+                        .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(),
+                                isForGuarantor ? GUARANTOR : TENANT))
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .noDocument(document.getNoDocument())
                         .metadataOfFiles(documentService.getFilesMetadata(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .documentAnalysisReport(document.getDocumentAnalysisReport())
-                        .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null);
+                        .analysisReportComment(document.getDocumentAnalysisReport() != null
+                                && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus())
+                                        ? document.getDocumentAnalysisReport().getComment()
+                                        : null);
 
                 var resultList = document.getFiles().stream().filter(
-                        it -> it.getDocumentIAFileAnalysis() != null && it.getDocumentIAFileAnalysis().getAnalysisStatus() == DocumentIAFileAnalysisStatus.SUCCESS
+                        it -> it.getDocumentIAFileAnalysis() != null
+                                && it.getDocumentIAFileAnalysis().getAnalysisStatus() == DocumentIAFileAnalysisStatus.SUCCESS
                 ).map(
                         file -> file.getDocumentIAFileAnalysis().getResult()
                 ).toList();

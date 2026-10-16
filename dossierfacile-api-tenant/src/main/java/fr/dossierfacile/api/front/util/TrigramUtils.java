@@ -22,7 +22,7 @@ public class TrigramUtils {
         if (normalized.isEmpty()) {
             return Optional.empty();
         }
-        
+
         // Remove all non-letters (ASCII letters only)
         String lettersOnly = normalized.replaceAll("[^A-Za-z]", "");
         if (lettersOnly.isEmpty()) {
@@ -34,4 +34,3 @@ public class TrigramUtils {
         return Optional.of(trigram);
     }
 }
-

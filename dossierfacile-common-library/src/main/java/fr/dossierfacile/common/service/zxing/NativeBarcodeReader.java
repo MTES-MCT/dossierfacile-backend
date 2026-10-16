@@ -19,15 +19,16 @@ public class NativeBarcodeReader {
     public List<BarcodeHit> decode(BufferedImage img) {
         ImageUtils.GrayBytes gb = ImageUtils.toGrayBytes(img);
         Pointer p = ZXingNative.INSTANCE.zxingcpp_read_image(gb.data, gb.width, gb.height, 1, gb.stride);
-        if (p == null) return List.of();
+        if (p == null)
+            return List.of();
         String json = p.getString(0);
         ZXingNative.INSTANCE.zxingcpp_free_str(p);
 
         try {
-            return mapper.readValue(json, new TypeReference<>() {});
+            return mapper.readValue(json, new TypeReference<>() {
+            });
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse native JSON: " + json, e);
         }
     }
 }
-

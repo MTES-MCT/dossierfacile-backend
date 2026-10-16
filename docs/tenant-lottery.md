@@ -174,4 +174,4 @@ Le calcul « traité entre le … et le … » (`GET /api/tenant/{id}/expectedPr
 | L13 | Candidat `PENDING` → dossier `INCOMPLETE` au moment du tirage | Ticket `CANCELLED` (pas de cooldown) ; après re-signature l'encart réapparaît, nouveau clic → nouveau ticket |
 | L14 | Désactivation du flag avec des `PENDING` | Tickets flushés `DRAWN` + `TO_PROCESS` (aucun mail) ; clic opt-in → `TO_PROCESS` immédiat |
 | L15 | (préprod) `lottery.draw.allow-multiple-per-day=true` | Le bouton BO reste disponible ; chaque clic crée un nouveau `lottery_draw` pour la même date |
-| L16 | Vérif partenaires | Aucun champ lottery dans les payloads DFC/api-partner/api-owner ; `callback_log.tenant_status` jamais `COMPLETED` |
+| L16 | Vérif partenaires | Aucun champ lottery dans les payloads DFC/webhooks/api-owner ; `callback_log.tenant_status` jamais `COMPLETED` |

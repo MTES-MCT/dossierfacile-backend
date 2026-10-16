@@ -17,14 +17,16 @@ public abstract class AbstractDocumentCategoriesValidator {
             ConstraintValidatorContext constraintValidatorContext) {
         if (categoryStep == null) {
             constraintValidatorContext.disableDefaultConstraintViolation();
-            constraintValidatorContext.buildConstraintViolationWithTemplate("For document sub category " + subCategory.name() + " category step can not be null")
+            constraintValidatorContext
+                    .buildConstraintViolationWithTemplate("For document sub category " + subCategory.name() + " category step can not be null")
                     .addPropertyNode(VALIDATION_PROPERTY_NODE_NAME)
                     .addConstraintViolation();
             return false;
         }
         if (!availableStep.contains(categoryStep)) {
             constraintValidatorContext.disableDefaultConstraintViolation();
-            constraintValidatorContext.buildConstraintViolationWithTemplate(categoryStep.name() + " is not valid for document sub category " + subCategory.name())
+            constraintValidatorContext
+                    .buildConstraintViolationWithTemplate(categoryStep.name() + " is not valid for document sub category " + subCategory.name())
                     .addPropertyNode(VALIDATION_PROPERTY_NODE_NAME)
                     .addConstraintViolation();
             return false;
@@ -32,7 +34,8 @@ public abstract class AbstractDocumentCategoriesValidator {
         return true;
     }
 
-    protected boolean handleNoCategoryStep(DocumentCategoryStep categoryStep, DocumentSubCategory subCategory, ConstraintValidatorContext constraintValidatorContext) {
+    protected boolean handleNoCategoryStep(DocumentCategoryStep categoryStep, DocumentSubCategory subCategory,
+            ConstraintValidatorContext constraintValidatorContext) {
         if (categoryStep != null) {
             constraintValidatorContext.disableDefaultConstraintViolation();
             constraintValidatorContext.buildConstraintViolationWithTemplate("For document sub category " + subCategory + " category step has to be null")

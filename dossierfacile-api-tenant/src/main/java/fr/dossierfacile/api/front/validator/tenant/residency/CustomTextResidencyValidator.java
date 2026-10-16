@@ -25,7 +25,8 @@ public class CustomTextResidencyValidator implements ConstraintValidator<CustomT
         return validateCustomText(constraintValidatorContext, subCategory, isCustomTextPresent);
     }
 
-    public static boolean validateCustomText(ConstraintValidatorContext constraintValidatorContext, DocumentSubCategory subCategory, boolean isCustomTextPresent) {
+    public static boolean validateCustomText(ConstraintValidatorContext constraintValidatorContext, DocumentSubCategory subCategory,
+            boolean isCustomTextPresent) {
 
         if (subCategory != OTHER_RESIDENCY && isCustomTextPresent) {
             constraintValidatorContext.disableDefaultConstraintViolation();

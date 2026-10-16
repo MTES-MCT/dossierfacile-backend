@@ -29,7 +29,8 @@ public class DocumentIASpecificMapperTest {
             return List.of(
                     GenericProperty.builder().name("inner_string").value(testSuffix + "inner_value").type("string").build(),
                     GenericProperty.builder().name("inner_date").value("2026-06-04").type("date").build(),
-                    GenericProperty.builder().name("inner_list").value(List.of(testSuffix + "value4", testSuffix + "value5", testSuffix +"value6")).type("list").build()
+                    GenericProperty.builder().name("inner_list").value(List.of(testSuffix + "value4", testSuffix + "value5", testSuffix + "value6"))
+                            .type("list").build()
             );
         }
 
@@ -42,9 +43,9 @@ public class DocumentIASpecificMapperTest {
                     GenericProperty.builder().name("inner_model").value(makeInnerModel("inner_model_")).type("object").build(),
                     GenericProperty.builder().name("list_inner_model").value(
                             List.of(
-                                getListItem("1_"),
-                                getListItem("2_"),
-                                getListItem("3_")
+                                    getListItem("1_"),
+                                    getListItem("2_"),
+                                    getListItem("3_")
                             )
                     ).type("list").build()
             );
@@ -91,7 +92,6 @@ public class DocumentIASpecificMapperTest {
             assertThat(testModel.get().getListTestInnerModels().get(1).getInnerString()).isEqualTo("2_inner_value");
             assertThat(testModel.get().getListTestInnerModels().get(2).getInnerString()).isEqualTo("3_inner_value");
         }
-
 
     }
 

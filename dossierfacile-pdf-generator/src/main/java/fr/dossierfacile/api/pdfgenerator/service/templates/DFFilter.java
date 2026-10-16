@@ -14,8 +14,7 @@ public class DFFilter extends TransformFilter {
     private int yFrequency = 8;
     private int maxDistorsion = 28;
 
-    public DFFilter() {
-    }
+    public DFFilter() {}
 
     public BufferedImage filter(BufferedImage src, BufferedImage dst) {
         this.width = src.getWidth();
@@ -25,7 +24,7 @@ public class DFFilter extends TransformFilter {
 
     protected void transformInverse(int x, int y, float[] out) {
         out[0] = x;
-        float r = (float) Math.sin(x * xFrequency  / width);
+        float r = (float) Math.sin(x * xFrequency / width);
         out[1] = y + maxDistorsion * (float) Math.sin(y * yFrequency / height) * r * r;
     }
 

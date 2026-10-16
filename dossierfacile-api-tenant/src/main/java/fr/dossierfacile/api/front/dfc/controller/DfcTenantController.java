@@ -36,7 +36,6 @@ public class DfcTenantController {
     private final UserService userService;
     private final UserApiService userApiService;
 
-
     @ApiOperation(value = "Get tenant profile for partner", notes = "Retrieves the tenant profile associated with the authenticated partner.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Profile retrieved successfully", response = ConnectedTenantModel.class),
