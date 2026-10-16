@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.mapper;
 
+import fr.dossierfacile.api.front.das.mesri.MesriStudentEligibility;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.model.tenant.CoTenantModel;
 import fr.dossierfacile.api.front.model.tenant.FileModel;
@@ -867,6 +868,42 @@ class TenantMapperTest {
             assertThat(model.isOptInEligible()).isFalse();
             assertThat(model.getValidationRequested()).isNull();
             verify(operatorReviewPolicy, never()).canRequestOperatorReview(any());
+        }
+    }
+
+    @Nested
+    class MesriStudentEligibilityExposure {
+
+        private Tenant tenant() {
+            Tenant tenant = buildTenantWithDocument(TenantFileStatus.COMPLETED);
+            setupApartmentSharing(tenant, new ArrayList<>());
+            return tenant;
+        }
+
+        @Test
+        void shouldExposeEligibilityOnTenantOwnProfile() {
+            Tenant tenant = tenant();
+            MesriStudentEligibility eligibility = mock(MesriStudentEligibility.class);
+            when(eligibility.isEligible(tenant)).thenReturn(true);
+            mapper.mesriStudentEligibility = eligibility;
+
+            assertThat(mapper.toTenantModel(tenant, null).isMesriStudentEligible()).isTrue();
+        }
+
+        // Partners never see it, and the mapper works without the bean (web tests)
+        @Test
+        void shouldHideEligibilityFromPartnersAndWithoutBean() {
+            Tenant tenant = tenant();
+            UserApi userApi = new UserApi();
+            userApi.setId(200L);
+            MesriStudentEligibility eligibility = mock(MesriStudentEligibility.class);
+            mapper.mesriStudentEligibility = eligibility;
+
+            assertThat(mapper.toTenantModel(tenant, userApi).isMesriStudentEligible()).isFalse();
+            verify(eligibility, never()).isEligible(any());
+
+            mapper.mesriStudentEligibility = null;
+            assertThat(mapper.toTenantModel(tenant, null).isMesriStudentEligible()).isFalse();
         }
     }
 }

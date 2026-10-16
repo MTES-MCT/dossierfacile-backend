@@ -11,6 +11,9 @@ public interface AuthenticationFacade {
 
     String getKeycloakUserId();
 
+    /** Raw value of the logged user's JWT, to call Keycloak on their behalf. */
+    String getTokenValue();
+
     KeycloakUser getKeycloakUser();
 
     Tenant getLoggedTenant();

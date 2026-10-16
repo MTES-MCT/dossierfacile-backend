@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.das.mesri.MesriStudentDocumentService;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
@@ -39,6 +40,7 @@ public class RegisterController {
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
     private final ApplicationRegistrationValidator applicationRegistrationValidator;
+    private final MesriStudentDocumentService mesriStudentDocumentService;
 
     @PreAuthorize("hasPermissionOnTenant(#namesForm.tenantId)")
     @PostMapping(value = "/names", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -101,6 +103,19 @@ public class RegisterController {
         tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
         Tenant loggedTenant = (documentProfessionalForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant, null));
+    }
+
+    /**
+     * POC "statut étudiant à la source": fetches the student status from API Particulier with the user's
+     * FranceConnect token and saves it as the PROFESSIONAL / STUDENT document of the logged tenant.
+     * 403 not eligible, 404 unknown student, 409 FranceConnect token expired (relogin), 422 no admission, 502 API error.
+     */
+    @PreAuthorize("hasPermissionOnTenant(null)")
+    @PostMapping(value = "/documentProfessional/mesri", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional
+    public ResponseEntity<TenantModel> documentProfessionalFromMesri() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        return ok(mesriStudentDocumentService.fetchAndSaveStudentDocument(tenant, authenticationFacade.getTokenValue()));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentFinancialForm.tenantId)")
