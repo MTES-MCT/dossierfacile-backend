@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.mapper;
 
+import fr.dossierfacile.api.front.das.mesri.MesriStudentEligibility;
 import fr.dossierfacile.api.front.model.BaseApartmentSharingModel;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.model.tenant.*;
@@ -44,6 +45,10 @@ public abstract class TenantMapper extends MasksCompletedStatusForPartner {
     @Autowired
     protected LotteryTicketService lotteryTicketService;
 
+    // Optional so that the many tests instantiating TenantMapperImpl do not need to provide it
+    @Autowired(required = false)
+    protected MesriStudentEligibility mesriStudentEligibility;
+
     @Mapping(target = "honorDeclaration", expression = "java(mapHonorDeclaration(tenant))")
     @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
@@ -60,6 +65,12 @@ public abstract class TenantMapper extends MasksCompletedStatusForPartner {
             tenantModel.setLotteryStatus(view.status());
             tenantModel.setNextEligibleDate(view.nextEligibleDate());
         });
+    }
+
+    // POC "statut étudiant à la source": the frontend shows the FranceConnect button only when the API would accept the call
+    @AfterMapping
+    protected void enrichWithMesriStudentEligibility(Tenant tenant, @MappingTarget TenantModel tenantModel, @Context UserApi userApi) {
+        tenantModel.setMesriStudentEligible(userApi == null && mesriStudentEligibility != null && mesriStudentEligibility.isEligible(tenant));
     }
 
     protected boolean mapHonorDeclaration(Tenant tenant) {

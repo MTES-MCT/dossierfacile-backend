@@ -55,3 +55,7 @@ link.shared.property=
 # Document IA
 document.ia.api.base.url=
 document.ia.api.key=
+
+# API Particulier public sandbox (no credentials needed)
+api-particulier.base-url=https://staging.particulier.api.gouv.fr
+api-particulier.recipient-siret=12006701200027
