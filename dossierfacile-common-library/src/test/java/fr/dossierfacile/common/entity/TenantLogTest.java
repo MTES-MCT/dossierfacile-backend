@@ -3,7 +3,12 @@ package fr.dossierfacile.common.entity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.model.log.UpdateMonthlySum;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -93,6 +98,26 @@ class TenantLogTest {
                 .build();
 
         assertThat(log.getTitle()).isEqualTo("OPERATOR_EDITED_FINANCIAL by opId: 4");
+    }
+
+    @Test
+    void should_render_the_correction_of_a_missing_amount() {
+        Document document = Document.builder().id(5L).documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.SALARY).monthlySum(null).build();
+        TenantLog log = TenantLog.builder().logType(LogType.ACCOUNT_EDITED).operatorId(4L)
+                .creationDateTime(LocalDateTime.of(2026, 10, 19, 12, 0))
+                .logDetails(MAPPER.valueToTree(UpdateMonthlySum.from(document, 1500))).build();
+
+        assertThat(log.getTitle()).isEqualTo("OPERATOR_EDITED_FINANCIAL by opId: 4");
+        assertThat(log.getSubtitle()).isEqualTo("FINANCIAL - SALARY - OLD AMOUNT: non renseigné - NEW AMOUNT: 1500");
+        assertThat(log.getModificationText()).isEqualTo("SALARY - Modification du 19.10.26 - Ancien montant non renseigné - Nouveau montant 1500");
+    }
+
+    @Test
+    void should_keep_zero_distinct_from_a_missing_amount() {
+        TenantLog log = TenantLog.builder().logDetails(details("oldSum", 0, "newSum", 1500)).build();
+
+        assertThat(log.getSubtitle()).isEqualTo(" - OLD AMOUNT: 0 - NEW AMOUNT: 1500");
     }
 
     @Test

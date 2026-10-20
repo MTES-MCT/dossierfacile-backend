@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.*;
+import fr.gouv.bo.exception.MonthlySumChangedException;
 import fr.gouv.bo.security.BOAccessDenied;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
@@ -261,12 +262,18 @@ public class BOTenantController {
             @PathVariable Long id,
             @RequestParam(value = "returnToHome", required = false) String returnToHome,
             CustomMessage customMessage,
-            @AuthenticationPrincipal UserPrincipal principal
+            @AuthenticationPrincipal UserPrincipal principal,
+            RedirectAttributes redirectAttributes
     ) {
         Tenant tenant = requireTenant(id);
         applicationAccessService.checkTenantAccess(principal, tenant.getId());
 
-        tenantService.processFile(id, customMessage, principal);
+        try {
+            tenantService.processFile(id, customMessage, principal);
+        } catch (MonthlySumChangedException ex) {
+            redirectAttributes.addFlashAttribute("monthlySumConflict", true);
+            return REDIRECT_BO_HOME + "/tenant/" + id + "/processFile";
+        }
 
         // Si returnToHome est demandé, retourner à l'accueil
         if (returnToHome != null && returnToHome.equals("true")) {

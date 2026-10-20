@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Montant mensuel</title>
+</head>
+<body>
+<div th:fragment="monthlyAmount(messageItem, fieldPrefix)"
+     class="letter monthly-amount" style="padding-top: 7px"
+     th:data-field-prefix="${fieldPrefix}"
+     th:if="${messageItem.documentCategory == T(fr.dossierfacile.common.enums.DocumentCategory).FINANCIAL}">
+    <span class="text-amount"
+          th:text="${'Montant mensuel : ' + (messageItem.monthlySum == null ? 'non renseigné' : messageItem.monthlySum)}"></span>
+    <button type="button" class="bo-btn btn-alt change-amount"
+            th:text="${messageItem.monthlySum == null ? 'Renseigner le montant' : 'Modifier le montant'}"></button>
+    <input type="hidden" th:field="*{__${fieldPrefix}__.monthlySum}"/>
+    <label class="visually-hidden" for="monthly-amount" th:for="${'amount-' + messageItem.documentId}">Montant mensuel en euros (obligatoire)</label>
+    <input id="monthly-amount" type="number" class="input-amount" required step="1" max="2147483647"
+           th:min="${messageItem.documentSubCategory == T(fr.dossierfacile.common.enums.DocumentSubCategory).NO_INCOME ? 0 : 1}"
+           th:id="${'amount-' + messageItem.documentId}"
+           th:field="*{__${fieldPrefix}__.newMonthlySum}"
+           th:attr="aria-describedby=${'amount-error-' + messageItem.documentId}"
+           style="display: none; width: 7rem;"/>
+    <button type="button" class="bo-btn btn-alt validate-amount" style="display: none;">Valider la modification</button>
+    <button type="button" class="bo-btn btn-alt cancel-update-amount" style="display: none;">Annuler</button>
+    <span class="amount-error text-danger" role="alert" hidden
+          th:id="${'amount-error-' + messageItem.documentId}">Veuillez saisir un montant mensuel entier valide.</span>
+</div>
+</body>
+</html>

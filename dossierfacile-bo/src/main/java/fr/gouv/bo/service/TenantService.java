@@ -20,6 +20,8 @@ import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.gouv.bo.dto.*;
+import fr.gouv.bo.exception.BadRequestException;
+import fr.gouv.bo.exception.MonthlySumChangedException;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.exception.GuarantorNotFoundException;
 import fr.gouv.bo.model.ProcessedDocuments;
@@ -44,6 +46,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -438,37 +441,71 @@ public class TenantService {
         return "Garant : " + guarantor.getCompleteName();
     }
 
-    private void processMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId) {
+    private Map<Long, Document> validateMonthlySums(CustomMessage customMessage, Tenant tenant) {
+        Map<Long, Document> documents = Stream.concat(tenant.getDocuments().stream(),
+                tenant.getGuarantors().stream().flatMap(guarantor -> guarantor.getDocuments().stream()))
+                .collect(Collectors.toMap(Document::getId, document -> document));
+        List<MessageItem> items = Stream.concat(customMessage.getMessageItems().stream(),
+                customMessage.getGuarantorItems().stream().flatMap(guarantor -> guarantor.getMessageItems().stream())).toList();
+        for (MessageItem item : items) {
+            Document document = documents.get(item.getDocumentId());
+            if (document == null) {
+                throw new BadRequestException("Ce document n'appartient pas au dossier traité.");
+            }
+            validateMonthlySum(item, document);
+        }
+        return documents;
+    }
+
+    private void validateMonthlySum(MessageItem item, Document document) {
+        if (document.getDocumentCategory() != DocumentCategory.FINANCIAL) {
+            return;
+        }
+        // The initial amount is a snapshot: reject a stale form before applying any verdict or correction.
+        if (!Objects.equals(item.getMonthlySum(), document.getMonthlySum())) {
+            throw new MonthlySumChangedException();
+        }
+        Integer sum = item.getNewMonthlySum();
+        // An already missing amount can remain missing while requesting a corrected document.
+        if (sum == null && document.getMonthlySum() == null && isDenied(item)) {
+            return;
+        }
+        int minimum = document.getDocumentSubCategory() == DocumentSubCategory.NO_INCOME ? 0 : 1;
+        if (sum == null || sum < minimum) {
+            throw new BadRequestException("Veuillez renseigner un montant mensuel valide pour chaque justificatif de ressources.");
+        }
+    }
+
+    private void processMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId, Map<Long, Document> documents) {
         List<Pair<String, List<MessageItem>>> itemsChanged = new ArrayList<>();
-        var items = updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId);
+        var items = updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId, documents);
         if (!items.isEmpty()) {
             itemsChanged.add(Pair.of(tenant.getFullName(), items));
         }
         for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
-            var guarantorItems = updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId);
+            var guarantorItems = updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId, documents);
             if (!guarantorItems.isEmpty()) {
                 itemsChanged.add(Pair.of(guarantorLabel(guarantorItem), guarantorItems));
             }
         }
         if (!itemsChanged.isEmpty()) {
+            apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
             sendAmountChangedMessage(itemsChanged, tenant);
         }
     }
 
-    private List<MessageItem> updateMonthlySums(List<MessageItem> items, Tenant tenant, Long operatorId) {
+    private List<MessageItem> updateMonthlySums(List<MessageItem> items, Tenant tenant, Long operatorId, Map<Long, Document> documents) {
         List<MessageItem> itemsChanged = new ArrayList<>();
         for (MessageItem item : items) {
-            if (item.getMonthlySum() != null && !item.getMonthlySum().equals(item.getNewMonthlySum())) {
-                Document document = documentRepository.findById(item.getDocumentId()).orElse(null);
-                if (document != null) {
-                    log.info("Update document monthly sum : " + item.getDocumentId() + ", from " + item.getMonthlySum() + " to " + item.getNewMonthlySum());
-                    tenantLogService.addUpdateAmountLog(tenant.getId(), operatorId, document, item.getNewMonthlySum());
-                    document.setMonthlySum(item.getNewMonthlySum());
-                    documentRepository.save(document);
-                    itemsChanged.add(item);
-                } else {
-                    log.warn("Document not found: " + item.getDocumentId());
-                }
+            Document document = documents.get(item.getDocumentId());
+            if (document.getDocumentCategory() == DocumentCategory.FINANCIAL
+                    && !Objects.equals(document.getMonthlySum(), item.getNewMonthlySum())) {
+                item.setMonthlySum(document.getMonthlySum());
+                log.info("Update document monthly sum : " + item.getDocumentId() + ", from " + item.getMonthlySum() + " to " + item.getNewMonthlySum());
+                tenantLogService.addUpdateAmountLog(tenant.getId(), operatorId, document, item.getNewMonthlySum());
+                document.setMonthlySum(item.getNewMonthlySum());
+                documentRepository.save(document);
+                itemsChanged.add(item);
             }
         }
         return itemsChanged;
@@ -660,12 +697,14 @@ public class TenantService {
             log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getEmail());
             throw new IllegalStateException("You cannot treat a tenant which is not TO PROCESS");
         }
+        // Validate every amount before changing statuses, saving documents or sending messages.
+        Map<Long, Document> documents = validateMonthlySums(customMessage, tenant);
         User operator = userService.findUserByEmail(principal.getEmail());
 
         ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
         boolean allDocumentsValid = updateFileStatus(customMessage);
 
-        processMonthlySums(customMessage, tenant, operator.getId());
+        processMonthlySums(customMessage, tenant, operator.getId(), documents);
 
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant, operator, processedDocuments);
@@ -688,17 +727,8 @@ public class TenantService {
             html.append(HtmlUtils.htmlEscape(name));
             html.append("</strong></p>");
             html.append("<p><strong>");
-            html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
-            if (item.getDocumentCategoryStep() != null) {
-                html.append(" - ");
-                html.append(messageSource.getMessage("document_category_step." + item.getDocumentCategoryStep(), null, locale));
-            }
-            html.append(" : </strong>");
-            html.append(" déclaré <strong>");
-            html.append(item.getMonthlySum());
-            html.append(" €</strong> → corrigé à <strong>");
-            html.append(item.getNewMonthlySum());
-            html.append(" €</strong></p>");
+            appendAmountChange(html, item);
+            html.append("</p>");
         } else {
             html.append("<p>Nos agents ont ajusté <strong>certains montants de revenus</strong> déclarés afin qu’ils correspondent à vos justificatifs.");
             html.append("<br/> Les valeurs suivantes ont été modifiées pour garantir la cohérence et la fiabilité de votre dossier :");
@@ -710,17 +740,7 @@ public class TenantService {
                 for (MessageItem item : change.getRight()) {
                     html.append("<li>");
                     html.append("<strong>");
-                    html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
-                    if (item.getDocumentCategoryStep() != null) {
-                        html.append(" - ");
-                        html.append(messageSource.getMessage("document_category_step." + item.getDocumentCategoryStep(), null, locale));
-                    }
-                    html.append(" : </strong>");
-                    html.append(" déclaré <strong>");
-                    html.append(item.getMonthlySum());
-                    html.append(" €</strong> → corrigé à <strong>");
-                    html.append(item.getNewMonthlySum());
-                    html.append(" €</strong>");
+                    appendAmountChange(html, item);
                     html.append("</li>");
                 }
                 html.append("</ul>");
@@ -736,6 +756,20 @@ public class TenantService {
         messageService.create(MessageDTO.builder().message(html.toString()).build(), tenant, false, false);
         TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
         mailService.sendEmailAmountChanged(tenantDto);
+    }
+
+    private void appendAmountChange(StringBuilder html, MessageItem item) {
+        html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
+        if (item.getDocumentCategoryStep() != null) {
+            html.append(" - ");
+            html.append(messageSource.getMessage("document_category_step." + item.getDocumentCategoryStep(), null, locale));
+        }
+        html.append(" : </strong>");
+        html.append(" déclaré <strong>");
+        html.append(item.getMonthlySum() == null ? "non renseigné" : item.getMonthlySum() + " €");
+        html.append("</strong> → corrigé à <strong>");
+        html.append(item.getNewMonthlySum());
+        html.append(" €</strong>");
     }
 
     @Transactional

@@ -27,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import java.util.Optional;
 import java.util.Set;
@@ -322,7 +323,9 @@ class BOTenantControllerTest {
                     .when(applicationAccessService)
                     .checkTenantAccess(principal, TENANT_ID);
 
-            assertThatThrownBy(() -> controller.processFile(TENANT_ID, null, new CustomMessage(), principal))
+            CustomMessage customMessage = new CustomMessage();
+            RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+            assertThatThrownBy(() -> controller.processFile(TENANT_ID, null, customMessage, principal, redirectAttributes))
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
 
@@ -338,7 +341,7 @@ class BOTenantControllerTest {
             when(tenantService.findNextTenantInCouple(TENANT_ID)).thenReturn(Optional.empty());
             when(tenantService.redirectToApplication(principal, null)).thenReturn("redirect:/bo");
 
-            String view = controller.processFile(TENANT_ID, null, customMessage, principal);
+            String view = controller.processFile(TENANT_ID, null, customMessage, principal, new RedirectAttributesModelMap());
 
             assertThat(view).isEqualTo("redirect:/bo");
             verify(applicationAccessService).checkTenantAccess(principal, TENANT_ID);
