@@ -6,8 +6,15 @@
       "detail": "Format Java sources with Spotless, then check them with Checkstyle in each module",
       "type": "process",
       "command": "mvn",
-      "args": ["--batch-mode", "--no-transfer-progress", "spotless:apply", "validate"],
-      "options": { "cwd": "${workspaceFolder}" },
+      "args": [
+        "--batch-mode",
+        "--no-transfer-progress",
+        "spotless:apply",
+        "validate"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "group": "test",
       "problemMatcher": []
     },
@@ -16,8 +23,14 @@
       "detail": "Start local infra (postgres, rabbitmq, redis, nginx) + Keycloak",
       "type": "shell",
       "command": "docker compose -f docker-compose.dev.yml -f docker-compose.overwrite.yml up -d && docker compose -f ../Dossier-Facile-Keycloak/docker-compose.dev.yml up -d",
-      "options": { "cwd": "${workspaceFolder}" },
-      "presentation": { "reveal": "silent", "panel": "dedicated", "close": true },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "close": true
+      },
       "problemMatcher": []
     },
     {
@@ -25,8 +38,224 @@
       "detail": "Stop local infra + Keycloak",
       "type": "shell",
       "command": "docker compose -f docker-compose.dev.yml down && docker compose -f ../Dossier-Facile-Keycloak/docker-compose.dev.yml down",
-      "options": { "cwd": "${workspaceFolder}" },
-      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: build backend",
+      "detail": "Compile and install every module into ~/.m2 (no tests, no checkstyle). Run after a branch change.",
+      "type": "shell",
+      "command": "mvn -q -ntp -DskipTests -Dcheckstyle.skip -Dspotless.check.skip install",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "close": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: TenantAPI",
+      "detail": "Run dossierfacile-api-tenant with Maven (javac), profiles dev,mockOvh",
+      "type": "shell",
+      "command": "mvn -ntp -pl dossierfacile-api-tenant spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh -Dspring-boot.run.jvmArguments=-Dmock.storage.path=${workspaceFolder}/../mock-storage",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "group": "backend",
+        "reveal": "always",
+        "focus": false
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: Bo",
+      "detail": "Run dossierfacile-bo with Maven (javac), profiles dev,mockOvh",
+      "type": "shell",
+      "command": "mvn -ntp -pl dossierfacile-bo spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh -Dspring-boot.run.jvmArguments=-Dmock.storage.path=${workspaceFolder}/../mock-storage",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "group": "backend",
+        "reveal": "always",
+        "focus": false
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: PDFGeneratorService",
+      "detail": "Run dossierfacile-pdf-generator with Maven (javac), profiles dev,mockOvh",
+      "type": "shell",
+      "command": "mvn -ntp -pl dossierfacile-pdf-generator spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh -Dspring-boot.run.jvmArguments=-Dmock.storage.path=${workspaceFolder}/../mock-storage",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "group": "backend",
+        "reveal": "always",
+        "focus": false
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: TaskSchedulerService",
+      "detail": "Run dossierfacile-task-scheduler with Maven (javac), profiles dev,mockOvh",
+      "type": "shell",
+      "command": "mvn -ntp -pl dossierfacile-task-scheduler spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh -Dspring-boot.run.jvmArguments=-Dmock.storage.path=${workspaceFolder}/../mock-storage",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "group": "backend",
+        "reveal": "always",
+        "focus": false
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: OwnerAPI",
+      "detail": "Run dossierfacile-api-owner with Maven (javac), profiles dev,mockOvh",
+      "type": "shell",
+      "command": "mvn -ntp -pl dossierfacile-api-owner spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh -Dspring-boot.run.jvmArguments=-Dmock.storage.path=${workspaceFolder}/../mock-storage",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "group": "backend",
+        "reveal": "always",
+        "focus": false
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: WatermarkApi",
+      "detail": "Run dossierfacile-api-watermark with Maven (javac), profiles dev,mockOvh",
+      "type": "shell",
+      "command": "mvn -ntp -pl dossierfacile-api-watermark spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh -Dspring-boot.run.jvmArguments=-Dmock.storage.path=${workspaceFolder}/../mock-storage",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "group": "backend",
+        "reveal": "always",
+        "focus": false
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: run Tenant+Bo",
+      "dependsOn": [
+        "mvn: Bo",
+        "mvn: PDFGeneratorService",
+        "mvn: TaskSchedulerService",
+        "mvn: TenantAPI"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: Tenant+Bo",
+      "detail": "Docker infra, Maven build, then Bo + PDF + Scheduler + Tenant in parallel",
+      "dependsOn": [
+        "docker-infra",
+        "mvn: build backend",
+        "mvn: run Tenant+Bo"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: run AllInBabe",
+      "dependsOn": [
+        "mvn: Bo",
+        "mvn: OwnerAPI",
+        "mvn: PDFGeneratorService",
+        "mvn: TaskSchedulerService",
+        "mvn: TenantAPI",
+        "mvn: WatermarkApi"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "mvn: AllInBabe",
+      "detail": "Docker infra, Maven build, then all 6 apps in parallel",
+      "dependsOn": [
+        "docker-infra",
+        "mvn: build backend",
+        "mvn: run AllInBabe"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "front: Dev www + tenantv3 + owner",
+      "detail": "Same as the frontend task, started from this folder so it can join a compound",
+      "type": "shell",
+      "command": "pnpm --filter www --filter tenantv3 --filter owner dev",
+      "options": {
+        "cwd": "${workspaceFolder:Dossier-Facile-Frontend}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "group": "frontend",
+        "reveal": "always",
+        "focus": false
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Full stack: Tenant+Bo + front",
+      "detail": "mvn: Tenant+Bo and the frontend dev servers, in parallel",
+      "dependsOn": [
+        "mvn: Tenant+Bo",
+        "front: Dev www + tenantv3 + owner"
+      ],
+      "dependsOrder": "parallel",
       "problemMatcher": []
     }
   ]

@@ -134,9 +134,9 @@ public class TenantLog implements Serializable {
                 builder.append(details.get("fileName").asText());
             }
         }
-        if (details != null && details.get(OLD_SUM) != null && details.get(NEW_SUM) != null) {
+        if (details != null && details.get(NEW_SUM) != null) {
             builder.append(" - OLD AMOUNT: ");
-            builder.append(details.get(OLD_SUM).asInt());
+            builder.append(formatAmount(details, OLD_SUM));
             builder.append(" - NEW AMOUNT: ");
             builder.append(details.get(NEW_SUM).asInt());
         }
@@ -148,16 +148,19 @@ public class TenantLog implements Serializable {
         ObjectNode details = this.getLogDetails();
         if (details != null
                 && details.get(DOCUMENT_SUB_CATEGORY) != null
-                && details.get(OLD_SUM) != null
                 && details.get(NEW_SUM) != null) {
             builder.append(details.get(DOCUMENT_SUB_CATEGORY).asText());
             builder.append(" - Modification du ");
             builder.append(this.getCreationDateTime().format(DateTimeFormatter.ofPattern("dd.MM.yy")));
             builder.append(" - Ancien montant ");
-            builder.append(details.get(OLD_SUM).asInt());
+            builder.append(formatAmount(details, OLD_SUM));
             builder.append(" - Nouveau montant ");
             builder.append(details.get(NEW_SUM).asInt());
         }
         return builder.toString();
+    }
+
+    private static String formatAmount(ObjectNode details, String field) {
+        return details.hasNonNull(field) ? details.get(field).asText() : "non renseigné";
     }
 }
