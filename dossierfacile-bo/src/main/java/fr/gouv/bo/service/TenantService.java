@@ -470,8 +470,7 @@ public class TenantService {
         if (sum == null && document.getMonthlySum() == null && isDenied(item)) {
             return;
         }
-        int minimum = document.getDocumentSubCategory() == DocumentSubCategory.NO_INCOME ? 0 : 1;
-        if (sum == null || sum < minimum) {
+        if (sum == null || sum < 0) {
             throw new BadRequestException("Veuillez renseigner un montant mensuel valide pour chaque justificatif de ressources.");
         }
     }
