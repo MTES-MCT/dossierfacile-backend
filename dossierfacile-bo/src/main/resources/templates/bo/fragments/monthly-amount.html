@@ -14,8 +14,7 @@
             th:text="${messageItem.monthlySum == null ? 'Renseigner le montant' : 'Modifier le montant'}"></button>
     <input type="hidden" th:field="*{__${fieldPrefix}__.monthlySum}"/>
     <label class="visually-hidden" for="monthly-amount" th:for="${'amount-' + messageItem.documentId}">Montant mensuel en euros (obligatoire)</label>
-    <input id="monthly-amount" type="number" class="input-amount" required step="1" max="2147483647"
-           th:min="${messageItem.documentSubCategory == T(fr.dossierfacile.common.enums.DocumentSubCategory).NO_INCOME ? 0 : 1}"
+    <input id="monthly-amount" type="number" class="input-amount" required min="0" step="1" max="2147483647"
            th:id="${'amount-' + messageItem.documentId}"
            th:field="*{__${fieldPrefix}__.newMonthlySum}"
            th:attr="aria-describedby=${'amount-error-' + messageItem.documentId}"
