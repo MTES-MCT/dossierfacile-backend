@@ -8,12 +8,24 @@ import java.util.List;
 /**
  * Student status returned by API Particulier ({@code /v3/mesri/statut_etudiant/france_connect}).
  *
- * @param rawJson        the response body exactly as received (rendered in full in the PDF)
+ * @param rawJson        the response body exactly as received
  * @param sourceUrl      the URL that was called, without the query string
  * @param recipientSiret the SIRET passed as {@code recipient}
+ * @param identite       {@code data.identite} when the {@code mesri_identite} scope is served (absent from the sandbox FC cases), else null
  * @param admissions     parsed {@code data.admissions[]}
  */
-public record MesriStudentStatus(String rawJson, String sourceUrl, String recipientSiret, List<Admission> admissions) {
+public record MesriStudentStatus(String rawJson, String sourceUrl, String recipientSiret, Identity identite,
+        List<Admission> admissions) {
+
+    public record Identity(String nomNaissance, String prenom, String dateNaissance) {
+        static Identity from(JsonNode node) {
+            if (node == null || node.isMissingNode() || node.isNull()) {
+                return null;
+            }
+            return new Identity(node.path("nom_naissance").asText(null), node.path("prenom").asText(null),
+                    node.path("date_naissance").asText(null));
+        }
+    }
 
     public record Admission(String dateDebut, String dateFin, Boolean estInscrit, String regimeCode, String regimeLibelle,
             String communeCode, String uai, String etablissementNom) {
@@ -37,5 +49,9 @@ public record MesriStudentStatus(String rawJson, String sourceUrl, String recipi
             result.add(Admission.from(node));
         }
         return result;
+    }
+
+    static Identity parseIdentity(JsonNode root) {
+        return Identity.from(root.path("data").path("identite"));
     }
 }

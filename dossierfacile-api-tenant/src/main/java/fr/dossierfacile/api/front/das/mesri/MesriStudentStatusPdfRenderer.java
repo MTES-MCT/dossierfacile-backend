@@ -1,109 +1,380 @@
 package fr.dossierfacile.api.front.das.mesri;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.stereotype.Component;
 
+import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
- * First iteration of the student status document: a header, then the full JSON returned by API Particulier,
- * pretty-printed in a monospaced font. No business formatting yet, operators read the raw data.
+ * "Relevé de statut étudiant": the student statement rendered from the MESR data, following the DossierFacile
+ * mock-up (header with the RF / DossierFacile logos, holder, declared period, one card per admission, footer).
+ * Pure PDFBox drawing, A4, Marianne fonts shipped in {@code static/fonts}.
  */
+@Slf4j
 @Component
-@RequiredArgsConstructor
 public class MesriStudentStatusPdfRenderer {
 
-    static final String TITLE = "Statut étudiant – données MESR obtenues via FranceConnect";
-    private static final float MARGIN = 50f;
-    private static final float TITLE_SIZE = 14f;
-    private static final float HEADER_SIZE = 10f;
-    private static final float BODY_SIZE = 9f;
-    private static final float HEADER_LEADING = 14f;
-    private static final float BODY_LEADING = 11f;
-    /** Courier 9 pt is 5.4 pt wide: 90 characters fit in the 495 pt text column of an A4 page. */
-    private static final int BODY_MAX_CHARS = 90;
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm");
+    static final String TITLE = "Relevé de statut étudiant";
+    static final String NOTE = "Toutes les informations de ce relevé correspondent aux renseignements transmis par le ministère "
+            + "de l'Enseignement supérieur et de la Recherche. Ces informations sont l'équivalent d'un certificat étudiant.";
 
-    private final ObjectMapper objectMapper;
+    /** RF block + DossierFacile wordmark, rasterised at 300 dpi from the pdf-generator header template. */
+    private static final String HEADER_LOGO = "static/img/header-rf-dossierfacile.png";
+    private static final float HEADER_LOGO_W = 271f;
+    private static final String FONT_REGULAR = "static/fonts/Marianne-Regular.ttf";
+    private static final String FONT_BOLD = "static/fonts/Marianne-Bold.ttf";
 
-    public byte[] render(MesriStudentStatus status, String tenantFullName, LocalDateTime retrievedAt) throws IOException {
-        PDFont titleFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-        PDFont headerFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-        PDFont bodyFont = new PDType1Font(Standard14Fonts.FontName.COURIER);
+    private static final float PAGE_W = PDRectangle.A4.getWidth();
+    private static final float PAGE_H = PDRectangle.A4.getHeight();
+    private static final float MARGIN_X = 56f;
+    private static final float MARGIN_TOP = 48f;
+    private static final float MARGIN_BOTTOM = 48f;
+    private static final float CONTENT_W = PAGE_W - 2 * MARGIN_X;
+    private static final float HEADER_BAND_H = 110f;
+    private static final float FOOTER_H = 66f;
 
-        List<String> headerLines = List.of(
-                "Récupéré le " + retrievedAt.format(DATE_FORMAT),
-                "Locataire : " + tenantFullName,
-                "Destinataire (SIRET) : " + status.recipientSiret(),
-                "Source : " + status.sourceUrl(),
-                "Nombre d'admissions : " + status.admissions().size(),
-                "",
-                "Réponse intégrale de l'API :");
-        List<String> bodyLines = wrap(prettyPrint(status.rawJson()), BODY_MAX_CHARS);
+    private static final float BODY = 10f;
+    private static final float BODY_LEADING = 15f;
+    private static final float SMALL = 8.5f;
+    private static final float SMALL_LEADING = 12f;
+    private static final float PAD = 12f;
+
+    private static final Color INK = new Color(0x16, 0x16, 0x16);
+    private static final Color INK_SOFT = new Color(0x3A, 0x3A, 0x3A);
+    private static final Color GREY = new Color(0x66, 0x66, 0x66);
+    private static final Color BORDER = new Color(0xDD, 0xDD, 0xDD);
+    private static final Color CARD_HEAD = new Color(0xF6, 0xF6, 0xF6);
+    private static final Color BAND = new Color(0xF5, 0xF5, 0xFE);
+    private static final Color BLUE = new Color(0x00, 0x00, 0x91);
+    private static final Color SUCCESS_BG = new Color(0xB8, 0xFE, 0xC9);
+    private static final Color SUCCESS_FG = new Color(0x18, 0x75, 0x3C);
+    private static final Color NEUTRAL_BG = new Color(0xEE, 0xEE, 0xEE);
+
+    private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter LONG_DAY = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH);
+    private static final DateTimeFormatter MONTH_YEAR = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH);
+    private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
+
+    public byte[] render(MesriStudentStatus status, StudentStatementHolder holder, ZonedDateTime retrievedAt) throws IOException {
+        List<MesriStudentStatus.Admission> admissions = new ArrayList<>(status.admissions());
+        admissions.sort(Comparator.comparing((MesriStudentStatus.Admission a) -> nullSafe(a.dateDebut())).reversed());
 
         try (PDDocument document = new PDDocument()) {
             document.getDocumentInformation().setTitle(TITLE);
             document.getDocumentInformation().setCreator("DossierFacile");
+            Fonts fonts = Fonts.load(document);
+            PDImageXObject logo = loadHeaderLogo(document);
 
-            PageWriter writer = new PageWriter(document);
-            writer.newPage();
-            writer.write(titleFont, TITLE_SIZE, 18f, sanitize(titleFont, TITLE));
-            writer.y -= 6f;
-            for (String line : headerLines) {
-                writer.write(headerFont, HEADER_SIZE, HEADER_LEADING, sanitize(headerFont, line));
-            }
-            writer.y -= 6f;
-            for (String line : bodyLines) {
-                writer.write(bodyFont, BODY_SIZE, BODY_LEADING, sanitize(bodyFont, line));
-            }
-            writer.close();
+            Writer w = new Writer(document, fonts, logo, retrievedAt);
+            w.newPage();
 
+            // Title and holder
+            w.y -= 6f;
+            w.text(TITLE, fonts.bold, 20f, INK, MARGIN_X, w.y);
+            w.y -= 30f;
+            w.labelValue("Délivré à : ", holder.fullName(), MARGIN_X);
+            w.y -= BODY_LEADING;
+            w.labelValue("Date de naissance : ", holder.birthDate() == null ? "non transmise" : holder.birthDate().format(DAY), MARGIN_X);
+            w.y -= BODY_LEADING + 6f;
+            for (String line : w.wrap(NOTE, fonts.regular, SMALL + 0.5f, CONTENT_W)) {
+                w.text(line, fonts.regular, SMALL + 0.5f, INK_SOFT, MARGIN_X, w.y);
+                w.y -= SMALL_LEADING + 1f;
+            }
+            w.y -= 10f;
+
+            // Declared period band
+            String from = monthYear(
+                    admissions.stream().map(MesriStudentStatus.Admission::dateDebut).filter(d -> d != null).min(String::compareTo).orElse(null));
+            String to = monthYear(admissions.stream().map(MesriStudentStatus.Admission::dateFin).filter(d -> d != null).max(String::compareTo).orElse(null));
+            float bandH = 40f;
+            w.ensure(bandH);
+            w.rect(MARGIN_X, w.y - bandH, CONTENT_W, bandH, BAND, null);
+            w.text("Inscriptions déclarées", fonts.bold, BODY, INK, MARGIN_X + PAD, w.y - 24f);
+            float toW = Math.max(w.width(to, fonts.bold, BODY), 40f);
+            float toX = MARGIN_X + CONTENT_W - PAD - toW;
+            float fromX = toX - 24f - Math.max(w.width(from, fonts.bold, BODY), 40f);
+            w.text("de", fonts.regular, SMALL, GREY, fromX, w.y - 14f);
+            w.text(from, fonts.bold, BODY, INK, fromX, w.y - 29f);
+            w.text("à", fonts.regular, SMALL, GREY, toX, w.y - 14f);
+            w.text(to, fonts.bold, BODY, INK, toX, w.y - 29f);
+            w.y -= bandH + 14f;
+
+            // One card per admission, most recent first, never split across pages
+            for (MesriStudentStatus.Admission admission : admissions) {
+                w.card(admission);
+                w.y -= 12f;
+            }
+
+            w.finish(status, holder);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.save(out);
             return out.toByteArray();
         }
     }
 
-    private String prettyPrint(String rawJson) {
+    static String capitalize(String s) {
+        if (s == null || s.isBlank()) {
+            return "";
+        }
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    static String day(String isoDate) {
         try {
-            Object tree = objectMapper.readTree(rawJson);
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree);
-        } catch (IOException e) {
-            return rawJson;
+            return LocalDate.parse(isoDate).format(DAY);
+        } catch (RuntimeException e) {
+            return isoDate == null ? "?" : isoDate;
         }
     }
 
-    /** Hard-wraps lines longer than {@code maxChars}, keeping the original indentation on continuation lines. */
-    static List<String> wrap(String text, int maxChars) {
-        List<String> lines = new ArrayList<>();
-        for (String line : text.split("\\R")) {
-            int indent = line.length() - line.stripLeading().length();
-            String prefix = " ".repeat(Math.min(indent, maxChars / 2));
-            String rest = line;
-            while (rest.length() > maxChars) {
-                lines.add(rest.substring(0, maxChars));
-                rest = prefix + rest.substring(maxChars);
+    static String monthYear(String isoDate) {
+        try {
+            return LocalDate.parse(isoDate).format(MONTH_YEAR);
+        } catch (RuntimeException e) {
+            return isoDate == null ? "?" : isoDate;
+        }
+    }
+
+    private static String nullSafe(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static PDImageXObject loadHeaderLogo(PDDocument document) throws IOException {
+        try (InputStream is = MesriStudentStatusPdfRenderer.class.getClassLoader().getResourceAsStream(HEADER_LOGO)) {
+            if (is == null) {
+                log.warn("Header logo {} not found, the statement will have no logo", HEADER_LOGO);
+                return null;
             }
-            lines.add(rest);
+            return PDImageXObject.createFromByteArray(document, is.readAllBytes(), "header-logo");
         }
-        return lines;
     }
 
-    /** Standard 14 fonts only cover WinAnsi: any other character is replaced to avoid a render failure. */
+    private record Fonts(PDFont regular, PDFont bold) {
+        static Fonts load(PDDocument document) throws IOException {
+            return new Fonts(loadFont(document, FONT_REGULAR), loadFont(document, FONT_BOLD));
+        }
+
+        private static PDFont loadFont(PDDocument document, String path) throws IOException {
+            try (InputStream is = MesriStudentStatusPdfRenderer.class.getClassLoader().getResourceAsStream(path)) {
+                if (is == null) {
+                    throw new IOException("Font not found on classpath: " + path);
+                }
+                return PDType0Font.load(document, is);
+            }
+        }
+    }
+
+    /** Top-down writer with page breaks; footers are drawn once the page count is known. */
+    private final class Writer {
+        private final PDDocument document;
+        private final Fonts fonts;
+        private final PDImageXObject logo;
+        private final ZonedDateTime retrievedAt;
+        private final List<PDPage> pages = new ArrayList<>();
+        private PDPageContentStream cs;
+        private float y;
+
+        Writer(PDDocument document, Fonts fonts, PDImageXObject logo, ZonedDateTime retrievedAt) {
+            this.document = document;
+            this.fonts = fonts;
+            this.logo = logo;
+            this.retrievedAt = retrievedAt;
+        }
+
+        void newPage() throws IOException {
+            if (cs != null) {
+                cs.close();
+            }
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            pages.add(page);
+            cs = new PDPageContentStream(document, page);
+            if (logo != null) {
+                // The raster keeps a white margin around the logos, hence the slight overshoot above the top margin
+                float h = HEADER_LOGO_W * logo.getHeight() / logo.getWidth();
+                cs.drawImage(logo, MARGIN_X - 10f, PAGE_H - MARGIN_TOP + 12f - h, HEADER_LOGO_W, h);
+            }
+            // Retrieval date, right aligned on the band
+            String dateLine = retrievedAt.format(LONG_DAY);
+            String timeLine = "à " + retrievedAt.format(TIME) + " heure de Paris";
+            text(dateLine, fonts.bold, BODY, INK, PAGE_W - MARGIN_X - width(dateLine, fonts.bold, BODY), PAGE_H - MARGIN_TOP - 10f);
+            text(timeLine, fonts.regular, SMALL, GREY, PAGE_W - MARGIN_X - width(timeLine, fonts.regular, SMALL), PAGE_H - MARGIN_TOP - 24f);
+            y = PAGE_H - HEADER_BAND_H - 34f;
+        }
+
+        void ensure(float height) throws IOException {
+            if (y - height < MARGIN_BOTTOM + FOOTER_H) {
+                newPage();
+            }
+        }
+
+        void card(MesriStudentStatus.Admission a) throws IOException {
+            String name = a.etablissementNom() == null ? "Établissement non renseigné" : a.etablissementNom();
+            List<String> nameLines = wrap(name, fonts.bold, BODY, CONTENT_W - 2 * PAD - width("Nom : ", fonts.regular, BODY));
+            float headH = PAD + 11f + 3f + nameLines.size() * BODY_LEADING + 2 * BODY_LEADING + PAD - 2f;
+            float bodyH = PAD + BODY_LEADING + 10f + 3 * BODY_LEADING + PAD - 2f;
+            float cardH = headH + bodyH;
+            ensure(cardH);
+
+            float top = y;
+            // Frame and card head background
+            rect(MARGIN_X, top - cardH, CONTENT_W, cardH, null, BORDER);
+            rect(MARGIN_X, top - headH, CONTENT_W, headH, CARD_HEAD, null);
+            line(MARGIN_X, top - headH, MARGIN_X + CONTENT_W, top - headH, BORDER);
+
+            float x = MARGIN_X + PAD;
+            float cy = top - PAD - 9f;
+            text("ÉTABLISSEMENT", fonts.bold, 8f, BLUE, x, cy);
+            cy -= BODY_LEADING;
+            float nameX = x + width("Nom : ", fonts.regular, BODY);
+            text("Nom : ", fonts.regular, BODY, INK, x, cy);
+            for (String l : nameLines) {
+                text(l, fonts.bold, BODY, INK, nameX, cy);
+                cy -= BODY_LEADING;
+            }
+            text("Code UAI : " + nullOr(a.uai()), fonts.regular, BODY, INK, x, cy);
+            cy -= BODY_LEADING;
+            text("Commune (code INSEE) : " + nullOr(a.communeCode()), fonts.regular, BODY, INK, x, cy);
+
+            cy = top - headH - PAD - 9f;
+            String period = "Du " + day(a.dateDebut()) + " au " + day(a.dateFin());
+            text(period, fonts.bold, BODY, INK, x, cy);
+            badge(Boolean.TRUE.equals(a.estInscrit()), x + width(period, fonts.bold, BODY) + 8f, cy);
+            cy -= BODY_LEADING + 10f;
+            text("Inscription", fonts.bold, BODY, INK, x, cy);
+            cy -= BODY_LEADING;
+            text("Régime de formation : " + capitalize(a.regimeLibelle()), fonts.regular, BODY, INK, x, cy);
+            cy -= BODY_LEADING;
+            text("Code régime : " + nullOr(a.regimeCode()), fonts.regular, BODY, INK, x, cy);
+
+            y = top - cardH;
+        }
+
+        private void badge(boolean inscrit, float x, float baseline) throws IOException {
+            String label = inscrit ? "INSCRIT" : "NON INSCRIT";
+            float w = width(label, fonts.bold, 8f) + 12f;
+            rect(x, baseline - 4f, w, 15f, inscrit ? SUCCESS_BG : NEUTRAL_BG, null);
+            text(label, fonts.bold, 8f, inscrit ? SUCCESS_FG : GREY, x + 6f, baseline);
+        }
+
+        void finish(MesriStudentStatus status, StudentStatementHolder holder) throws IOException {
+            if (cs != null) {
+                cs.close();
+                cs = null;
+            }
+            int total = pages.size();
+            String source = "Source : API Particulier – Statut étudiant (ministère de l'Enseignement supérieur et de la Recherche)";
+            String retrieved = "Récupéré le " + retrievedAt.format(DAY) + " à " + retrievedAt.format(TIME) + " · Locataire : " + holder.fullName()
+                    + " (identité FranceConnect)";
+            String siret = "SIRET destinataire : " + status.recipientSiret();
+            for (int i = 0; i < total; i++) {
+                try (PDPageContentStream fs = new PDPageContentStream(document, pages.get(i), AppendMode.APPEND, true, true)) {
+                    cs = fs;
+                    float top = MARGIN_BOTTOM + FOOTER_H;
+                    line(MARGIN_X, top, MARGIN_X + CONTENT_W, top, BORDER);
+                    float fy = top - 2f;
+                    for (String paragraph : List.of(source, retrieved, siret)) {
+                        for (String l : wrap(paragraph, fonts.regular, SMALL, CONTENT_W)) {
+                            fy -= SMALL_LEADING;
+                            text(l, fonts.regular, SMALL, GREY, MARGIN_X, fy);
+                        }
+                    }
+                    String pageLabel = (i + 1) + " / " + total;
+                    String site = "www.dossierfacile.logement.gouv.fr";
+                    text(pageLabel, fonts.regular, SMALL, GREY, MARGIN_X, MARGIN_BOTTOM + 4f);
+                    text(site, fonts.regular, SMALL, GREY, MARGIN_X + CONTENT_W - width(site, fonts.regular, SMALL), MARGIN_BOTTOM + 4f);
+                } finally {
+                    cs = null;
+                }
+            }
+        }
+
+        void labelValue(String label, String value, float x) throws IOException {
+            text(label, fonts.regular, BODY, INK, x, y);
+            text(value, fonts.bold, BODY, INK, x + width(label, fonts.regular, BODY), y);
+        }
+
+        void text(String text, PDFont font, float size, Color color, float x, float baseline) throws IOException {
+            cs.beginText();
+            cs.setFont(font, size);
+            cs.setNonStrokingColor(color);
+            cs.newLineAtOffset(x, baseline);
+            cs.showText(sanitize(font, text));
+            cs.endText();
+        }
+
+        void rect(float x, float y0, float w, float h, Color fill, Color stroke) throws IOException {
+            if (fill != null) {
+                cs.setNonStrokingColor(fill);
+                cs.addRect(x, y0, w, h);
+                cs.fill();
+            }
+            if (stroke != null) {
+                cs.setStrokingColor(stroke);
+                cs.setLineWidth(0.75f);
+                cs.addRect(x, y0, w, h);
+                cs.stroke();
+            }
+        }
+
+        void line(float x1, float y1, float x2, float y2, Color color) throws IOException {
+            cs.setStrokingColor(color);
+            cs.setLineWidth(0.75f);
+            cs.moveTo(x1, y1);
+            cs.lineTo(x2, y2);
+            cs.stroke();
+        }
+
+        float width(String text, PDFont font, float size) throws IOException {
+            return font.getStringWidth(sanitize(font, text)) / 1000f * size;
+        }
+
+        List<String> wrap(String text, PDFont font, float size, float maxWidth) throws IOException {
+            List<String> lines = new ArrayList<>();
+            StringBuilder current = new StringBuilder();
+            for (String word : text.split(" ")) {
+                String candidate = current.isEmpty() ? word : current + " " + word;
+                if (width(candidate, font, size) > maxWidth && !current.isEmpty()) {
+                    lines.add(current.toString());
+                    current = new StringBuilder(word);
+                } else {
+                    current = new StringBuilder(candidate);
+                }
+            }
+            if (!current.isEmpty()) {
+                lines.add(current.toString());
+            }
+            return lines;
+        }
+
+        private String nullOr(String s) {
+            return s == null ? "non renseigné" : s;
+        }
+    }
+
+    /** Characters missing from the font are replaced so a rare glyph never fails the whole document. */
     static String sanitize(PDFont font, String text) {
+        if (text == null) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {
             String ch = String.valueOf(text.charAt(i));
@@ -115,44 +386,5 @@ public class MesriStudentStatusPdfRenderer {
             }
         }
         return sb.toString();
-    }
-
-    /** Minimal top-down text writer with automatic page breaks. */
-    private static final class PageWriter {
-        private final PDDocument document;
-        private PDPageContentStream stream;
-        private float y;
-
-        PageWriter(PDDocument document) {
-            this.document = document;
-        }
-
-        void newPage() throws IOException {
-            if (stream != null) {
-                stream.close();
-            }
-            PDPage page = new PDPage(PDRectangle.A4);
-            document.addPage(page);
-            stream = new PDPageContentStream(document, page);
-            y = PDRectangle.A4.getHeight() - MARGIN;
-        }
-
-        void write(PDFont font, float size, float leading, String text) throws IOException {
-            if (y - leading < MARGIN) {
-                newPage();
-            }
-            y -= leading;
-            stream.beginText();
-            stream.setFont(font, size);
-            stream.newLineAtOffset(MARGIN, y);
-            stream.showText(text);
-            stream.endText();
-        }
-
-        void close() throws IOException {
-            if (stream != null) {
-                stream.close();
-            }
-        }
     }
 }

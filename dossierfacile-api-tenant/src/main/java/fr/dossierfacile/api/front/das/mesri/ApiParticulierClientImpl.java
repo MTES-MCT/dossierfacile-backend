@@ -97,7 +97,7 @@ public class ApiParticulierClientImpl implements ApiParticulierClient {
         if (admissions.isEmpty()) {
             throw new MesriNoAdmissionException();
         }
-        return new MesriStudentStatus(body, sourceUrl, recipientSiret, admissions);
+        return new MesriStudentStatus(body, sourceUrl, recipientSiret, MesriStudentStatus.parseIdentity(root), admissions);
     }
 
     /** Extracts "code title" from the API Particulier error envelope {@code {"errors":[{"code","title",...}]}}. */

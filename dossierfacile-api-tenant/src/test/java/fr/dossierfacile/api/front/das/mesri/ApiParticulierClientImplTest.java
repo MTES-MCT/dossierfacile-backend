@@ -51,6 +51,7 @@ class ApiParticulierClientImplTest {
         assertThat(status.rawJson()).isEqualTo(SANDBOX_BODY);
         assertThat(status.sourceUrl()).isEqualTo("https://staging.particulier.api.gouv.fr/v3/mesri/statut_etudiant/france_connect");
         assertThat(status.recipientSiret()).isEqualTo("12006701200027");
+        assertThat(status.identite()).isNull();
         assertThat(status.admissions()).hasSize(1);
         MesriStudentStatus.Admission admission = status.admissions().get(0);
         assertThat(admission.dateFin()).isEqualTo("2021-08-31");
@@ -65,6 +66,16 @@ class ApiParticulierClientImplTest {
         assertThat(request.uri().toString()).isEqualTo(
                 "https://staging.particulier.api.gouv.fr/v3/mesri/statut_etudiant/france_connect?recipient=12006701200027");
         assertThat(request.headers().firstValue("Authorization")).contains("Bearer fc-token");
+    }
+
+    @Test
+    void parsesTheIdentityBlockWhenPresent() throws Exception {
+        answer(200, "{\"data\":{\"identite\":{\"nom_naissance\":\"Martin\",\"prenom\":\"Jacques\",\"date_naissance\":\"2004-01-01\"},"
+                + "\"admissions\":[{\"date_debut\":\"2024-10-01\",\"date_fin\":\"2025-08-31\",\"est_inscrit\":true}]}}");
+
+        MesriStudentStatus status = client.fetchStudentStatus("fc-token");
+
+        assertThat(status.identite()).isEqualTo(new MesriStudentStatus.Identity("Martin", "Jacques", "2004-01-01"));
     }
 
     @Test

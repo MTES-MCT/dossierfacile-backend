@@ -14,7 +14,7 @@ tenantv3 ◀── JWT ── Keycloak ◀── access_token FC (60 s, storeTok
 tenantv3 ──POST /api/register/documentProfessional/mesri (Bearer JWT)──▶ api-tenant
 api-tenant ──GET /realms/dossier-facile/broker/oidc/token (Bearer JWT)──▶ Keycloak ──▶ access_token FC
 api-tenant ──GET {base}/v3/mesri/statut_etudiant/france_connect?recipient=SIRET (Bearer FC)──▶ API Particulier ──▶ MESR
-api-tenant : PDF (en-tête + JSON intégral) → saveStepRegister(DOCUMENT_PROFESSIONAL, STUDENT) → TenantLog
+api-tenant : PDF « Relevé de statut étudiant » → saveStepRegister(DOCUMENT_PROFESSIONAL, STUDENT) → TenantLog
 ```
 
 Le jeton FranceConnect vit 60 secondes et n'est pas rafraîchi : le front appelle le backend dès le retour de
@@ -28,7 +28,8 @@ d'aucune clé en mode FranceConnect.
 | `FranceConnectTokenServiceImpl` | lit le jeton FC stocké par Keycloak (`/broker/oidc/token`), vérifie `accessTokenExpiration` |
 | `ApiParticulierClientImpl` | appel HTTP API Particulier, mapping des statuts en exceptions |
 | `MesriStudentStatus` | réponse brute + admissions parsées |
-| `MesriStudentStatusPdfRenderer` | PDF PDFBox : en-tête puis JSON intégral en Courier, pagination automatique |
+| `MesriStudentStatusPdfRenderer` | « Relevé de statut étudiant » (maquette DF) : logos RF/DossierFacile, titulaire, période déclarée, une carte par admission (plus récente d'abord), pied de page avec source et numéro de page ; Marianne, pagination automatique |
+| `StudentStatementHolder` | titulaire du relevé : bloc `identite` du MESR si servi, sinon identité FranceConnect du locataire |
 | `ByteArrayMultipartFile` | fichier en mémoire pour réutiliser le chemin d'upload |
 | `MesriStudentEligibility` | règles d'éligibilité (API configurée, FranceConnecté, dossier seul, flag actif pour l'usager) ; expose `TenantModel.mesriStudentEligible` via `TenantMapper` |
 | `MesriStudentDocumentService` | orchestration, sauvegarde via `saveStepRegister` |

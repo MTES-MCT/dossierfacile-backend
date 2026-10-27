@@ -12,7 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 /**
@@ -26,6 +29,7 @@ import java.util.List;
 public class MesriStudentDocumentService {
 
     static final String FILE_NAME = "statut-etudiant-franceconnect.pdf";
+    private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
 
     private final MesriStudentEligibility eligibility;
     private final FranceConnectTokenService franceConnectTokenService;
@@ -39,7 +43,7 @@ public class MesriStudentDocumentService {
         try {
             FranceConnectAccessToken token = franceConnectTokenService.getFranceConnectAccessToken(userJwt);
             MesriStudentStatus status = apiParticulierClient.fetchStudentStatus(token.accessToken());
-            byte[] pdf = pdfRenderer.render(status, fullName(tenant), LocalDateTime.now());
+            byte[] pdf = pdfRenderer.render(status, holderOf(status, tenant), ZonedDateTime.now(PARIS));
 
             DocumentProfessionalForm form = new DocumentProfessionalForm();
             form.setTypeDocumentProfessional(DocumentSubCategory.STUDENT);
@@ -60,8 +64,29 @@ public class MesriStudentDocumentService {
         }
     }
 
-    private static String fullName(Tenant tenant) {
-        return ((tenant.getFirstName() == null ? "" : tenant.getFirstName()) + " "
+    /**
+     * The MESR identity block (scope mesri_identite) wins when served; otherwise the FranceConnect identity carried
+     * by the tenant (same certified source). The sandbox FranceConnect cases never include the MESR block.
+     */
+    static StudentStatementHolder holderOf(MesriStudentStatus status, Tenant tenant) {
+        MesriStudentStatus.Identity identity = status.identite();
+        if (identity != null && identity.nomNaissance() != null && identity.prenom() != null) {
+            return new StudentStatementHolder(identity.prenom() + " " + identity.nomNaissance(),
+                    parseDate(identity.dateNaissance() != null ? identity.dateNaissance() : tenant.getFranceConnectBirthDate()));
+        }
+        String fullName = ((tenant.getFirstName() == null ? "" : tenant.getFirstName()) + " "
                 + (tenant.getLastName() == null ? "" : tenant.getLastName())).trim();
+        return new StudentStatementHolder(fullName, parseDate(tenant.getFranceConnectBirthDate()));
+    }
+
+    private static LocalDate parseDate(String isoDate) {
+        if (isoDate == null || isoDate.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(isoDate);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 }

@@ -1,88 +1,126 @@
 package fr.dossierfacile.api.front.das.mesri;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.io.File;
+import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MesriStudentStatusPdfRendererTest {
 
-    private final MesriStudentStatusPdfRenderer renderer = new MesriStudentStatusPdfRenderer(new ObjectMapper());
+    private static final ZonedDateTime RETRIEVED_AT = ZonedDateTime.of(2026, 10, 20, 14, 32, 0, 0, ZoneId.of("Europe/Paris"));
+    private static final StudentStatementHolder ANGELA = new StudentStatementHolder("Angela Claire Louise DUBOIS", LocalDate.of(1962, 8, 24));
 
-    private static MesriStudentStatus sandboxStatus(String rawJson) {
-        return new MesriStudentStatus(rawJson, "https://staging.particulier.api.gouv.fr/v3/mesri/statut_etudiant/france_connect",
-                "12006701200027", List.of(new MesriStudentStatus.Admission("2020-07-01", "2021-08-31", true, "RF1",
-                        "formation initiale", "33063", "0330023W", "LYCEE GENERAL ET TECHNOLOGIQUE CAMILLE JULLIAN")));
+    private final MesriStudentStatusPdfRenderer renderer = new MesriStudentStatusPdfRenderer();
+
+    private static MesriStudentStatus.Admission admission(String debut, String fin, boolean inscrit, String regime, String libelle, String uai, String nom) {
+        return new MesriStudentStatus.Admission(debut, fin, inscrit, regime, libelle, "33063", uai, nom);
     }
 
-    @Test
-    void rendersHeaderAndFullJson() throws Exception {
-        byte[] pdf = renderer.render(sandboxStatus(ApiParticulierClientImplTest.SANDBOX_BODY), "Angela DUBOIS",
-                LocalDateTime.of(2026, 10, 16, 15, 4));
+    /** The sandbox FranceConnect case of Angela DUBOIS: one admission, no identity block. */
+    private static MesriStudentStatus angelaSandbox() {
+        return new MesriStudentStatus(ApiParticulierClientImplTest.SANDBOX_BODY,
+                "https://staging.particulier.api.gouv.fr/v3/mesri/statut_etudiant/france_connect", "12006701200027", null,
+                List.of(admission("2020-07-01", "2021-08-31", true, "RF1", "formation initiale", "0330023W",
+                        "LYCEE GENERAL ET TECHNOLOGIQUE CAMILLE JULLIAN")));
+    }
 
-        assertThat(pdf).isNotEmpty();
+    private static String text(byte[] pdf) throws Exception {
         try (PDDocument document = Loader.loadPDF(pdf)) {
-            String text = new PDFTextStripper().getText(document);
-            assertThat(document.getNumberOfPages()).isEqualTo(1);
-            assertThat(text).contains("Statut étudiant")
-                    .contains("Récupéré le 16/10/2026 à 15:04")
-                    .contains("Locataire : Angela DUBOIS")
-                    .contains("12006701200027")
-                    .contains("\"uai\" : \"0330023W\"")
-                    .contains("CAMILLE JULLIAN");
+            return new PDFTextStripper().getText(document);
         }
     }
 
     @Test
-    void longJsonBreaksIntoSeveralPages() throws Exception {
-        StringBuilder big = new StringBuilder("{\"data\":{\"admissions\":[");
-        for (int i = 0; i < 80; i++) {
-            big.append(i > 0 ? "," : "").append("{\"date_debut\":\"2020-07-01\",\"date_fin\":\"2021-08-31\",\"est_inscrit\":true,"
-                    + "\"etablissement_etudes\":{\"uai\":\"000000").append(i).append("\",\"nom\":\"ETABLISSEMENT ").append(i).append("\"}}");
-        }
-        big.append("]}}");
+    void rendersTheStatementForTheSandboxCase() throws Exception {
+        byte[] pdf = renderer.render(angelaSandbox(), ANGELA, RETRIEVED_AT);
+        // Kept for a visual check: target/mesri-statement-sample.pdf
+        Files.write(new File("target/mesri-statement-sample.pdf").toPath(), pdf);
 
-        byte[] pdf = renderer.render(sandboxStatus(big.toString()), "Jean MESRI", LocalDateTime.now());
+        try (PDDocument document = Loader.loadPDF(pdf)) {
+            assertThat(document.getNumberOfPages()).isEqualTo(1);
+        }
+        String text = text(pdf);
+        assertThat(text)
+                .contains("Relevé de statut étudiant")
+                .contains("20 octobre 2026")
+                .contains("14:32 heure de Paris")
+                .contains("Délivré à : Angela Claire Louise DUBOIS")
+                .contains("Date de naissance : 24/08/1962")
+                .contains("équivalent d'un certificat étudiant")
+                .contains("Inscriptions déclarées")
+                .contains("juillet 2020")
+                .contains("août 2021")
+                .contains("ÉTABLISSEMENT")
+                .contains("Nom : LYCEE GENERAL ET TECHNOLOGIQUE CAMILLE JULLIAN")
+                .contains("Code UAI : 0330023W")
+                .contains("Commune (code INSEE) : 33063")
+                .contains("Du 01/07/2020 au 31/08/2021")
+                .contains("INSCRIT")
+                .contains("Régime de formation : Formation initiale")
+                .contains("Code régime : RF1")
+                .contains("SIRET destinataire")
+                .contains("12006701200027")
+                .contains("1 / 1")
+                .doesNotContain("\"admissions\"")
+                .doesNotContain("Attestation sur l");
+    }
+
+    @Test
+    void sortsAdmissionsMostRecentFirstAndSpansTheWholePeriod() throws Exception {
+        MesriStudentStatus status = new MesriStudentStatus("{}", "url", "siret", null, List.of(
+                admission("2021-09-01", "2022-08-31", false, "RF1", "formation initiale", "0010013J", "LYCEE LALANDE"),
+                admission("2022-10-01", "2023-06-30", true, "RF2", "formation continue", "0010010F", "UNIVERSITE LYON 1")));
+
+        String text = text(renderer.render(status, new StudentStatementHolder("Georges MOUSTAKI", null), RETRIEVED_AT));
+
+        assertThat(text).contains("septembre 2021").contains("juin 2023")
+                .contains("Date de naissance : non transmise")
+                .contains("NON INSCRIT")
+                .contains("Régime de formation : Formation continue");
+        assertThat(text.indexOf("UNIVERSITE LYON 1")).isLessThan(text.indexOf("LYCEE LALANDE"));
+    }
+
+    @Test
+    void manyAdmissionsFlowOverSeveralNumberedPages() throws Exception {
+        List<MesriStudentStatus.Admission> many = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            many.add(admission("20" + (10 + i) + "-09-01", "20" + (11 + i) + "-08-31", i % 2 == 0, "RF1", "formation initiale", "000000" + i,
+                    "ETABLISSEMENT " + i + " AVEC UN NOM PARTICULIEREMENT LONG POUR FORCER LE RETOUR A LA LIGNE DANS LA CARTE"));
+        }
+        byte[] pdf = renderer.render(new MesriStudentStatus("{}", "url", "siret", null, many), ANGELA, RETRIEVED_AT);
 
         try (PDDocument document = Loader.loadPDF(pdf)) {
             assertThat(document.getNumberOfPages()).isGreaterThan(1);
-            assertThat(new PDFTextStripper().getText(document)).contains("ETABLISSEMENT 79");
-        }
-    }
-
-    @Test
-    void unencodableCharactersAreReplacedNotFatal() throws Exception {
-        String raw = "{\"nom\":\"Établissement € 日本 ✓\"}";
-
-        byte[] pdf = renderer.render(sandboxStatus(raw), "Zoë N'Guyen", LocalDateTime.now());
-
-        try (PDDocument document = Loader.loadPDF(pdf)) {
             String text = new PDFTextStripper().getText(document);
-            assertThat(text).contains("Établissement €").contains("Zoë N'Guyen").doesNotContain("日本");
+            assertThat(text).contains("1 / " + document.getNumberOfPages()).contains("ETABLISSEMENT 0").contains("ETABLISSEMENT 11");
         }
     }
 
     @Test
-    void wrapKeepsIndentationOnContinuationLines() {
-        List<String> lines = MesriStudentStatusPdfRenderer.wrap("    \"k\" : \"" + "x".repeat(100) + "\"", 40);
+    void rareGlyphsAreReplacedNotFatal() throws Exception {
+        MesriStudentStatus status = new MesriStudentStatus("{}", "url", "siret", null,
+                List.of(admission("2020-07-01", "2021-08-31", true, "RF1", "formation initiale", "0330023W", "Établissement 日本 ✓")));
 
-        assertThat(lines).hasSize(3);
-        assertThat(lines.get(0)).hasSize(40);
-        assertThat(lines.get(1)).startsWith("    x");
+        String text = text(renderer.render(status, new StudentStatementHolder("Zoë N'Guyen", null), RETRIEVED_AT));
+
+        assertThat(text).contains("Établissement").contains("Zoë N'Guyen").doesNotContain("日本");
     }
 
     @Test
-    void sanitizeReplacesOnlyUnsupportedCharacters() {
-        String out = MesriStudentStatusPdfRenderer.sanitize(new PDType1Font(Standard14Fonts.FontName.COURIER), "é€→");
-
-        assertThat(out).isEqualTo("é€?");
+    void helpersFormatFrenchDates() {
+        assertThat(MesriStudentStatusPdfRenderer.day("2021-08-31")).isEqualTo("31/08/2021");
+        assertThat(MesriStudentStatusPdfRenderer.monthYear("2021-08-31")).isEqualTo("août 2021");
+        assertThat(MesriStudentStatusPdfRenderer.day(null)).isEqualTo("?");
+        assertThat(MesriStudentStatusPdfRenderer.capitalize("formation continue")).isEqualTo("Formation continue");
     }
 }

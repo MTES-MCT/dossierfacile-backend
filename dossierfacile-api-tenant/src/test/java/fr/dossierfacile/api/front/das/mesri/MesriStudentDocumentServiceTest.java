@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,17 +55,39 @@ class MesriStudentDocumentServiceTest {
         tenant.setId(42L);
         tenant.setFirstName("Angela");
         tenant.setLastName("DUBOIS");
+        tenant.setFranceConnectBirthDate("1962-08-24");
+    }
+
+    @Test
+    void holderFallsBackOnFranceConnectIdentityWhenMesriSendsNoIdentityBlock() {
+        MesriStudentStatus status = new MesriStudentStatus("{}", "url", "siret", null, List.of());
+
+        StudentStatementHolder holder = MesriStudentDocumentService.holderOf(status, tenant);
+
+        assertThat(holder.fullName()).isEqualTo("Angela DUBOIS");
+        assertThat(holder.birthDate()).isEqualTo(LocalDate.of(1962, 8, 24));
+    }
+
+    @Test
+    void holderPrefersTheMesriIdentityBlockWhenServed() {
+        MesriStudentStatus status = new MesriStudentStatus("{}", "url", "siret",
+                new MesriStudentStatus.Identity("Martin", "Jacques", "2004-01-01"), List.of());
+
+        StudentStatementHolder holder = MesriStudentDocumentService.holderOf(status, tenant);
+
+        assertThat(holder.fullName()).isEqualTo("Jacques Martin");
+        assertThat(holder.birthDate()).isEqualTo(LocalDate.of(2004, 1, 1));
     }
 
     @Test
     void savesStudentDocumentThroughRegularUploadPath() throws Exception {
         FranceConnectAccessToken token = new FranceConnectAccessToken("fc", "openid mesri_admissions", null);
-        MesriStudentStatus status = new MesriStudentStatus("{}", "url", "siret",
+        MesriStudentStatus status = new MesriStudentStatus("{}", "url", "siret", null,
                 List.of(new MesriStudentStatus.Admission("2020-07-01", "2021-08-31", true, "RF1", "formation initiale", "33063", "0330023W", "LYCEE")));
         TenantModel expected = TenantModel.builder().id(42L).build();
         when(franceConnectTokenService.getFranceConnectAccessToken("jwt")).thenReturn(token);
         when(apiParticulierClient.fetchStudentStatus("fc")).thenReturn(status);
-        when(pdfRenderer.render(eq(status), eq("Angela DUBOIS"), any())).thenReturn("%PDF".getBytes());
+        when(pdfRenderer.render(eq(status), any(StudentStatementHolder.class), any())).thenReturn("%PDF".getBytes());
         when(tenantService.saveStepRegister(eq(tenant), any(DocumentProfessionalForm.class), eq(StepRegister.DOCUMENT_PROFESSIONAL))).thenReturn(expected);
 
         TenantModel result = service.fetchAndSaveStudentDocument(tenant, "jwt");
