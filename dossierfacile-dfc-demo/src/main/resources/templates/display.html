@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Démo DossierFacileConnect - Résultat</title>
+</head>
+<body>
+    <div>
+        <b>1. La redirection du sso nous a renvoyé vers le <code>redirect_uri</code> fournie
+        ET Nous avons bien récupéré le code xxx qui va nous permettre de récuperer l'<code>access_token</code>
+        </b>
+    </div>
+    <br/>
+    <div>
+        <b>2. Je peux lancer la récupération du <code>access_token</code>. (Attention l'URL de redirection doit correspondre à cette url authorisée)
+        </b>
+        <br/>NB: POST <code th:text="${tokenUrl}"></code>
+        <br/>Avec les parametres: client_id, client_secret, code, grant_type=authorization_code, redirect_uri=<code th:text="${redirectUri}"></code>
+    </div>
+    <br/>
+    <div><b>3. Après avoir récupérer le access_token, je dois obligatoirement faire l'appel à <code>/dfc/tenant/profile</code> avec celui-ci.</b></div>
+    <div>GET <code th:text="${profileUrl}"></code> avec l'en-tête <code>Authorization: Bearer &lt;access_token&gt;</code></div>
+    Mon resultat est le suivant:
+    <pre th:text="${profileJson}"></pre>
+    <br/>
+    <div><b>RAZ. Pour deconnecter l'utilisateur cliquer ici: </b>
+        <a class="btn-logout" th:href="@{/logout}"><button type="button">Logout</button></a>
+        <br/>
+        L'opération de <code>logout</code> peut être très utile notamment si votre utilisateur a plusieurs comptes DossierFacile et qu'il n'a pas associé le bon compte.
+        <br/>
+        Attention, cela n'est pas une dissociation de compte, un compte qui a été lié à un partenaire ne peut, pour le moment, pas délié (les webhooks seront encore envoyés au partenaire)
+    </div>
+    <br/>
+    <a th:href="@{/}">Revenir à l'accueil</a>
+</body>
+</html>
