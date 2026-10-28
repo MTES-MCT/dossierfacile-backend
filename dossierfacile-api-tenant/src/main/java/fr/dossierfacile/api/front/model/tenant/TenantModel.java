@@ -35,6 +35,8 @@ public class TenantModel {
     private Boolean validationRequested;
     // Whether the opt-in question must be displayed (primitive: always serialized)
     private boolean optInEligible;
+    /** POC: the tenant can fetch their student status from the MESR (see MesriStudentEligibility). Never shown to partners. */
+    private boolean mesriStudentEligible;
     // Verification lottery state;
     private LotteryPublicStatus lotteryStatus;
     // Only set with lotteryStatus COOLDOWN: date from which a new application is allowed

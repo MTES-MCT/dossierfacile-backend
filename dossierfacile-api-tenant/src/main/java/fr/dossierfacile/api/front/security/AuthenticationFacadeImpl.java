@@ -58,6 +58,11 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     }
 
     @Override
+    public String getTokenValue() {
+        return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getTokenValue();
+    }
+
+    @Override
     public KeycloakUser getKeycloakUser() {
         var jwt = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
 

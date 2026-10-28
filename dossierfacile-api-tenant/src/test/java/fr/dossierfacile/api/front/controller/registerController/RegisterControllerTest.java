@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.controller.registerController;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.MethodSecurityConfig;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
+import fr.dossierfacile.api.front.das.mesri.MesriStudentDocumentService;
 import fr.dossierfacile.api.front.controller.RegisterController;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
@@ -73,6 +74,8 @@ class RegisterControllerTest {
     private OperatorReviewPolicy operatorReviewPolicy;
     @MockitoBean
     private LotteryTicketService lotteryTicketService;
+    @MockitoBean
+    private MesriStudentDocumentService mesriStudentDocumentService;
 
     @MockitoBean
     private TenantService tenantService;

@@ -97,6 +97,17 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
+    public void saveLogWithDetails(LogType logType, Long tenantId, ObjectNode details) {
+        TenantLog log = TenantLog.builder()
+                .logType(logType)
+                .tenantId(tenantId)
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(details)
+                .build();
+        saveLog(log);
+    }
+
+    @Override
     public void saveDocumentAddedLog(Document document, Tenant editor) {
         saveDocumentLog(LogType.DOCUMENT_ADDED, document, editor);
     }

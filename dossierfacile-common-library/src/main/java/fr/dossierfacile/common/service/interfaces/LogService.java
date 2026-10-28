@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.service.interfaces;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -15,6 +16,9 @@ import java.util.List;
 public interface LogService {
 
     void saveLog(LogType logType, Long tenantId);
+
+    /** Saves a tenant log of the given type with free-form JSON details. */
+    void saveLogWithDetails(LogType logType, Long tenantId, ObjectNode details);
 
     void saveStepLog(Long tenantId, String step);
 

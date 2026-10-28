@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.controller;
 import com.google.gson.Gson;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
+import fr.dossierfacile.api.front.das.mesri.MesriStudentDocumentService;
 import fr.dossierfacile.api.front.exception.ApplicationTypeDeniedForJoinException;
 import fr.dossierfacile.api.front.exception.CoTenantEmailAlreadyExistsException;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
@@ -88,6 +89,8 @@ class ApplicationV2ControllerTest {
     private OperatorReviewPolicy operatorReviewPolicy;
     @MockitoBean
     private LotteryTicketService lotteryTicketService;
+    @MockitoBean
+    private MesriStudentDocumentService mesriStudentDocumentService;
 
     private final Gson gson = new Gson();
     private final SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtToken = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
