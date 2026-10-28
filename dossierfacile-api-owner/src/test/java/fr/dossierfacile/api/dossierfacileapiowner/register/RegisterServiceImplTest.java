@@ -3,20 +3,26 @@ package fr.dossierfacile.api.dossierfacileapiowner.register;
 import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerMapper;
+import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerRepository;
 import fr.dossierfacile.api.dossierfacileapiowner.user.UserRepository;
 import fr.dossierfacile.api.dossierfacileapiowner.user.UserRoleService;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import jakarta.ws.rs.ServiceUnavailableException;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -110,7 +116,8 @@ class RegisterServiceImplTest {
                 .expirationDate(LocalDateTime.now().minusMinutes(5))
                 .build();
 
-        when(passwordRecoveryTokenRepository.findByToken(TEST_TOKEN)).thenReturn(Optional.of(expiredToken));
+        when(passwordRecoveryTokenRepository.findOwnerTokenByToken(TEST_TOKEN)).thenReturn(Optional.of(expiredToken));
+        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
 
         assertThrows(PasswordRecoveryTokenNotFoundException.class, () -> registerService.createPassword(TEST_TOKEN, "newPassword"));
         verify(passwordRecoveryTokenRepository, times(1)).delete(expiredToken);
@@ -134,4 +141,124 @@ class RegisterServiceImplTest {
 
         verify(passwordRecoveryTokenRepository, times(1)).delete(oldToken);
     }
+
+    @Test
+    void shouldRedeemValidOwnerToken() {
+        var owner = Owner.builder().id(1L).email(TEST_EMAIL).keycloakId("owner-keycloak-id").build();
+        var token = PasswordRecoveryToken.builder()
+                .token(TEST_TOKEN)
+                .user(owner)
+                .expirationDate(LocalDateTime.now().plusHours(1))
+                .build();
+        var model = OwnerModel.builder().email(TEST_EMAIL).build();
+        when(passwordRecoveryTokenRepository.findOwnerTokenByToken(TEST_TOKEN)).thenReturn(Optional.of(token));
+        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+        when(ownerMapper.toOwnerModel(owner)).thenReturn(model);
+
+        when(keycloakService.createPasswordForBoundUser("owner-keycloak-id", TEST_EMAIL, "password")).thenReturn(true);
+
+        assertSame(model, registerService.createPassword(TEST_TOKEN, "password"));
+
+        verify(keycloakService).createPasswordForBoundUser("owner-keycloak-id", TEST_EMAIL, "password");
+        verifyNoMoreInteractions(keycloakService);
+        assertTrue(owner.isEnabled());
+        verify(passwordRecoveryTokenRepository).delete(token);
+        assertEquals("owner-keycloak-id", owner.getKeycloakId());
+    }
+
+    @Test
+    void shouldRejectMissingIdentityWithoutCreatingOrRebindingAccount() {
+        var owner = Owner.builder().id(1L).email(TEST_EMAIL).build();
+        var token = PasswordRecoveryToken.builder()
+                .token(TEST_TOKEN)
+                .user(owner)
+                .expirationDate(LocalDateTime.now().plusHours(1))
+                .build();
+        when(passwordRecoveryTokenRepository.findOwnerTokenByToken(TEST_TOKEN)).thenReturn(Optional.of(token));
+        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+
+        assertAll(
+                () -> assertThrows(PasswordRecoveryTokenNotFoundException.class,
+                        () -> registerService.createPassword(TEST_TOKEN, "password")),
+                () -> verifyNoInteractions(userRepository),
+                () -> verify(passwordRecoveryTokenRepository, never()).delete(any()),
+                () -> assertNull(owner.getKeycloakId()),
+                () -> assertFalse(owner.isEnabled())
+        );
+        verify(keycloakService).createPasswordForBoundUser(null, TEST_EMAIL, "password");
+        verifyNoMoreInteractions(keycloakService);
+    }
+
+    @Test
+    void shouldRejectIdentityMismatchWithoutChangingAccount() {
+        var owner = preparePasswordToken();
+        when(keycloakService.createPasswordForBoundUser("owner-keycloak-id", TEST_EMAIL, "password")).thenReturn(false);
+
+        assertThrows(PasswordRecoveryTokenNotFoundException.class, () -> registerService.createPassword(TEST_TOKEN, "password"));
+
+        assertEquals("owner-keycloak-id", owner.getKeycloakId());
+        assertFalse(owner.isEnabled());
+        verifyNoInteractions(userRepository);
+        verify(passwordRecoveryTokenRepository, never()).delete(any());
+        verify(keycloakService).createPasswordForBoundUser("owner-keycloak-id", TEST_EMAIL, "password");
+        verifyNoMoreInteractions(keycloakService);
+    }
+
+    @Test
+    void shouldPreserveAccountAndTokenOnKeycloakFailure() {
+        var owner = preparePasswordToken();
+        var failure = new ServiceUnavailableException();
+        when(keycloakService.createPasswordForBoundUser("owner-keycloak-id", TEST_EMAIL, "password")).thenThrow(failure);
+
+        assertSame(failure, assertThrows(ServiceUnavailableException.class, () -> registerService.createPassword(TEST_TOKEN, "password")));
+
+        assertEquals("owner-keycloak-id", owner.getKeycloakId());
+        assertFalse(owner.isEnabled());
+        verifyNoInteractions(userRepository);
+        verify(passwordRecoveryTokenRepository, never()).delete(any());
+        verify(keycloakService).createPasswordForBoundUser("owner-keycloak-id", TEST_EMAIL, "password");
+        verifyNoMoreInteractions(keycloakService);
+    }
+
+    private Owner preparePasswordToken() {
+        var owner = Owner.builder().id(1L).email(TEST_EMAIL).keycloakId("owner-keycloak-id").build();
+        var token = PasswordRecoveryToken.builder()
+                .token(TEST_TOKEN)
+                .user(owner)
+                .expirationDate(LocalDateTime.now().plusHours(1))
+                .build();
+        when(passwordRecoveryTokenRepository.findOwnerTokenByToken(TEST_TOKEN)).thenReturn(Optional.of(token));
+        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+        return owner;
+    }
+
+    static Stream<LocalDateTime> foreignTokenExpirations() {
+        return Stream.of(null, LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(1));
+    }
+
+    @ParameterizedTest
+    @MethodSource("foreignTokenExpirations")
+    void shouldRejectTenantTokenWithoutSideEffects(LocalDateTime expiration) {
+        var tenant = Tenant.builder()
+                .id(2L)
+                .email("tenant@example.com")
+                .keycloakId("tenant-keycloak-id")
+                .build();
+        var token = PasswordRecoveryToken.builder()
+                .token("tenant-token")
+                .user(tenant)
+                .expirationDate(expiration)
+                .build();
+        when(passwordRecoveryTokenRepository.findOwnerTokenByToken("tenant-token")).thenReturn(Optional.of(token));
+
+        assertAll(
+                () -> assertThrows(PasswordRecoveryTokenNotFoundException.class,
+                        () -> registerService.createPassword("tenant-token", "password")),
+                () -> verifyNoInteractions(keycloakService, userRepository, ownerLogService),
+                () -> verify(passwordRecoveryTokenRepository, never()).delete(any()),
+                () -> assertEquals("tenant-keycloak-id", tenant.getKeycloakId()),
+                () -> assertFalse(tenant.isEnabled())
+        );
+    }
+
 }

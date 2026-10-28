@@ -24,6 +24,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import fr.dossierfacile.common.enums.TenantOwnerType;
+import jakarta.ws.rs.ServiceUnavailableException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +38,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -86,16 +92,39 @@ class UserServiceImplTest {
     class CreatePasswordTest {
 
         @Test
+        void shouldRejectOwnerTokenWithoutSideEffects() {
+            var owner = Owner.builder()
+                    .id(2L)
+                    .email("owner@example.com")
+                    .keycloakId("owner-keycloak-id")
+                    .build();
+            var token = PasswordRecoveryToken.builder()
+                    .token("owner-token")
+                    .user(owner)
+                    .build();
+            when(passwordRecoveryTokenRepository.findTenantTokenByToken("owner-token")).thenReturn(Optional.of(token));
+
+            assertAll(
+                    () -> assertThrows(PasswordRecoveryTokenNotFoundException.class,
+                            () -> userService.createPassword("owner-token", "password")),
+                    () -> verifyNoInteractions(keycloakService, userRepository, tenantMapper),
+                    () -> verify(passwordRecoveryTokenRepository, never()).delete(any()),
+                    () -> assertEquals("owner-keycloak-id", owner.getKeycloakId())
+            );
+        }
+
+        @Test
         void shouldThrowPasswordRecoveryTokenNotFoundExceptionWhenCreatePasswordForToken() {
             var token = "test";
-            doThrow(new PasswordRecoveryTokenNotFoundException(token)).when(passwordRecoveryTokenRepository).findByToken(token);
+            doThrow(new PasswordRecoveryTokenNotFoundException(token)).when(passwordRecoveryTokenRepository).findTenantTokenByToken(token);
 
             var exception = assertThrows(PasswordRecoveryTokenNotFoundException.class, () -> userService.createPassword(token, "password"));
             assertEquals(exception.getMessage(), "Could not find password recovery token or is expired " + token);
         }
 
-        @Test
-        void shouldCreatePassword() {
+        @ParameterizedTest
+        @EnumSource(TenantOwnerType.class)
+        void shouldCreatePassword(TenantOwnerType ownerType) {
             var tenant = Tenant.builder()
                     .id(1L)
                     .email("test@test.fr")
@@ -108,42 +137,57 @@ class UserServiceImplTest {
                     .user(tenant)
                     .build();
 
-            when(passwordRecoveryTokenRepository.findByToken("token")).thenReturn(Optional.of(passwordRecoveryToken));
-            when(keycloakService.getKeycloakId(tenant.getEmail())).thenReturn(tenant.getKeycloakId());
+            when(passwordRecoveryTokenRepository.findTenantTokenByToken("token")).thenReturn(Optional.of(passwordRecoveryToken));
+            when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
+            tenant.setOwnerType(ownerType);
+            when(keycloakService.createPasswordForBoundUser("keycloakId", "test@test.fr", "password")).thenReturn(true);
 
             userService.createPassword("token", "password");
 
             verify(userRepository, times(0)).save(tenant);
-            verify(keycloakService, times(1)).createKeyCloakPassword(tenant.getKeycloakId(), "password");
-            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(tenant.getId()), null);
+            verify(keycloakService).createPasswordForBoundUser("keycloakId", "test@test.fr", "password");
+            verifyNoMoreInteractions(keycloakService);
+            verify(tenantMapper, times(1)).toTenantModel(tenant, null);
             verify(passwordRecoveryTokenRepository, times(1)).delete(passwordRecoveryToken);
 
         }
 
         @Test
-        void shouldCreatePasswordAndUpdateTheUser() {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .email("test@test.fr")
-                    .keycloakId("keycloakId")
-                    .build();
+        void shouldRejectIdentityMismatchWithoutChangingAccount() {
+            var tenant = preparePasswordToken();
+            when(keycloakService.createPasswordForBoundUser("keycloakId", "test@test.fr", "password")).thenReturn(false);
 
-            var passwordRecoveryToken = PasswordRecoveryToken.builder()
-                    .id(1L)
-                    .token("token")
-                    .user(tenant)
-                    .build();
+            assertAll(
+                    () -> assertThrows(PasswordRecoveryTokenNotFoundException.class,
+                            () -> userService.createPassword("token", "password")),
+                    () -> assertEquals("keycloakId", tenant.getKeycloakId()),
+                    () -> verifyNoInteractions(userRepository),
+                    () -> verify(passwordRecoveryTokenRepository, never()).delete(any())
+            );
+            verify(keycloakService).createPasswordForBoundUser("keycloakId", "test@test.fr", "password");
+            verifyNoMoreInteractions(keycloakService);
+        }
 
-            when(passwordRecoveryTokenRepository.findByToken("token")).thenReturn(Optional.of(passwordRecoveryToken));
-            when(keycloakService.getKeycloakId(tenant.getEmail())).thenReturn("keycloakId2");
+        @Test
+        void shouldPreserveAccountAndTokenOnKeycloakFailure() {
+            var tenant = preparePasswordToken();
+            var failure = new ServiceUnavailableException();
+            when(keycloakService.createPasswordForBoundUser("keycloakId", "test@test.fr", "password")).thenThrow(failure);
 
-            userService.createPassword("token", "password");
+            assertSame(failure, assertThrows(ServiceUnavailableException.class, () -> userService.createPassword("token", "password")));
+            assertEquals("keycloakId", tenant.getKeycloakId());
+            verifyNoInteractions(userRepository);
+            verify(passwordRecoveryTokenRepository, never()).delete(any());
+            verify(keycloakService).createPasswordForBoundUser("keycloakId", "test@test.fr", "password");
+            verifyNoMoreInteractions(keycloakService);
+        }
 
-            verify(userRepository, times(1)).save(tenant);
-            verify(keycloakService, times(1)).createKeyCloakPassword(tenant.getKeycloakId(), "password");
-            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(tenant.getId()), null);
-            verify(passwordRecoveryTokenRepository, times(1)).delete(passwordRecoveryToken);
-
+        private Tenant preparePasswordToken() {
+            var tenant = Tenant.builder().id(1L).email("test@test.fr").keycloakId("keycloakId").build();
+            var token = PasswordRecoveryToken.builder().token("token").user(tenant).build();
+            when(passwordRecoveryTokenRepository.findTenantTokenByToken("token")).thenReturn(Optional.of(token));
+            when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
+            return tenant;
         }
 
     }

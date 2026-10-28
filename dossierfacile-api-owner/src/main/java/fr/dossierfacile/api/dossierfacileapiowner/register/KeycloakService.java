@@ -7,8 +7,6 @@ public interface KeycloakService {
 
     String createKeycloakUserAccountCreation(AccountForm accountForm, Owner owner);
 
-    String createKeycloakFromExistingUser(User user, String password);
-
     void confirmKeycloakUser(User user);
 
     boolean isKeycloakUser(String keyCloakId);
@@ -17,9 +15,11 @@ public interface KeycloakService {
 
     void deleteKeycloakUser(Owner owner);
 
-    String getKeycloakId(String email);
-
     String createKeycloakUser(String email);
 
-    void createKeyCloakPassword(String keycloakId, String password);
+    /**
+     * @return false if the bound identity is missing or does not match the expected email;
+     *         Keycloak service and credential-update errors propagate to the caller.
+     */
+    boolean createPasswordForBoundUser(String keycloakId, String email, String password);
 }

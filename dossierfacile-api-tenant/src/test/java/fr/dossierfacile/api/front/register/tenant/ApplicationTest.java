@@ -111,6 +111,7 @@ public class ApplicationTest {
 
         ApplicationFormV2 form = ApplicationFormV2.builder().applicationType(ApplicationType.COUPLE)
                 .coTenants(Collections.singletonList(CoTenantForm.builder().firstName("first").lastName("last").email("other@email").build())).build();
+        when(keycloakService.createKeycloakUser("other@email")).thenReturn("new-id");
         application.saveStep(dbMainTenant, form);
 
         Mockito.verify(application).saveStep(dbMainTenant, form.getApplicationType(),
@@ -128,6 +129,7 @@ public class ApplicationTest {
 
         ApplicationFormV2 form = ApplicationFormV2.builder().applicationType(ApplicationType.COUPLE)
                 .coTenants(Collections.singletonList(CoTenantForm.builder().firstName("first").lastName("last").email("new@email").build())).build();
+        when(keycloakService.createKeycloakUser("new@email")).thenReturn("new-id");
         application.saveStep(dbMainTenant, form);
 
         Mockito.verify(application).saveStep(dbMainTenant, form.getApplicationType(),

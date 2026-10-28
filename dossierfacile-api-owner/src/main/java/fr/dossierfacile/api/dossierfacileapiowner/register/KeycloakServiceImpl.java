@@ -4,6 +4,9 @@ import fr.dossierfacile.api.dossierfacileapiowner.user.UserRepository;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.User;
 import jakarta.ws.rs.NotFoundException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.keycloak.admin.client.resource.UserResource;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -29,16 +32,6 @@ public class KeycloakServiceImpl implements KeycloakService {
         var email = accountForm.getEmail();
         var userRepresentation = buildKeycloakUser(email);
         createCredential(userRepresentation, accountForm.getPassword());
-        return createUserAndReturnId(userRepresentation);
-    }
-
-    @Override
-    public String createKeycloakFromExistingUser(User user, String password) {
-        var email = user.getEmail();
-        var userRepresentation = buildKeycloakUser(email);
-        userRepresentation.setEmailVerified(true);
-        userRepresentation.setEnabled(true);
-        createCredential(userRepresentation, password);
         return createUserAndReturnId(userRepresentation);
     }
 
@@ -102,16 +95,58 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     // Create the user in keycloak and return the id. If the user already exists, return the id of the existing user.
     private String createUserAndReturnId(UserRepresentation userRepresentation) {
-        log.info("Trying to create user in keycloak: {}", userRepresentation);
+        String email = userRepresentation.getEmail();
+        if (StringUtils.isBlank(email)) {
+            throw new IllegalArgumentException("An email is required to provision a Keycloak identity");
+        }
         try (var response = realmResource.users().create(userRepresentation)) {
+            String keycloakId;
             if (response.getStatus() == HttpStatus.CONFLICT.value()) {
-                log.warn("User already exists in keycloak, searching for user by email: {}", userRepresentation.getUsername());
-                var keycloakUser = realmResource.users().search(userRepresentation.getUsername()).get(0);
-                return keycloakUser.getId();
+                var results = realmResource.users().searchByEmail(email, true);
+                var matches = results == null
+                        ? Collections.<UserRepresentation>emptyList()
+                        : results.stream()
+                                .filter(result -> result != null && Strings.CI.equals(email, result.getEmail()))
+                                .toList();
+                if (matches.size() != 1 || StringUtils.isBlank(matches.getFirst().getId())) {
+                    throw new IllegalStateException("Cannot resolve a unique Keycloak identity");
+                }
+                keycloakId = matches.getFirst().getId();
+            } else if (response.getStatus() == HttpStatus.CREATED.value()) {
+                keycloakId = createdUserId(response.getLocation());
+            } else {
+                throw new IllegalStateException("Unexpected Keycloak user creation status");
             }
-            log.info("User created in keycloak, returning id: {}", response.getHeaderString("Location"));
-            var split = response.getHeaderString("Location").split("/");
-            return split[split.length - 1];
+            requireMatchingUser(keycloakId, email);
+            return keycloakId;
+        }
+    }
+
+    private String createdUserId(java.net.URI location) {
+        if (location == null || location.getPath() == null || location.getQuery() != null || location.getFragment() != null) {
+            throw new IllegalStateException("Invalid Keycloak user creation Location");
+        }
+        String path = location.getPath();
+        int usersSegment = path.lastIndexOf("/users/");
+        if (usersSegment < 0) {
+            throw new IllegalStateException("Invalid Keycloak user creation Location");
+        }
+        String id = path.substring(usersSegment + "/users/".length());
+        if (StringUtils.isBlank(id) || id.contains("/") || id.equals(".") || id.equals("..")) {
+            throw new IllegalStateException("Invalid Keycloak user creation Location");
+        }
+        return id;
+    }
+
+    private void requireMatchingUser(String keycloakId, String email) {
+        UserRepresentation identity;
+        try {
+            identity = realmResource.users().get(keycloakId).toRepresentation();
+        } catch (NotFoundException e) {
+            throw new IllegalStateException("Keycloak identity does not match the expected account", e);
+        }
+        if (identity == null || !Strings.CS.equals(keycloakId, identity.getId()) || !Strings.CI.equals(email, identity.getEmail())) {
+            throw new IllegalStateException("Keycloak identity does not match the expected account");
         }
     }
 
@@ -121,23 +156,35 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
-    public String getKeycloakId(String email) {
-        var userRepresentations = realmResource.users().search(email);
-        return userRepresentations.isEmpty() ? null : userRepresentations.get(0).getId();
-    }
-
-    @Override
     public String createKeycloakUser(String email) {
         var userRepresentation = buildKeycloakUser(email);
         return createUserAndReturnId(userRepresentation);
     }
 
     @Override
-    public void createKeyCloakPassword(String keycloakId, String password) {
-        var userRepresentation = realmResource.users().get(keycloakId).toRepresentation();
+    public boolean createPasswordForBoundUser(String keycloakId, String email, String password) {
+        if (StringUtils.isBlank(keycloakId) || StringUtils.isBlank(email)) {
+            return false;
+        }
+
+        UserResource userResource;
+        UserRepresentation userRepresentation;
+        try {
+            userResource = realmResource.users().get(keycloakId);
+            userRepresentation = userResource.toRepresentation();
+        } catch (NotFoundException e) {
+            return false;
+        }
+
+        if (userRepresentation == null || !Strings.CS.equals(keycloakId, userRepresentation.getId()) ||
+                !Strings.CI.equals(email, userRepresentation.getEmail())) {
+            return false;
+        }
+
         userRepresentation.setEmailVerified(true);
         userRepresentation.setEnabled(true);
         createCredential(userRepresentation, password);
-        realmResource.users().get(keycloakId).update(userRepresentation);
+        userResource.update(userRepresentation);
+        return true;
     }
 }

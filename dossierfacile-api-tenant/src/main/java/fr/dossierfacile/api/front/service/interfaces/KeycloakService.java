@@ -7,15 +7,17 @@ public interface KeycloakService {
     UserRepresentation getKeyCloakUser(String keycloakId);
 
     /**
-     * @return created user's keycloakId
+     * @return the validated identity created or resolved for this email
      */
     String createKeycloakUser(String email);
 
-    void createKeyCloakPassword(String keycloakId, String password);
+    /**
+     * @return false if the bound identity is missing or does not match the expected email;
+     *         Keycloak service and credential-update errors propagate to the caller.
+     */
+    boolean createPasswordForBoundUser(String keycloakId, String email, String password);
 
     void deleteKeycloakUserById(String keycloakId);
-
-    String getKeycloakId(String email);
 
     void logout(String keycloakUserId);
 
