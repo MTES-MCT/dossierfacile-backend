@@ -100,7 +100,10 @@ public class RegisterServiceImpl implements RegisterService {
 
     @Override
     public OwnerModel createPassword(String token, String password) {
-        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findOwnerTokenByToken(token)
+                .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
+
+        Owner owner = ownerRepository.findById(passwordRecoveryToken.getUser().getId())
                 .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
 
         if (passwordRecoveryToken.getExpirationDate() == null ||
@@ -109,24 +112,17 @@ public class RegisterServiceImpl implements RegisterService {
             throw new PasswordRecoveryTokenNotFoundException(token);
         }
 
-        User user = passwordRecoveryToken.getUser();
-        user.setEnabled(true);
-        if (user.getKeycloakId() == null || user.getKeycloakId().isBlank()) {
-            var keycloakId = keycloakService.getKeycloakId(user.getEmail());
-            if (keycloakId == null) {
-                keycloakId = keycloakService.createKeycloakFromExistingUser(user, password);
-                user.setKeycloakId(keycloakId);
-            } else {
-                keycloakService.createKeyCloakPassword(keycloakId, password);
-                user.setKeycloakId(keycloakId);
-            }
-        } else {
-            keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
+        OwnerModel ownerModel = ownerMapper.toOwnerModel(owner);
+        if (!keycloakService.createPasswordForBoundUser(owner.getKeycloakId(), owner.getEmail(), password)) {
+            throw new PasswordRecoveryTokenNotFoundException(token);
         }
-        userRepository.save(user);
+
+        // Legacy owner-registration guards still use this flag to reject re-registration.
+        owner.setEnabled(true);
+        userRepository.save(owner);
 
         passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
-        return ownerMapper.toOwnerModel(ownerRepository.findById(user.getId()).orElseThrow(UserNotFoundException::new));
+        return ownerModel;
     }
 
 }

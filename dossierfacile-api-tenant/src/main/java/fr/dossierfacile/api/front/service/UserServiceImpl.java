@@ -50,20 +50,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public TenantModel createPassword(String token, String password) {
-        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findTenantTokenByToken(token)
                 .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
 
-        // check if keycloak is correctly synchronised
-        User user = passwordRecoveryToken.getUser();
-        var keycloakId = keycloakService.getKeycloakId(user.getEmail());
-        if (!StringUtils.equals(keycloakId, user.getKeycloakId())) {
-            log.warn("Tenant keycloakId has been synchronized - user_id: " + user.getId());
-            user.setKeycloakId(keycloakId);
-            userRepository.save(user);
-        }
+        Tenant tenant = tenantRepository.findById(passwordRecoveryToken.getUser().getId())
+                .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
+        TenantModel tenantModel = tenantMapper.toTenantModel(tenant, null);
 
-        keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
-        TenantModel tenantModel = tenantMapper.toTenantModel(tenantRepository.getReferenceById(user.getId()), null);
+        if (!keycloakService.createPasswordForBoundUser(tenant.getKeycloakId(), tenant.getEmail(), password)) {
+            throw new PasswordRecoveryTokenNotFoundException(token);
+        }
 
         passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
         return tenantModel;
