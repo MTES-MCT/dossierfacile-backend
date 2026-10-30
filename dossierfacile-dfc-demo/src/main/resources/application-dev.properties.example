@@ -11,7 +11,7 @@ spring.datasource.password=your_very_secure_password
 dfc-demo.server-base-url=http://demo-partenaire-local.dossierfacile.fr:8092
 dfc-demo.sso-base-url=http://localhost:8085
 dfc-demo.api-base-url=http://localhost:8090
-# Keycloak client created by Dossier-Facile-Keycloak/setup-dfconnect-demo.sh
+# Keycloak client shipped by the Dossier-Facile-Keycloak development seed (dev_configuration_export.json)
 dfc-demo.client-id=dfconnect-demo
 dfc-demo.client-secret=dfconnect-demo-secret-local
 # Must match user_api.partner_api_key_callback of the dfconnect-demo partner

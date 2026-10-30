@@ -28,3 +28,6 @@ rabbitmq.routing.key=routing.key.pdf.generator.watermark-generic
 spring.rabbitmq.username=dev
 spring.rabbitmq.password=password
 spring.rabbitmq.host=127.0.0.1
+
+# Enable the dev-only Liquibase seeds (e.g. the DFC demo partner)
+spring.liquibase.contexts=dev

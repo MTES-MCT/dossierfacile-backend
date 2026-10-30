@@ -76,16 +76,9 @@ Port 8092, logs dans `logs/dfc-demo.log`. Propriétés (préfixe `dfc-demo`, mê
    ```
    PGPASSWORD=your_very_secure_password psql -h localhost -p 5432 -U dossierfacile -d postgres -c 'CREATE DATABASE dfc_demo;'
    ```
-3. **Keycloak** : `Dossier-Facile-Keycloak/setup-dfconnect-demo.sh` crée le client scope `dfc` s'il manque et le client confidentiel `dfconnect-demo` (secret `dfconnect-demo-secret-local`, consentement requis, redirect URIs `http://demo-partenaire-local.dossierfacile.fr:8092/*` et `http://localhost:8092/*`).
-4. **Partenaire** sur la base `dossierfacile` (le BO copie un client `dfconnect-template` absent de l'export local, d'où l'insert direct) :
-   ```sql
-   INSERT INTO user_api (name, name2, site, email, url_callback, partner_api_key_callback, disabled, completed_status_supported)
-   SELECT 'dfconnect-demo', 'Démo partenaire', 'http://demo-partenaire-local.dossierfacile.fr:8092',
-          'demo-partenaire@dossierfacile.fr', 'http://demo-partenaire-local.dossierfacile.fr:8092/webhook',
-          'dfc-demo-webhook-key-local', false, false
-   WHERE NOT EXISTS (SELECT 1 FROM user_api WHERE name = 'dfconnect-demo');
-   ```
-5. **Properties** : `cp dossierfacile-dfc-demo/src/main/resources/application-dev.properties.example dossierfacile-dfc-demo/src/main/resources/application-dev.properties` (valeurs déjà cohérentes avec les étapes 2 à 4).
+3. **Keycloak** : importer le seed de dev du repo `Dossier-Facile-Keycloak` (`scripts/import-dev-realms.sh`). Il contient le client confidentiel `dfconnect-demo` (secret `dfconnect-demo-secret-local`, consentement requis, scope `dfc` par défaut, redirect URIs `http://demo-partenaire-local.dossierfacile.fr:8092/*` et `http://localhost:8092/*`). Rien à créer à la main.
+4. **Partenaire** sur la base `dossierfacile` : la ligne `user_api` du partenaire `dfconnect-demo` est un seed Liquibase réservé au contexte `dev` (`db/migration/20261028000000-seed-dev-partner-dfc-demo.xml`). Elle est créée au démarrage de api-tenant, bo, api-owner ou api-watermark dès que leur `application-dev.properties` contient `spring.liquibase.contexts=dev` (présent dans les `.example`). Hors profil `dev`, la valeur par défaut `spring.liquibase.contexts=prod` embarquée dans chaque application ignore ce changeset : sans contexte explicite, Liquibase exécuterait tous les changesets, y compris ceux marqués `dev`. En prod et en preprod les partenaires sont créés par le BO (copie du client Keycloak `dfconnect-template` + ligne `user_api`).
+5. **Properties** : `cp dossierfacile-dfc-demo/src/main/resources/application-dev.properties.example dossierfacile-dfc-demo/src/main/resources/application-dev.properties` (valeurs alignées sur le seed Keycloak et le seed Liquibase des étapes 3 et 4).
 6. **Lancement** : `mvn -pl dossierfacile-dfc-demo spring-boot:run -Dspring-boot.run.profiles=dev`, puis http://demo-partenaire-local.dossierfacile.fr:8092. Configuration IntelliJ : `.run/DfcDemo.run.xml` (dossier non versionné).
 
 Un token du front locataire ne peut pas être réutilisé : il n'a pas le scope `dfc` et son `azp` n'est pas un `user_api.name`.

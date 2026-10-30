@@ -8,8 +8,9 @@ exactement comme un partenaire externe.
 
 ## Lancer en local
 
-Prérequis : Postgres du `docker-compose.dev.yml`, Keycloak local avec le client `dfconnect-demo`, `api-tenant`
-sur le port 8090 et une ligne `user_api` pour le partenaire. Le détail est dans [docs/dfc-demo.md](../docs/dfc-demo.md).
+Prérequis : Postgres du `docker-compose.dev.yml`, Keycloak local importé depuis le seed de dev (client `dfconnect-demo`),
+`api-tenant` sur le port 8090 démarré avec `spring.liquibase.contexts=dev` (crée la ligne `user_api` du partenaire).
+Le détail est dans [docs/dfc-demo.md](../docs/dfc-demo.md).
 
 ```bash
 cp src/main/resources/application-dev.properties.example src/main/resources/application-dev.properties

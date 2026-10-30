@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Development seed: the partner record of the DFC demo (dossierfacile-dfc-demo), the API-side
+         half of the Keycloak client "dfconnect-demo" shipped by the Keycloak development seed.
+         In production and preprod partners are created through the back-office, so this changeset is
+         restricted to the "dev" Liquibase context. Every application running this changelog sets
+         spring.liquibase.contexts=prod by default and dev only in its dev profile: without that default
+         Liquibase would run contexted changesets everywhere. The values must stay aligned with
+         dossierfacile-dfc-demo/src/main/resources/application-dev.properties.example. -->
+    <changeSet id="20261028000000-1" author="dossierfacile" context="dev">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM user_api WHERE name = 'dfconnect-demo'</sqlCheck>
+        </preConditions>
+        <insert tableName="user_api">
+            <column name="name" value="dfconnect-demo"/>
+            <column name="name2" value="Démo partenaire"/>
+            <column name="site" value="http://demo-partenaire-local.dossierfacile.fr:8092"/>
+            <column name="email" value="demo-partenaire@dossierfacile.fr"/>
+            <column name="url_callback" value="http://demo-partenaire-local.dossierfacile.fr:8092/webhook"/>
+            <column name="partner_api_key_callback" value="dfc-demo-webhook-key-local"/>
+            <column name="disabled" valueBoolean="false"/>
+            <column name="completed_status_supported" valueBoolean="false"/>
+        </insert>
+        <rollback>
+            <delete tableName="user_api">
+                <where>name = 'dfconnect-demo'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
