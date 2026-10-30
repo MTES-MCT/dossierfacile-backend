@@ -1,0 +1,18 @@
+# Copy to application-dev.properties (git-ignored) and run with the "dev" profile
+server.port=8092
+spring.thymeleaf.cache=false
+
+# Dedicated database on the docker-compose Postgres: CREATE DATABASE dfc_demo;
+spring.datasource.url=jdbc:postgresql://localhost:5432/dfc_demo
+spring.datasource.username=dossierfacile
+spring.datasource.password=your_very_secure_password
+
+# Must resolve to this machine from api-tenant: localhost is refused as a webhook target, *.dossierfacile.fr is trusted
+dfc-demo.server-base-url=http://demo-partenaire-local.dossierfacile.fr:8092
+dfc-demo.sso-base-url=http://localhost:8085
+dfc-demo.api-base-url=http://localhost:8090
+# Keycloak client shipped by the Dossier-Facile-Keycloak development seed (dev_configuration_export.json)
+dfc-demo.client-id=dfconnect-demo
+dfc-demo.client-secret=dfconnect-demo-secret-local
+# Must match user_api.partner_api_key_callback of the dfconnect-demo partner
+dfc-demo.webhook-api-key=dfc-demo-webhook-key-local

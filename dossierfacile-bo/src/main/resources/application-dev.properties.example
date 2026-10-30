@@ -75,3 +75,6 @@ lottery.draw.allow-multiple-per-day=true
 # Days a non-drawn tenant waits before applying again (default: 3).
 # 0 = re-apply at once and end-of-cooldown mail sent by the same run (mail testing)
 lottery.cooldown.days=0
+
+# Enable the dev-only Liquibase seeds (e.g. the DFC demo partner)
+spring.liquibase.contexts=dev

@@ -24,6 +24,7 @@
         <module>dossierfacile-pdf-generator</module>
         <module>dossierfacile-task-scheduler</module>
         <module>dossierfacile-document-analysis</module>
+        <module>dossierfacile-dfc-demo</module>
     </modules>
     <packaging>pom</packaging>
 
