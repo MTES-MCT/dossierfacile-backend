@@ -18,7 +18,7 @@ public enum QueueEntrySource {
     COMPLETED_ROLLBACK,
     /** Lottery draw, or flush of pending tickets when the flag is deactivated. */
     LOTTERY_DRAW,
-    /** Operator reprocessed a declined dossier. */
+    /** Operator reprocessed a declined dossier, or support sent a COMPLETED dossier to the queue. */
     BO_REPROCESS,
     /** Status recomputation by a scheduled task (e.g. failed-PDF document cleanup): no user, no operator. */
     SYSTEM_FAILURE_RECOMPUTE
