@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.QueueEntrySource;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -118,6 +119,48 @@ class CompletedDossierServiceImplTest {
             verify(tenantCommonRepository, never()).save(any(Tenant.class));
             verify(tenantLogCommonService, never()).saveTenantLog(any(TenantLog.class));
             verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
+        }
+    }
+
+    @Nested
+    class ForceOperatorReview {
+
+        private static final Long OPERATOR_ID = 42L;
+
+        @Test
+        void should_send_completed_dossier_to_the_queue_on_behalf_of_the_tenant() {
+            // Given - the tenant explicitly declined the operator review
+            tenant.setStatus(TenantFileStatus.COMPLETED);
+            tenant.setValidationRequested(false);
+
+            // When
+            service.forceOperatorReview(tenant, OPERATOR_ID);
+
+            // Then - in the operator queue, positioned at switch time
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+            assertThat(tenant.getLastUpdateDate()).isNotNull();
+            // The review is granted: the next status recomputation keeps the dossier in the queue
+            assertThat(tenant.getValidationRequested()).isTrue();
+            verify(tenantCommonRepository).save(tenant);
+            verify(tenantLogCommonService).saveTenantLog(argThat(log -> log.getLogType() == LogType.COMPLETED_SWITCHED_TO_PROCESS
+                    && log.getTenantId().equals(tenant.getId())
+                    && OPERATOR_ID.equals(log.getOperatorId())));
+            verify(tenantLogCommonService).logQueueEntered(tenant.getId(), QueueEntrySource.BO_REPROCESS);
+            verify(lotteryTicketService).cancelActiveTicket(tenant);
+            // And - no mail: the support is already in touch with the tenant
+            verifyNoInteractions(mailCommonService, tenantMapperForMail);
+        }
+
+        @Test
+        void should_do_nothing_when_dossier_is_not_completed() {
+            tenant.setStatus(TenantFileStatus.DECLINED);
+            tenant.setValidationRequested(null);
+
+            service.forceOperatorReview(tenant, OPERATOR_ID);
+
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.DECLINED);
+            assertThat(tenant.getValidationRequested()).isNull();
+            verifyNoInteractions(tenantCommonRepository, tenantLogCommonService, lotteryTicketService, mailCommonService);
         }
     }
 }
