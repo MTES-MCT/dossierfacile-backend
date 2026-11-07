@@ -118,7 +118,7 @@ class AttestationPdfTemplateTest {
 
     @Test
     void should_flatten_line_breaks() throws Exception {
-        AttestationContent content = new AttestationContent("Dr\tWho", STATEMENT, "Première ligne.\r\n\r\nSeconde ligne.");
+        AttestationContent content = new AttestationContent("Dr\tWho", STATEMENT, "Première ligne.\r\n\r\nSeconde\u202Fligne.");
 
         byte[] pdf = save("statement-with-line-breaks.pdf", template.render(content));
 
@@ -197,7 +197,7 @@ class AttestationPdfTemplateTest {
     void should_not_break_the_line_before_a_colon_of_the_statement() throws Exception {
         // One of these lengths puts the colon at the end of a line
         for (int words = 1; words <= 30; words++) {
-            String statement = StringUtils.repeat("mot", " ", words) + " exemple : suite";
+            String statement = StringUtils.repeat("mot", " ", words) + " exemple : suite";
 
             try (PDDocument document = Loader.loadPDF(template.render(new AttestationContent("Dr Who", statement, null)).readAllBytes())) {
                 assertThat(new PDFTextStripper().getText(document).lines().map(String::trim))

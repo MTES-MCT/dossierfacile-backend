@@ -58,10 +58,10 @@ public class AttestationPdfTemplate implements PdfTemplate<AttestationContent> {
     private static final ZoneId FRENCH_TIME = ZoneId.of("Europe/Paris");
     // A base character followed by its combining marks
     private static final Pattern GRAPHEME = Pattern.compile("\\P{M}\\p{M}*+");
-    // Line breaks, tabs and thin spaces become a space. The no-break space is not matched by \s and is kept
-    private static final Pattern WHITESPACE = Pattern.compile("[\\s\\u2009\\u202F]+");
-    // Keeps two words on the same line, as before a colon in French. It is drawn as a space
-    private static final char NO_BREAK_SPACE = ' ';
+    // Every kind of space, including the no-break ones, becomes a plain space
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
+    // French typography puts a space before these marks: they never start a line
+    private static final Pattern PUNCTUATION_ONLY = Pattern.compile("[:;?!»]+");
 
     private final MessageSource messageSource;
     private final PdfSignatureService pdfSignatureService;
@@ -197,7 +197,7 @@ public class AttestationPdfTemplate implements PdfTemplate<AttestationContent> {
         private List<String> wrap(String text, PDType0Font font, float fontSize) throws IOException {
             List<String> lines = new ArrayList<>();
             String line = "";
-            for (String word : StringUtils.split(text, ' ')) {
+            for (String word : words(text)) {
                 String candidate = line.isEmpty() ? word : line + " " + word;
                 if (width(candidate, font, fontSize) <= contentWidth) {
                     line = candidate;
@@ -272,9 +272,21 @@ public class AttestationPdfTemplate implements PdfTemplate<AttestationContent> {
             return null;
         }
 
-        // The no-break space has done its job once the lines are known: it is measured and drawn as a space
+        // A punctuation mark standing alone, as in "que :", stays with the word before it
+        private static List<String> words(String text) {
+            List<String> words = new ArrayList<>();
+            for (String word : StringUtils.split(text, ' ')) {
+                if (!words.isEmpty() && PUNCTUATION_ONLY.matcher(word).matches()) {
+                    words.set(words.size() - 1, words.getLast() + " " + word);
+                } else {
+                    words.add(word);
+                }
+            }
+            return words;
+        }
+
         private static List<String> graphemes(String text) {
-            return GRAPHEME.matcher(text.replace(NO_BREAK_SPACE, ' ')).results().map(MatchResult::group).toList();
+            return GRAPHEME.matcher(text).results().map(MatchResult::group).toList();
         }
 
         private static PDType0Font load(Fonts font, PDDocument document) throws IOException {
