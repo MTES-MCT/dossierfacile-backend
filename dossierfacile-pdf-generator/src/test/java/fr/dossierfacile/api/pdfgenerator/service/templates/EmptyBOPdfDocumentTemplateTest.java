@@ -27,9 +27,9 @@ import static org.mockito.Mockito.when;
 class EmptyBOPdfDocumentTemplateTest {
 
     private static final long DOCUMENT_ID = 1L;
-    private static final String CERTIFY_TENANT = "Attestation sur l’honneur Je soussigné·e Dr Who, atteste sur l’honneur que : ";
+    private static final String CERTIFY_TENANT = "Attestation sur l’honneur Je, Dr Who, certifie sur l’honneur que : ";
     private static final String SIGNED_BY_TENANT = " Fait le " + TODAY + " Signature Dr Who";
-    private static final String CERTIFY_GUARANTOR = "Attestation sur l’honneur Je soussigné·e Jane Doe, atteste sur l’honneur que : ";
+    private static final String CERTIFY_GUARANTOR = "Attestation sur l’honneur Je, Jane Doe, certifie sur l’honneur que : ";
     private static final String SIGNED_BY_GUARANTOR = " Fait le " + TODAY + " Signature Jane Doe";
 
     @Mock
@@ -51,7 +51,7 @@ class EmptyBOPdfDocumentTemplateTest {
         Document document = document(DocumentCategory.TAX, DocumentSubCategory.MY_PARENTS).build();
 
         assertThat(render("tax-parents.pdf", document)).isEqualTo(CERTIFY_TENANT
-                + "\"Je suis rattaché·e au foyer fiscal de mes parents et ne dispose pas d’un avis à mon nom propre.\""
+                + "\"Je dépends du foyer fiscal de mes parents et ne dispose pas d’un avis à mon nom propre.\""
                 + SIGNED_BY_TENANT);
     }
 
@@ -106,7 +106,7 @@ class EmptyBOPdfDocumentTemplateTest {
         Document document = document(DocumentCategory.TAX, DocumentSubCategory.MY_PARENTS).build();
 
         assertThat(render("tax-guarantor.pdf", document)).isEqualTo(CERTIFY_GUARANTOR
-                + "\"Je suis rattaché·e au foyer fiscal de mes parents et ne dispose pas d’un avis à mon nom propre.\""
+                + "\"Je dépends du foyer fiscal de mes parents et ne dispose pas d’un avis à mon nom propre.\""
                 + SIGNED_BY_GUARANTOR);
     }
 

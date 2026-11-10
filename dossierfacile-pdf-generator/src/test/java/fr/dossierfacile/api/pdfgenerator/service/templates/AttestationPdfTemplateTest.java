@@ -96,7 +96,7 @@ class AttestationPdfTemplateTest {
             assertThat(mediaBox.getWidth()).isCloseTo(PDRectangle.A4.getWidth(), within(0.1f));
             assertThat(mediaBox.getHeight()).isCloseTo(PDRectangle.A4.getHeight(), within(0.1f));
             assertThat(textOf(document)).isEqualTo("Attestation sur l’honneur "
-                    + "Je soussigné·e Dr Who, atteste sur l’honneur que : "
+                    + "Je, Dr Who, certifie sur l’honneur que : "
                     + "\"Je ne perçois pas de revenus.\" "
                     + "Précisions : Je suis étudiante à temps plein, sans emploi ni bourse. "
                     + "Fait le " + TODAY + " "
@@ -123,7 +123,7 @@ class AttestationPdfTemplateTest {
         byte[] pdf = save("statement-with-line-breaks.pdf", template.render(content));
 
         try (PDDocument document = Loader.loadPDF(pdf)) {
-            assertThat(textOf(document)).contains("Je soussigné·e Dr Who,", "Précisions : Première ligne. Seconde ligne.");
+            assertThat(textOf(document)).contains("Je, Dr Who,", "Précisions : Première ligne. Seconde ligne.");
         }
     }
 
@@ -182,13 +182,13 @@ class AttestationPdfTemplateTest {
     @Test
     void should_not_break_the_line_before_a_colon() throws Exception {
         // With this name, "que :" does not fit at the end of the first line
-        AttestationContent content = new AttestationContent("Dominique Martin", STATEMENT, null);
+        AttestationContent content = new AttestationContent("Jean-Christophe Dubois-Martin", STATEMENT, null);
 
         byte[] pdf = save("statement-with-long-name.pdf", template.render(content));
 
         try (PDDocument document = Loader.loadPDF(pdf)) {
             assertThat(new PDFTextStripper().getText(document).lines().map(String::trim))
-                    .contains("Je soussigné·e Dominique Martin, atteste sur l’honneur", "que :")
+                    .contains("Je, Jean-Christophe Dubois-Martin, certifie sur l’honneur", "que :")
                     .doesNotContain(":");
         }
     }
@@ -213,7 +213,7 @@ class AttestationPdfTemplateTest {
         byte[] pdf = save("name-" + name.replace(' ', '-') + ".pdf", template.render(new AttestationContent(name, STATEMENT, null)));
 
         try (PDDocument document = Loader.loadPDF(pdf)) {
-            assertThat(textOf(document)).contains("Je soussigné·e " + name + ", atteste", "Signature " + name);
+            assertThat(textOf(document)).contains("Je, " + name + ", certifie", "Signature " + name);
         }
     }
 
