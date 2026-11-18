@@ -5,234 +5,120 @@ import fr.dossierfacile.common.entity.Owner;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.http.HttpStatus;
 
-import java.util.Collections;
+import java.net.URI;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@DisplayName("KeycloakServiceImpl Tests")
 class KeycloakServiceImplTest {
-
-    private RealmResource realmResource;
-    private UsersResource usersResource;
-    private UserResource userResource;
-    private UserRepository userRepository;
-    private KeycloakServiceImpl keycloakService;
-
-    private static final String TEST_EMAIL = "test@example.com";
-    private static final String EXISTING_KEYCLOAK_ID = "existing-keycloak-id";
-    private static final String NEW_KEYCLOAK_ID = "new-keycloak-id";
+    private static final String EMAIL = "owner@example.com";
+    private final RealmResource realm = mock(RealmResource.class);
+    private final UsersResource users = mock(UsersResource.class);
+    private final UserResource existingResource = mock(UserResource.class);
+    private final UserResource newResource = mock(UserResource.class);
+    private final UserRepository repository = mock(UserRepository.class);
+    private final KeycloakServiceImpl service = new KeycloakServiceImpl(realm, repository);
 
     @BeforeEach
     void setUp() {
-        realmResource = mock(RealmResource.class);
-        usersResource = mock(UsersResource.class);
-        userResource = mock(UserResource.class);
-        userRepository = mock(UserRepository.class);
+        when(realm.users()).thenReturn(users);
+        when(users.get("existing-id")).thenReturn(existingResource);
+        when(users.get("new-id")).thenReturn(newResource);
+    }
 
-        when(realmResource.users()).thenReturn(usersResource);
-        keycloakService = new KeycloakServiceImpl(realmResource, userRepository);
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"existing-id"})
+    void shouldPreserveConfirmationForMissingOrDeletedBinding(String oldId) {
+        var owner = owner(oldId);
+        when(existingResource.toRepresentation()).thenThrow(new NotFoundException());
+        var identity = identity("new-id");
+        when(newResource.toRepresentation()).thenReturn(identity);
+        var response = mock(Response.class);
+        when(users.create(any())).thenReturn(response);
+        when(response.getStatus()).thenReturn(409);
+        when(users.searchByEmail(EMAIL, true)).thenReturn(List.of(identity));
+
+        service.confirmKeycloakUser(owner);
+
+        assertEquals("new-id", owner.getKeycloakId());
+        verify(repository).save(owner);
+        verify(newResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()));
+        verify(existingResource, never()).update(any());
+        verify(response).close();
     }
 
     @Test
-    @DisplayName("Scenario 1: User (Owner) has keycloakId null, but Keycloak user with email exists - should link to existing user")
-    void test_confirmKeycloakUser_keycloakIdNull_userExistsInKeycloak_shouldLinkToExisting() {
-        // Arrange
-        Owner user = Owner.builder()
-                .id(1L)
-                .email(TEST_EMAIL)
-                .keycloakId(null)
-                .build();
+    void shouldPreserveConfirmationForExistingIdentity() {
+        var owner = owner("existing-id");
+        when(existingResource.toRepresentation()).thenReturn(identity("existing-id"));
 
-        // Mock: When keycloakId is null, get(null) will throw NullPointerException, so we create a new user
-        // The implementation doesn't search by email when keycloakId is null - it just creates a new user
-        when(usersResource.get(null)).thenThrow(new NullPointerException("keycloakId is null"));
+        service.confirmKeycloakUser(owner);
 
-        UserRepresentation newUserRep = new UserRepresentation();
-        newUserRep.setId(NEW_KEYCLOAK_ID);
-        newUserRep.setEmail(TEST_EMAIL);
-        newUserRep.setEnabled(false);
-        newUserRep.setEmailVerified(false);
-
-        UserResource newUserResource = mock(UserResource.class);
-        when(usersResource.get(NEW_KEYCLOAK_ID)).thenReturn(newUserResource);
-        when(newUserResource.toRepresentation()).thenReturn(newUserRep);
-
-        // Mock create user response
-        Response response = mock(Response.class);
-        when(usersResource.create(any(UserRepresentation.class))).thenReturn(response);
-        when(response.getStatus()).thenReturn(HttpStatus.CONFLICT.value());
-        when(usersResource.search(TEST_EMAIL)).thenReturn(Collections.singletonList(newUserRep));
-        doNothing().when(response).close();
-
-        when(userRepository.save(any(Owner.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Act
-        keycloakService.confirmKeycloakUser(user);
-
-        // Assert
-        assertEquals(NEW_KEYCLOAK_ID, user.getKeycloakId(), "User keycloakId should be set to new Keycloak user ID");
-        verify(userRepository, times(1)).save(any(Owner.class));
-        verify(usersResource, times(1)).get(null); // This will throw NullPointerException
-        verify(usersResource, times(1)).create(any(UserRepresentation.class));
-        verify(usersResource, times(2)).get(NEW_KEYCLOAK_ID); // Called to get representation after creation and to update
-        verify(newUserResource, times(1)).toRepresentation();
-        verify(newUserResource, times(1)).update(any(UserRepresentation.class));
-
-        // Verify user is enabled and email verified
-        verify(newUserResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()
-        ));
+        assertEquals("existing-id", owner.getKeycloakId());
+        verify(existingResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()));
+        verifyNoInteractions(repository);
+        verify(users, never()).create(any());
     }
 
     @Test
-    @DisplayName("Scenario 2: User has keycloakId not null, but Keycloak user with this id does not exist - should create user")
-    void test_confirmKeycloakUser_keycloakIdNotNull_userDoesNotExist_shouldCreateUser() {
-        // Arrange
-        Owner user = Owner.builder()
-                .id(1L)
-                .email(TEST_EMAIL)
-                .keycloakId(EXISTING_KEYCLOAK_ID)
-                .build();
+    void shouldPreserveNewOwnerRegistration() {
+        newIdentityResponse();
 
-        // Mock: user does not exist in Keycloak with the keycloakId
-        when(usersResource.get(EXISTING_KEYCLOAK_ID)).thenReturn(userResource);
-        when(userResource.toRepresentation()).thenThrow(new NotFoundException("User not found"));
+        assertEquals("new-id", service.createKeycloakUserAccountCreation(form(), owner(null)));
 
-        // Mock: search returns empty (no user with email)
-        when(usersResource.search(TEST_EMAIL)).thenReturn(Collections.emptyList());
+        verify(users).create(argThat(rep -> EMAIL.equals(rep.getEmail()) && !rep.isEnabled() && !rep.isEmailVerified()
+                && rep.getCredentials().size() == 1 && "password".equals(rep.getCredentials().getFirst().getValue())));
+        verify(users, never()).delete(anyString());
+    }
 
-        // Mock: create new user
-        UserRepresentation newUserRep = new UserRepresentation();
-        newUserRep.setId(NEW_KEYCLOAK_ID);
-        newUserRep.setEmail(TEST_EMAIL);
-        newUserRep.setEnabled(false);
-        newUserRep.setEmailVerified(false);
+    @Test
+    void shouldPreservePendingOwnerReregistration() {
+        newIdentityResponse();
 
-        UserResource newUserResource = mock(UserResource.class);
-        when(usersResource.get(NEW_KEYCLOAK_ID)).thenReturn(newUserResource);
-        when(newUserResource.toRepresentation()).thenReturn(newUserRep);
+        assertEquals("new-id", service.createKeycloakUserAccountCreation(form(), owner("existing-id")));
 
-        // Mock create user response
-        Response response = mock(Response.class);
-        when(usersResource.create(any(UserRepresentation.class))).thenReturn(response);
+        var order = inOrder(users);
+        order.verify(users).delete("existing-id");
+        order.verify(users).create(any());
+    }
+
+    private void newIdentityResponse() {
+        var response = mock(Response.class);
+        when(users.create(any())).thenReturn(response);
         when(response.getStatus()).thenReturn(201);
-        when(response.getHeaderString("Location")).thenReturn("http://localhost:8085/auth/admin/realms/test/users/" + NEW_KEYCLOAK_ID);
-        doNothing().when(response).close();
-
-        when(userRepository.save(any(Owner.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Act
-        keycloakService.confirmKeycloakUser(user);
-
-        // Assert
-        assertEquals(NEW_KEYCLOAK_ID, user.getKeycloakId(), "User keycloakId should be set to new Keycloak user ID");
-        verify(userRepository, times(1)).save(user);
-        verify(usersResource, times(1)).get(EXISTING_KEYCLOAK_ID);
-        verify(usersResource, times(1)).create(any(UserRepresentation.class));
-        verify(usersResource, times(2)).get(NEW_KEYCLOAK_ID); // Called to get representation after creation and to update
-        verify(newUserResource, times(1)).toRepresentation();
-        verify(newUserResource, times(1)).update(any(UserRepresentation.class));
-
-        // Verify user is enabled and email verified
-        verify(newUserResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()
-        ));
+        when(response.getLocation()).thenReturn(URI.create("/admin/realms/df/users/new-id"));
+        when(newResource.toRepresentation()).thenReturn(identity("new-id"));
     }
 
-    @Test
-    @DisplayName("Scenario 3: User has keycloakId null and Keycloak user with email does not exist - should create new user and update entity")
-    void test_confirmKeycloakUser_keycloakIdNull_userDoesNotExist_shouldCreateNewUserAndUpdateEntity() {
-        // Arrange
-        Owner user = Owner.builder()
-                .id(1L)
-                .email(TEST_EMAIL)
-                .keycloakId(null)
-                .build();
-
-        // Mock: When keycloakId is null, get(null) will throw NullPointerException, so we create a new user
-        // The implementation doesn't search by email when keycloakId is null - it just creates a new user
-        when(usersResource.get(null)).thenThrow(new NullPointerException("keycloakId is null"));
-
-        UserRepresentation newUserRep = new UserRepresentation();
-        newUserRep.setId(NEW_KEYCLOAK_ID);
-        newUserRep.setEmail(TEST_EMAIL);
-        newUserRep.setEnabled(false);
-        newUserRep.setEmailVerified(false);
-
-        UserResource newUserResource = mock(UserResource.class);
-        when(usersResource.get(NEW_KEYCLOAK_ID)).thenReturn(newUserResource);
-        when(newUserResource.toRepresentation()).thenReturn(newUserRep);
-
-        // Mock create user response
-        Response response = mock(Response.class);
-        when(usersResource.create(any(UserRepresentation.class))).thenReturn(response);
-        when(response.getStatus()).thenReturn(201);
-        when(response.getHeaderString("Location")).thenReturn("http://localhost:8085/auth/admin/realms/test/users/" + NEW_KEYCLOAK_ID);
-        doNothing().when(response).close();
-
-        when(userRepository.save(any(Owner.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Act
-        keycloakService.confirmKeycloakUser(user);
-
-        // Assert
-        assertNotNull(user.getKeycloakId(), "User keycloakId should not be null");
-        assertEquals(NEW_KEYCLOAK_ID, user.getKeycloakId(), "User keycloakId should be set to new Keycloak user ID");
-        verify(userRepository, times(1)).save(user);
-        verify(usersResource, times(1)).get(null); // This will throw NullPointerException
-        verify(usersResource, times(1)).create(any(UserRepresentation.class));
-        verify(usersResource, times(2)).get(NEW_KEYCLOAK_ID); // Called to get representation after creation and to update
-        verify(newUserResource, times(1)).toRepresentation();
-        verify(newUserResource, times(1)).update(any(UserRepresentation.class));
-
-        // Verify user is enabled and email verified
-        verify(newUserResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()
-        ));
+    private Owner owner(String id) {
+        return Owner.builder().id(1L).email(EMAIL).keycloakId(id).build();
     }
 
-    @Test
-    @DisplayName("User has valid keycloakId and user exists in Keycloak - should just enable and verify")
-    void test_confirmKeycloakUser_keycloakIdValid_userExists_shouldJustEnableAndVerify() {
-        // Arrange
-        Owner user = Owner.builder()
-                .id(1L)
-                .email(TEST_EMAIL)
-                .keycloakId(EXISTING_KEYCLOAK_ID)
-                .build();
+    private AccountForm form() {
+        var form = new AccountForm();
+        form.setEmail(EMAIL);
+        form.setPassword("password");
+        return form;
+    }
 
-        UserRepresentation userRep = new UserRepresentation();
-        userRep.setId(EXISTING_KEYCLOAK_ID);
-        userRep.setEmail(TEST_EMAIL);
-        userRep.setEnabled(false);
-        userRep.setEmailVerified(false);
-
-        when(usersResource.get(EXISTING_KEYCLOAK_ID)).thenReturn(userResource);
-        when(userResource.toRepresentation()).thenReturn(userRep);
-
-        // Act
-        keycloakService.confirmKeycloakUser(user);
-
-        // Assert
-        assertEquals(EXISTING_KEYCLOAK_ID, user.getKeycloakId(), "User keycloakId should remain unchanged");
-        verify(userRepository, never()).save(any(Owner.class));
-        verify(usersResource, never()).search(anyString());
-        verify(usersResource, never()).create(any(UserRepresentation.class));
-        verify(usersResource, times(2)).get(EXISTING_KEYCLOAK_ID); // Called once to get representation, once to update
-        verify(userResource, times(1)).toRepresentation();
-        verify(userResource, times(1)).update(any(UserRepresentation.class));
-
-        // Verify user is enabled and email verified
-        verify(userResource).update(argThat(rep -> rep.isEnabled() && rep.isEmailVerified()
-        ));
+    private UserRepresentation identity(String id) {
+        var identity = new UserRepresentation();
+        identity.setId(id);
+        identity.setEmail(EMAIL);
+        identity.setEnabled(false);
+        identity.setEmailVerified(false);
+        return identity;
     }
 }
