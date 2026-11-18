@@ -45,13 +45,7 @@ public class CompletedDossierServiceImpl implements CompletedDossierService {
         if (tenant.getStatus() != TenantFileStatus.COMPLETED) {
             return;
         }
-        tenant.setStatus(TenantFileStatus.TO_PROCESS);
-        tenant.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
-        tenantCommonRepository.save(tenant);
-        tenantLogCommonService.saveTenantLog(new TenantLog(LogType.COMPLETED_SWITCHED_TO_PROCESS, tenant.getId()));
-        tenantLogCommonService.logQueueEntered(tenant.getId(),
-                userApi != null ? QueueEntrySource.PARTNER_LINK : QueueEntrySource.COMPLETED_ROLLBACK);
-        lotteryTicketService.cancelActiveTicket(tenant);
+        moveToQueue(tenant, userApi != null ? QueueEntrySource.PARTNER_LINK : QueueEntrySource.COMPLETED_ROLLBACK, null);
         if (userApi == null) {
             return;
         }
@@ -60,5 +54,28 @@ public class CompletedDossierServiceImpl implements CompletedDossierService {
             TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
             TransactionalUtil.afterCommit(() -> mailService.sendEmailCompletedSwitchedToProcessing(tenantDto, partnerName));
         });
+    }
+
+    // The support acts on behalf of the tenant: validationRequested is set so that the
+    // review stays granted and the next
+    // status recomputation does not send the dossier back to COMPLETED.
+    // TODO(lottery): once tenant_lottery is on, grant a DRAWN ticket here instead
+    @Override
+    @Transactional
+    public void forceOperatorReview(Tenant tenant, Long operatorId) {
+        if (tenant.getStatus() != TenantFileStatus.COMPLETED) {
+            return;
+        }
+        tenant.setValidationRequested(true);
+        moveToQueue(tenant, QueueEntrySource.BO_REPROCESS, operatorId);
+    }
+
+    private void moveToQueue(Tenant tenant, QueueEntrySource source, Long operatorId) {
+        tenant.setStatus(TenantFileStatus.TO_PROCESS);
+        tenant.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
+        tenantCommonRepository.save(tenant);
+        tenantLogCommonService.saveTenantLog(new TenantLog(LogType.COMPLETED_SWITCHED_TO_PROCESS, tenant.getId(), operatorId));
+        tenantLogCommonService.logQueueEntered(tenant.getId(), source);
+        lotteryTicketService.cancelActiveTicket(tenant);
     }
 }

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Démo DossierFacileConnect - Connexion</title>
+    <style type="text/css">
+        .btn-dossierfacile {
+            margin: 0;
+            padding: 0;
+            border-width: 0;
+        }
+        .txt-dossierfacile {
+            background-color: aliceblue;
+            font-family: sans-serif;
+            max-width: 400px;
+            margin-top: 14px;
+            margin-inline: auto;
+        }
+        .container {
+            width: 100%;
+            text-align: center;
+        }
+        .url {
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>Démonstration de connexion Avec DossierFacile Connect</h1>
+    <div>En cliquant sur le bouton, vous allez réaliser une connexion via DossierFacile connect</div>
+    <br/>
+    <div class="container">
+        <!-- Thymeleaf no longer evaluates expressions inside on* handlers: the URL goes through a data attribute -->
+        <button class="btn-dossierfacile" type="button"
+                th:attr="data-url=${authorizeUrl}"
+                onclick="window.location.replace(this.dataset.url)">
+            <img th:src="@{/logo_bouton.png}" alt="Se Connecter avec DossierFacile Connect">
+        </button>
+        <div class="txt-dossierfacile">DossierFacile est le dossier de location numérique de l'Etat. Entièrement gratuit, conforme et sécurisé, il protège les locataires et rassure les propriétaires</div>
+    </div>
+    <br/>
+    <div>
+        <b>0. Le bouton redirige le locataire vers l'URL d'autorisation du SSO DossierFacile :</b>
+        <br/><code class="url" th:text="${authorizeUrl}"></code>
+    </div>
+</body>
+</html>

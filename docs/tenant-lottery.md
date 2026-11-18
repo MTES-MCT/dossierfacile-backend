@@ -108,7 +108,7 @@ Garde 409 `canRequestOperatorReview`, persistance de `validation_requested` et l
 ## 7. Journal des entrées en file (`QUEUE_ENTERED`)
 
 **Chaque** entrée en `TO_PROCESS` émet un `QUEUE_ENTERED` — y compris les tirés. `logDetails` :
-- `source` : `SUBMISSION` (api-tenant), `BO_RECOMPUTE`, `BO_REPROCESS`, `PARTNER_LINK` / `COMPLETED_ROLLBACK` (`switchBackToProcessing`), `LOTTERY_DRAW` (tirage ou flush) ;
+- `source` : `SUBMISSION` (api-tenant), `BO_RECOMPUTE`, `BO_REPROCESS` (remise en traitement d'un dossier refusé, ou d'un dossier `COMPLETED` par le support — completed-optin.md §8 ; ce second cas ne crée pas de ticket `DRAWN`, à traiter avant l'activation du flag), `PARTNER_LINK` / `COMPLETED_ROLLBACK` (`switchBackToProcessing`), `LOTTERY_DRAW` (tirage ou flush) ;
 - `bypass` : `true` si le tenant **n'a pas de ticket `DRAWN`** au moment de l'entrée. Calculé au seul endroit `logQueueEntered` — les appelants n'ont aucune notion de loterie.
 
 Bypass de J−1 = `count(QUEUE_ENTERED where bypass = true)` (`TenantLogRepository.countBypassQueueEntries`, bornée par `log_type` / `creation_date`). Un tiré qui re-soumet avant traitement est donc journalisé mais non compté.

@@ -613,6 +613,12 @@ public class TenantService {
         Tenant tenant = find(tenantId);
         User operator = userService.findUserByEmail(principal.getEmail());
 
+        // A COMPLETED dossier has no DECLINED document: the support sends it to the operator queue
+        if (tenant.getStatus() == TenantFileStatus.COMPLETED) {
+            completedDossierService.forceOperatorReview(tenant, operator.getId());
+            return;
+        }
+
         // reprocess declined documents for all guarantors of tenant
         int reprocessed = reprocessDeclinedDocuments(tenant.getDocuments());
         reprocessed += Optional.ofNullable(tenant.getGuarantors()).orElse(new ArrayList<>())

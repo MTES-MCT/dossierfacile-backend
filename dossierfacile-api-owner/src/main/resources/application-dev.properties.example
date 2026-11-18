@@ -61,3 +61,6 @@ dossierfacile.logging.aggregator=true
 ademe.api.base.url=https://prd-x-ademe-externe-api.de-c1.eu1.cloudhub.io/api/v1
 ademe.api.client.id=
 ademe.api.client.secret=
+
+# Enable the dev-only Liquibase seeds (e.g. the DFC demo partner)
+spring.liquibase.contexts=dev

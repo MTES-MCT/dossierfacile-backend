@@ -103,6 +103,7 @@ s3.secret.access.key=your-secret-key
 - Project: [dossierfacile-api-tenant](dossierfacile-api-tenant/README.md)
 - Project: [dossierfacile-api-watermark](dossierfacile-api-watermark/README.md)
 - Project: [dossierfacile-bo](dossierfacile-bo/README.md)
+- Project: [dossierfacile-dfc-demo](dossierfacile-dfc-demo/README.md)
 - Project: [dossierfacile-pdf-generator](dossierfacile-pdf-generator/README.md)
 - Project: [dossierfacile-task-scheduler](dossierfacile-task-scheduler/README.md)
 

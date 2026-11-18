@@ -24,7 +24,7 @@ Périmètre MVP : dossiers **ALONE uniquement**, rollout progressif démarré à
   - `null` = jamais répondu à la question (état par défaut) ;
   - `true` = a demandé une vérification opérateur ;
   - `false` = a explicitement décliné.
-- **Invariant : un seul écrivain, le clic de l'utilisateur** (endpoint §6). Ni la signature, ni une bascule partenaire, ni un rollback ne modifient ce champ. Seule exception : la remise à `null` quand le choix perd son objet (changement de type d'application, regroupement BO).
+- **Invariant : un seul écrivain, le clic de l'utilisateur** (endpoint §6). Ni la signature, ni une bascule partenaire, ni un rollback ne modifient ce champ. Deux exceptions : la remise à `null` quand le choix perd son objet (changement de type d'application, regroupement BO), et la remise en traitement par le support (§8), qui pose `true` **à la place du locataire** — sans log `VALIDATION_REQUESTED`, réservé au clic.
 - Migration : `20260806000000-add-completed-optin.xml` (changeSet 1).
 
 ### 2.2 Valeur d'enum `TenantFileStatus.COMPLETED`
@@ -117,6 +117,7 @@ Quatre méthodes publiques :
 | Le locataire annule sa demande (sens inverse : `TO_PROCESS → COMPLETED`) | endpoint §6 → `switchToCompleted()` (§3.3), seule sortie de file à l'initiative du locataire | `false` (son choix) |
 | Connexion à un partenaire **n'ayant pas intégré COMPLETED**, ou candidature propriétaire | bascule automatique §7.1 | inchangé |
 | Rollback | action BO §9 | inchangé |
+| Remise en traitement par le support | bouton BO §8 → `forceOperatorReview()`, `last_update_date = now` | `true` (posé par le support) |
 | Modification du dossier | `computeStatus()` → `INCOMPLETE`, puis retour possible en `COMPLETED` à la re-signature | inchangé |
 | Changement de type ALONE → COUPLE/GROUP | purge + recalcul (§8) | remis à `null` |
 
@@ -164,6 +165,7 @@ Toute ligne `tenant_userapi` vers un partenaire n'ayant pas intégré COMPLETED,
 - **Regroupement BO** (`regroupTenant`) : refusé (`IllegalStateException`) si le tenant ou le dossier cible est `COMPLETED` ; le choix du tenant regroupé est purgé.
 - **Dissociation** : aucune protection nécessaire — un dossier `COMPLETED` est forcément ALONE, et la dissociation révoque déjà tous les accès partenaires du tenant dissocié.
 - **File opérateur** : garde-fou `processFile` existant (statut `TO_PROCESS` exigé) inchangé ; un dossier `COMPLETED` est consultable dans le BO (libellé « complété ») mais jamais distribué.
+- **Remise en traitement par le support** : sur un dossier `COMPLETED`, le bouton « Remettre en traitement » de la fiche dossier (`POST /bo/tenant/{id}/reprocess`, rôle SUPPORT — un opérateur ne peut pas forcer une vérification) appelle `CompletedDossierService.forceOperatorReview()` : même bascule que §7.1 (`TO_PROCESS`, `last_update_date = now`, log `COMPLETED_SWITCHED_TO_PROCESS` portant l'`operator_id`, `QUEUE_ENTERED` de source `BO_REPROCESS`), **sans mail**, et `validation_requested = true`.
 
 ---
 
@@ -190,6 +192,7 @@ Le choix (`validation_requested`) n'est pas modifié : si le flag est réactivé
 | Réponse « oui » à l'encart (`COMPLETED → TO_PROCESS`) | **56 — réutilisé** | — |
 | Bascule partenaire (§7.1) | 174 (« votre dossier va être vérifié par notre équipe », paramètre `PARTENAIRE`) | `brevo.template.id.completed.switched.to.processing` |
 | Rollback (§9) | aucun mail (template dédié à créer si besoin) | — |
+| Remise en traitement par le support (§8) | aucun mail (le support est déjà en contact avec le locataire) | — |
 | Validation après opt-out | mails de validation existants, inchangés | — |
 | Relance J+24h, vérification non demandée (§10.1) | 177 (« Demander une vérification », CTA vers le tableau de bord) | `brevo.template.id.validation.reminder` |
 | Enquête d'impact J+6 semaines, dossier toujours `COMPLETED` | 178 (lien TypeForm, `TENANT_ID` en champ caché) | `brevo.template.id.completed.survey` |
@@ -199,10 +202,10 @@ Le branchement du mail de soumission se fait sur le **statut résultant** (dans 
 
 ## 11. Journalisation & observabilité
 
-- Nouveaux `LogType` dans `tenant_log` : `VALIDATION_REQUESTED`, `VALIDATION_DECLINED` (choix utilisateur), `COMPLETED_SWITCHED_TO_PROCESS` (toute bascule automatique ou rollback), `VALIDATION_REMINDER_SENT` (relance J+24h, §10.1), `COMPLETED_SURVEY_SENT` (enquête J+6 semaines).
+- Nouveaux `LogType` dans `tenant_log` : `VALIDATION_REQUESTED`, `VALIDATION_DECLINED` (choix utilisateur), `COMPLETED_SWITCHED_TO_PROCESS` (toute bascule automatique, rollback, ou remise en traitement par le support — seul cas où `operator_id` est renseigné), `VALIDATION_REMINDER_SENT` (relance J+24h, §10.1), `COMPLETED_SURVEY_SENT` (enquête J+6 semaines).
 - Efficacité de la relance par simple SQL : part des locataires ayant un log `VALIDATION_REQUESTED` postérieur à leur log `VALIDATION_REMINDER_SENT`. Suivi de la tâche dans ELK : `TENANT_VALIDATION_REMINDER`.
 - Enquête d'impact : `CompletedSurveyTask` (task-scheduler), une fois par jour à 10h30 Europe/Paris (`cron.completed.survey`). Cible les dossiers encore `COMPLETED` dont la **dernière soumission** (`ACCOUNT_COMPLETED`) a entre 42 et 45 jours (`tenant.completed.survey.min-age-days` / `max-age-days`), quelle que soit la réponse à la question de vérification ; une seule enquête par locataire (log `COMPLETED_SURVEY_SENT`, écrit avant l'envoi). Distincte de l'enquête J+42 post-validation (api-tenant, template 75) : un dossier validé n'est plus `COMPLETED` et ne reçoit pas celle-ci. Suivi ELK : `TENANT_COMPLETED_SURVEY`.
-- Métriques du MVP par simple SQL : répartition de `validation_requested` (`null` = jamais répondu / `false` = complété par défaut ou décliné / `true` = vérification demandée) sur la cohorte assignée (`user_feature_assignment`, flag `tenant_completed_optin`), croisée avec les logs.
+- Métriques du MVP par simple SQL : répartition de `validation_requested` (`null` = jamais répondu / `false` = complété par défaut ou décliné / `true` = vérification demandée) sur la cohorte assignée (`user_feature_assignment`, flag `tenant_completed_optin`), croisée avec les logs. Un `true` posé par le support (§8) se distingue par l'absence de log `VALIDATION_REQUESTED` et un log `COMPLETED_SWITCHED_TO_PROCESS` avec `operator_id`.
 - Point de surveillance ELK post-activation : le message « `Defensive status masking triggered` » (§7.3) — zéro occurrence attendue.
 - `callback_log.tenant_status` ne contient `COMPLETED` que pour des `partner_id` de partenaires ayant intégré `COMPLETED` (requête dans partner-completed-optin.md §8).
 
@@ -257,6 +260,7 @@ Préparation : flag activé en préprod, `rollout_pct` à 100 % (cohorte test) o
 | C0 | Rollout 25 → 50 % avec des dossiers ALONE en file | `ROLLOUT_INCREASED` sur les assignations, **aucun changement de statut** : les dossiers en file y restent (§3.3), pas d'encart (affiché seulement pour `COMPLETED` ou demande en cours) |
 | C1 | Rollout 100 → 0 % | Nouvelles soumissions → TO_PROCESS ; dossiers COMPLETED existants **inchangés** tant que l'action de rollback n'est pas lancée |
 | C2 | Action « Rebasculer les dossiers COMPLETED » | Tous → TO_PROCESS, `last_update_date=now` (fin de file), `validation_requested` intact, mail de bascule, logs `COMPLETED_SWITCHED_TO_PROCESS` |
+| C2b | Fiche BO d'un dossier `COMPLETED`, compte SUPPORT → « Remettre en traitement » | `TO_PROCESS`, `last_update_date=now`, `validation_requested=true`, aucun mail, logs `COMPLETED_SWITCHED_TO_PROCESS` (avec `operator_id`) et `QUEUE_ENTERED` (`BO_REPROCESS`). Changer ensuite le statut d'un document depuis la fiche : le dossier reste `TO_PROCESS`. Côté locataire : encart « demande en cours » |
 | C3 | Métriques | Répartition `validation_requested` sur la cohorte assignée ; comptage des logs |
 | C4 | Partenaires | `callback_log.tenant_status = COMPLETED` uniquement pour des `partner_id` de partenaires ayant intégré COMPLETED ; API DFC : jamais COMPLETED dans les payloads d'un partenaire n'ayant pas intégré COMPLETED |
 | C5 | ELK | Aucune occurrence de « Defensive status masking triggered » |

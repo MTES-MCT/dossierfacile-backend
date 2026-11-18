@@ -5,7 +5,7 @@ import fr.dossierfacile.common.entity.UserApi;
 
 /**
  * Switch-back of a COMPLETED dossier to the operator queue, shared by every
- * switch-back path (partner link, BO rollback).
+ * switch-back path (partner link, BO rollback, BO support action).
  */
 public interface CompletedDossierService {
 
@@ -19,4 +19,14 @@ public interface CompletedDossierService {
      *                template mentions it, so no mail is sent when null (BO rollback)
      */
     void switchBackToProcessing(Tenant tenant, UserApi userApi);
+
+    /**
+     * BO support action: sends a COMPLETED dossier to the operator queue on behalf
+     * of the tenant. Same switch as {@link #switchBackToProcessing}, plus
+     * validationRequested = true so that the dossier stays in the queue across
+     * status recomputations. No mail. No-op when the dossier is not COMPLETED.
+     *
+     * @param operatorId the support operator, recorded on the tenant log
+     */
+    void forceOperatorReview(Tenant tenant, Long operatorId);
 }

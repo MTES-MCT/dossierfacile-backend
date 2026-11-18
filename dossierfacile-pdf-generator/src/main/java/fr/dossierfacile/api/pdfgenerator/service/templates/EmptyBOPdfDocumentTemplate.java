@@ -2,10 +2,7 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import fr.dossierfacile.api.pdfgenerator.repository.GuarantorRepository;
 import fr.dossierfacile.api.pdfgenerator.repository.TenantRepository;
-import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
-import fr.dossierfacile.api.pdfgenerator.util.Fonts;
-import fr.dossierfacile.api.pdfgenerator.util.Utility;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
@@ -15,140 +12,99 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
-import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.DOCUMENT_FINANCIAL;
-import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.DOCUMENT_TAX;
-
+/**
+ * Builds the PDF that stands for a document the tenant or the guarantor cannot provide: a sworn statement rendered by
+ * {@link AttestationPdfTemplate}.
+ * The statement is always a fixed sentence. The text typed by the tenant is only printed below it, as an explanation.
+ */
 @Service
 @AllArgsConstructor
 @Slf4j
 public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
 
+    // Sentence sent by the tenant front for OTHER_RESIDENCY: the attestation states it in the first person instead
+    static final String FRONT_OTHER_RESIDENCY_TEXT = "Le candidat indique qu'il n'est pas en mesure de fournir de quittance de logement pour ces 3 derniers mois";
+    // Value sent by the tenant front when an optional explanation is left empty
+    private static final String EMPTY_EXPLANATION = "-";
+
     private final Locale locale = LocaleContextHolder.getLocale();
     private final MessageSource messageSource;
     private final TenantRepository tenantRepository;
     private final GuarantorRepository guarantorRepository;
-    private final PdfSignatureService pdfSignatureService;
+    private final AttestationPdfTemplate attestationPdfTemplate;
 
     @Override
     public InputStream render(Document document) throws Exception {
-        return new ByteArrayInputStream(createPdfFromTemplate(document).toByteArray());
+        return attestationPdfTemplate.render(toAttestation(document));
     }
 
-    private ByteArrayOutputStream createPdfFromTemplate(Document document) throws Exception {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        PdfFileTemplate pdfTemplate = null;
-        String name = getPersonName(document);
-        PdfTextElements textElements = new PdfTextElements(name);
+    private AttestationContent toAttestation(Document document) {
         DocumentCategory documentCategory = document.getDocumentCategory();
         if (documentCategory == DocumentCategory.FINANCIAL) {
-            pdfTemplate = DOCUMENT_FINANCIAL;
-            textElements.addTextToHeader(messageSource.getMessage("tenant.document.financial.justification.nodocument", null, locale));
-            textElements.addExplanation(document.getCustomText());
-        } else if (documentCategory == DocumentCategory.RESIDENCY) {
-            if (document.getDocumentSubCategory() != DocumentSubCategory.OTHER_RESIDENCY) {
-                textElements.addTextToHeader(messageSource.getMessage("tenant.document.residency.justification.nodocument", null, locale));
-            }
-            textElements.addExplanation(document.getCustomText());
-        } else { //DocumentCategory.TAX
-            pdfTemplate = DOCUMENT_TAX;
-            if (document.getDocumentSubCategory() == DocumentSubCategory.MY_PARENTS) {
-                textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.parents", null, locale));
-            } else if (document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_NO_DECLARATION) {
-                textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.nodeclaration", null, locale));
-            } else if (document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_NOT_RECEIVED) {
-                textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.notreceived", null, locale));
-            } else { //DocumentSubCategory.OTHER_TAX
-                textElements.addExplanation(document.getCustomText());
-            }
+            return financialAttestation(document);
         }
-
-        try (PDDocument pdDocument = loadTemplate(pdfTemplate)) {
-
-            PDType0Font font = Fonts.ARIAL_NOVA_LIGHT.load(pdDocument);
-            PDType0Font alternativeFont = Fonts.NOTO_EMOJI_MEDIUM.load(pdDocument);
-            PDPage pdPage = getFirstPage(pdDocument);
-            PDPageContentStream contentStream = new PDPageContentStream(pdDocument, pdPage, PDPageContentStream.AppendMode.APPEND, true, true);
-            contentStream.setNonStrokingColor(74 / 255.0F, 144 / 255.0F, 226 / 255.0F);
-            float fontSize = 11;
-            float leading = 1.5f * fontSize;
-            float marginY = 360;
-            float marginX = 60;
-            PDRectangle mediaBox = pdPage.getMediaBox();
-            float width = mediaBox.getWidth() - 2 * marginX;
-            float startX = mediaBox.getLowerLeftX() + marginX;
-            float startY = mediaBox.getUpperRightY() - marginY;
-
-            contentStream.setLeading(leading);
-
-            if (documentCategory == DocumentCategory.TAX) {
-                fontSize = 16;
-                leading = 1.5f * fontSize;
-                startY = mediaBox.getUpperRightY() - 200;
-                contentStream.setLeading(leading);
-                contentStream.setNonStrokingColor(0, 0, 0);
-                String today = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                String header = messageSource.getMessage("tenant.document.tax.justification.certify", new String[]{name}, locale);
-                Utility.addText(contentStream, width, startX, startY, header, font, fontSize, alternativeFont);
-
-                float headerToExplanation = leading + 12;
-                float explanationToDate = leading + 12;
-                float dateToSignature = leading + 12;
-                float signatureToName = leading;
-
-                float explanationY = startY - headerToExplanation;
-                Utility.addText(contentStream, width, startX, explanationY, textElements.explanation, font, fontSize, alternativeFont);
-
-                int explanationLines = Utility.countLines(textElements.explanation, width, font, fontSize, alternativeFont);
-                float explanationBottomY = explanationY - explanationLines * leading;
-
-                float dateY = explanationBottomY - explanationToDate;
-                float signatureY = dateY - dateToSignature;
-                float nameY = signatureY - signatureToName;
-
-                Utility.addText(contentStream, width, startX, dateY, String.format("Fait le %s", today), font, fontSize, alternativeFont);
-                Utility.addText(contentStream, width, startX, signatureY, "Signature", font, fontSize, alternativeFont);
-                Utility.addText(contentStream, width, startX, nameY, name, font, fontSize, alternativeFont);
-            } else {
-                Utility.addText(contentStream, width, startX, startY, textElements.header, font, fontSize, alternativeFont);
-                Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);
-            }
-
-            contentStream.close();
-            pdfSignatureService.signAndSave(pdDocument, outputStream);
-
-        } catch (Exception e) {
-            log.error("Error on pdf creation", e);
-            throw e;
+        if (documentCategory == DocumentCategory.RESIDENCY) {
+            return residencyAttestation(document);
         }
-        return outputStream;
+        return taxAttestation(document);
     }
 
-    private PDDocument loadTemplate(PdfFileTemplate pdfTemplate) throws IOException {
-        return pdfTemplate != null ? pdfTemplate.load() : new PDDocument();
+    private AttestationContent taxAttestation(Document document) {
+        if (document.getDocumentSubCategory() == DocumentSubCategory.MY_PARENTS) {
+            return attestation(document, "document.attestation.tax.parents", null);
+        }
+        if (document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_NO_DECLARATION) {
+            return attestation(document, "document.attestation.tax.nodeclaration", null);
+        }
+        if (document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_NOT_RECEIVED) {
+            return attestation(document, "document.attestation.tax.notreceived", null);
+        }
+        return attestation(document, "document.attestation.tax.other", document.getCustomText());
     }
 
-    private PDPage getFirstPage(PDDocument pdDocument) {
-        if (pdDocument.getNumberOfPages() == 0) {
-            pdDocument.addPage(new PDPage());
+    private AttestationContent financialAttestation(Document document) {
+        if (document.getDocumentSubCategory() == DocumentSubCategory.NO_INCOME) {
+            return attestation(document, "document.attestation.financial.noincome", document.getCustomText());
         }
-        return pdDocument.getPage(0);
+        return attestation(document, "document.attestation.fallback", document.getCustomText());
+    }
+
+    private AttestationContent residencyAttestation(Document document) {
+        if (isFrontOtherResidencyText(document.getCustomText())) {
+            return attestation(document, "document.attestation.residency.other", null);
+        }
+        return attestation(document, "document.attestation.residency.noproof", document.getCustomText());
+    }
+
+    private static boolean isFrontOtherResidencyText(String customText) {
+        if (customText == null) {
+            return false;
+        }
+        String text = StringUtils.normalizeSpace(customText).replace('’', '\'');
+        if (text.endsWith(".")) {
+            text = text.substring(0, text.length() - 1).trim();
+        }
+        return FRONT_OTHER_RESIDENCY_TEXT.equalsIgnoreCase(text);
+    }
+
+    private AttestationContent attestation(Document document, String statementCode, String explanation) {
+        String normalizedExplanation = StringUtils.normalizeSpace(explanation);
+        if (EMPTY_EXPLANATION.equals(normalizedExplanation)) {
+            normalizedExplanation = null;
+        }
+        String statement = messageSource.getMessage(statementCode, null, locale);
+        String personName = StringUtils.normalizeSpace(getPersonName(document));
+        if (StringUtils.isBlank(personName)) {
+            log.warn("The attestation of document {} has no name", document.getId());
+        }
+        return new AttestationContent(personName, statement, normalizedExplanation);
     }
 
     private String getPersonName(Document document) {
@@ -156,25 +112,6 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
         return tenantRepository.getTenantByDocumentId(documentId).map(Tenant::getFullName)
                 .orElseGet(() -> guarantorRepository.getGuarantorByDocumentId(documentId).map(Guarantor::getCompleteName).orElse("")
                 );
-    }
-
-    private static final class PdfTextElements {
-
-        private String header;
-        private String explanation;
-
-        public PdfTextElements(String personName) {
-            header = StringUtils.normalizeSpace(personName) + " ";
-        }
-
-        void addTextToHeader(String text) {
-            header += StringUtils.normalizeSpace(text);
-        }
-
-        void addExplanation(String text) {
-            explanation = StringUtils.normalizeSpace(text);
-        }
-
     }
 
 }

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Démo DossierFacileConnect</title>
+</head>
+<body>
+    <h1>Demo partenaire</h1>
+    <div>Ce site de démonstration va vous permettre de visualiser le flow DossierFacileConnect</div>
+    <div>Il vous permet également de voir le contenu des webhooks qui sont envoyés.</div>
+    <div>
+        <a th:href="@{/connection-dfc}"> Se connecter avec DFC </a>
+    </div>
+    <div>
+        <a th:href="@{/display-webhook}"> Voir le resultat des webhook</a>
+    </div>
+    <div>Une fois le dossier du locataire complété, vous pouvez demander une validation(ou refus) du dossier à votre contact DossierFacile</div>
+</body>
+</html>

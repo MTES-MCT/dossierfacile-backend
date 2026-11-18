@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Démo DossierFacileConnect - Webhooks</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+        td.body {
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>Affichage des notifications reçues (Webhook)</h1>
+    <table>
+        <tr><th>Date de Réception</th><th>Contenu</th></tr>
+        <tr th:each="webhook : ${webhooks}">
+            <td th:text="${webhook.createdDate}"></td>
+            <td class="body" th:text="${webhook.body}"></td>
+        </tr>
+    </table>
+    <br/>
+    <a th:href="@{/}">Revenir à l'accueil</a>
+</body>
+</html>

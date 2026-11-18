@@ -25,6 +25,7 @@ Le repo héberge aussi **FiligraneFacile**, sous-produit exposant aux usagers un
 | `dossierfacile-pdf-generator` | Service de génération PDF (fusion, filigrane) |
 | `dossierfacile-task-scheduler` | Tâches planifiées |
 | `dossierfacile-document-analysis` | Package contenant les règles d'analyse de documents |
+| `dossierfacile-dfc-demo` | Démo partenaire DossierFacile Connect (flux OIDC manuel + réception des webhooks), consommateur de référence de l'API `DFC`, volontairement indépendante de `dossierfacile-common-library` |
 
 Build : `mvn clean install`. Dev : `mvn spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh` par module.
 

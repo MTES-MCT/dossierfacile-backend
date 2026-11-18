@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Démo DossierFacileConnect - Erreur</title>
+</head>
+<body>
+    <h1>Erreur pendant le flow DossierFacileConnect</h1>
+    <div>Étape en échec : <code th:text="${step}"></code></div>
+    <div th:if="${status != null}">Statut HTTP renvoyé : <code th:text="${status}"></code></div>
+    <div>Réponse brute :</div>
+    <pre th:text="${responseBody}"></pre>
+    <a th:href="@{/}">Revenir à l'accueil</a>
+</body>
+</html>
