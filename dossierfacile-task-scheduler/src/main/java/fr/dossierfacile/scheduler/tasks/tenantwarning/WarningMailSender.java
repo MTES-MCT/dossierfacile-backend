@@ -66,7 +66,19 @@ public class WarningMailSender {
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
         variables.put("TENANT_ID", user.getId().toString());
-        sendWarningMail(user, templateId, variables);
+        try {
+            sendWarningMail(user, templateId, variables);
+        } catch (ApiException e) {
+            if (isTransient(e)) {
+                // Propagate so that the tenant is not marked as warned and the email is retried on the next run
+                throw new TransientMailDeliveryException(
+                        "Brevo temporarily failed to send warning template " + templateId + " to tenant " + user.getId()
+                                + " (httpCode " + e.getCode() + "): " + describeCause(e),
+                        e.getCode(), e);
+            }
+            // Permanent error (invalid recipient, template, API key...): retrying would fail again
+            logBrevoApiError("sendWarningMail", user.getEmail(), templateId, e);
+        }
     }
 
     private void sendOwnerWarningMail(User user, ConfirmationToken confirmationToken, Long templateId) {
@@ -75,10 +87,28 @@ public class WarningMailSender {
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(OWNER_BASE_URL_KEY, ownerBaseUrl);
-        sendWarningMail(user, templateId, variables);
+        try {
+            sendWarningMail(user, templateId, variables);
+        } catch (ApiException e) {
+            logBrevoApiError("sendWarningMail", user.getEmail(), templateId, e);
+        }
     }
 
-    private void sendWarningMail(User user, Long templateId, Map<String, String> variables) {
+    /**
+     * A failure is transient when Brevo did not answer (network error or timeout, httpCode 0),
+     * rate limited the call (429) or failed on its side (5xx).
+     */
+    static boolean isTransient(ApiException e) {
+        int code = e.getCode();
+        return code == 0 || code == 429 || code >= 500;
+    }
+
+    private static String describeCause(ApiException e) {
+        Throwable cause = e.getCause() != null ? e.getCause() : e;
+        return cause.getClass().getSimpleName() + ": " + cause.getMessage();
+    }
+
+    private void sendWarningMail(User user, Long templateId, Map<String, String> variables) throws ApiException {
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -91,11 +121,7 @@ public class WarningMailSender {
         sendSmtpEmail.params(variables);
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            logBrevoApiError("sendWarningMail", user.getEmail(), templateId, e);
-        }
+        apiInstance.sendTransacEmail(sendSmtpEmail);
     }
 
     public void sendEmailFirstWarningForDeletionOfOwner(User user, ConfirmationToken confirmationToken) {

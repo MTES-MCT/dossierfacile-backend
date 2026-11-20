@@ -5,16 +5,15 @@ import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -27,7 +26,7 @@ import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS_2;
 @RequiredArgsConstructor
 public class TenantWarningTask extends AbstractTask {
 
-    private static final int PAGE_SIZE = 100;
+    static final int PAGE_SIZE = 100;
 
     @Value("${days_for_deletion_of_documents:45}")
     private Integer daysForDeletionOfDocuments;
@@ -60,20 +59,18 @@ public class TenantWarningTask extends AbstractTask {
             List<Long> tenantIds = new ArrayList<>();
 
             // Path 1: tenants with documents who went through both warnings
-            Page<Tenant> firstPage = tenantRepository.findInactiveTenantsWithDocuments(
-                    pageRequest(), limitDate, 2);
-            log.info("Found {} tenants with documents to archive", firstPage.getTotalElements());
-            processTenants(firstPage,
-                    pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 2),
+            log.info("Found {} tenants with documents to archive",
+                    tenantRepository.countInactiveTenantsWithDocuments(limitDate, 2));
+            processTenants(
+                    beforeId -> tenantRepository.findInactiveTenantsWithDocuments(limitDate, 2, beforeId, batch()),
                     this::tryArchiveTenant,
                     tenantIds);
 
             // Path 2: tenants without documents — archived directly without prior warnings
-            Page<Tenant> firstPageNoDocs = tenantRepository.findInactiveTenantsWithoutDocuments(
-                    pageRequest(), limitDate);
-            log.info("Found {} tenants without documents to archive silently", firstPageNoDocs.getTotalElements());
-            processTenants(firstPageNoDocs,
-                    pageable -> tenantRepository.findInactiveTenantsWithoutDocuments(pageable, limitDate),
+            log.info("Found {} tenants without documents to archive silently",
+                    tenantRepository.countInactiveTenantsWithoutDocuments(limitDate));
+            processTenants(
+                    beforeId -> tenantRepository.findInactiveTenantsWithoutDocuments(limitDate, beforeId, batch()),
                     this::tryArchiveTenant,
                     tenantIds);
 
@@ -88,17 +85,9 @@ public class TenantWarningTask extends AbstractTask {
     private void processSecondWarnings(LocalDateTime limitDate) {
         super.startTask(TENANT_WARNINGS_2);
         try {
-            List<Long> tenantIds = new ArrayList<>();
-            Page<Tenant> firstPage = tenantRepository.findInactiveTenantsWithDocuments(
-                    pageRequest(), limitDate, 1);
-            log.info("Found {} tenants who will be warned for the SECOND time by email", firstPage.getTotalElements());
-
-            processTenants(firstPage,
-                    pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 1),
-                    t -> tryHandleWarning(t, tenantWarningService::sendSecondWarning),
-                    tenantIds);
-
-            countTenantIdForLogging(tenantIds);
+            log.info("Found {} tenants who will be warned for the SECOND time by email",
+                    tenantRepository.countInactiveTenantsWithDocuments(limitDate, 1));
+            processWarnings(limitDate, 1, tenantWarningService::sendSecondWarning);
         } catch (Exception e) {
             log.error("Error during tenant second warning task: {}", e.getMessage(), e);
         } finally {
@@ -109,17 +98,9 @@ public class TenantWarningTask extends AbstractTask {
     private void processFirstWarnings(LocalDateTime limitDate) {
         super.startTask(TENANT_WARNINGS_1);
         try {
-            List<Long> tenantIds = new ArrayList<>();
-            Page<Tenant> firstPage = tenantRepository.findInactiveTenantsWithDocuments(
-                    pageRequest(), limitDate, 0);
-            log.info("Found {} tenants who will be warned for the FIRST time by email", firstPage.getTotalElements());
-
-            processTenants(firstPage,
-                    pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 0),
-                    t -> tryHandleWarning(t, tenantWarningService::sendFirstWarning),
-                    tenantIds);
-
-            countTenantIdForLogging(tenantIds);
+            log.info("Found {} tenants who will be warned for the FIRST time by email",
+                    tenantRepository.countInactiveTenantsWithDocuments(limitDate, 0));
+            processWarnings(limitDate, 0, tenantWarningService::sendFirstWarning);
         } catch (Exception e) {
             log.error("Error during tenant first warning task: {}", e.getMessage(), e);
         } finally {
@@ -128,24 +109,48 @@ public class TenantWarningTask extends AbstractTask {
     }
 
     /**
-     * Iterates over all pages of tenants, filters those with a non-blank email,
-     * collects their IDs and applies the given action to each one.
+     * Sends the warning to every eligible tenant.
+     * A transient Brevo failure only logs a WARN: the tenant is not marked as warned and is retried on the next run.
+     * The run logs an ERROR (and therefore alerts) only when every email failed, i.e. Brevo looks down:
+     * otherwise a lasting outage would go unnoticed while no tenant is warned nor archived anymore.
      */
-    private void processTenants(Page<Tenant> firstPage,
-            Function<Pageable, Page<Tenant>> nextPageFn,
+    private void processWarnings(LocalDateTime limitDate, int currentWarnings, Consumer<Tenant> warningAction) {
+        List<Long> tenantIds = new ArrayList<>();
+        AtomicInteger sentMails = new AtomicInteger();
+        AtomicInteger failedMails = new AtomicInteger();
+
+        processTenants(
+                beforeId -> tenantRepository.findInactiveTenantsWithDocuments(limitDate, currentWarnings, beforeId, batch()),
+                tenant -> tryHandleWarning(tenant, warningAction, sentMails, failedMails),
+                tenantIds);
+
+        countTenantIdForLogging(tenantIds);
+        if (failedMails.get() > 0 && sentMails.get() == 0) {
+            log.error("Brevo looks unavailable: all {} warning emails failed, these tenants will be warned on the next run",
+                    failedMails.get());
+        } else if (failedMails.get() > 0) {
+            log.warn("{} warning emails failed transiently and will be retried on the next run", failedMails.get());
+        }
+    }
+
+    /**
+     * Iterates over all tenants returned by the batch query, using keyset pagination on the id
+     * so that tenants leaving the result set once processed do not shift the next batches.
+     */
+    private void processTenants(Function<Long, List<Tenant>> nextBatchBeforeId,
             Consumer<Tenant> action,
             List<Long> ids) {
-        Page<Tenant> currentPage = firstPage;
+        long beforeId = Long.MAX_VALUE;
         while (true) {
-            currentPage.stream()
-                    .forEach(tenant -> {
-                        ids.add(tenant.getId());
-                        action.accept(tenant);
-                    });
-            if (!currentPage.hasNext()) {
-                break;
+            List<Tenant> batch = nextBatchBeforeId.apply(beforeId);
+            batch.forEach(tenant -> {
+                ids.add(tenant.getId());
+                action.accept(tenant);
+            });
+            if (batch.size() < PAGE_SIZE) {
+                return;
             }
-            currentPage = nextPageFn.apply(currentPage.nextPageable());
+            beforeId = batch.getLast().getId();
         }
     }
 
@@ -157,15 +162,21 @@ public class TenantWarningTask extends AbstractTask {
         }
     }
 
-    private void tryHandleWarning(Tenant tenant, Consumer<Tenant> warningAction) {
+    private void tryHandleWarning(Tenant tenant, Consumer<Tenant> warningAction,
+            AtomicInteger sentMails, AtomicInteger failedMails) {
         try {
             warningAction.accept(tenant);
+            sentMails.incrementAndGet();
+        } catch (TransientMailDeliveryException e) {
+            failedMails.incrementAndGet();
+            log.warn("Warning email not sent to tenant [{}], it will be retried on the next run: {}",
+                    tenant.getId(), e.getMessage());
         } catch (Exception e) {
             log.error("Error while processing warning for tenant [{}]: {}", tenant.getId(), e.getMessage(), e);
         }
     }
 
-    private Pageable pageRequest() {
-        return PageRequest.of(0, PAGE_SIZE, Sort.Direction.DESC, "id");
+    private static Pageable batch() {
+        return PageRequest.of(0, PAGE_SIZE);
     }
 }
