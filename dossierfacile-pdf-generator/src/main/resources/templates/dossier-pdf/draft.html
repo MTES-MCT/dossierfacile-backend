@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Draft of a dossier PDF. DossierPdfMeasurer lays it out to read the dimensions of the blocks, and never prints it.
+    It must only use the fragments of the final PDF, with empty columns and no images.
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Brouillon</title>
+    <link rel="stylesheet" href="res:dossier.css"/>
+</head>
+<body class="draft">
+
+<!-- Cover, for each size of the names -->
+<th:block th:each="size : ${namesSizes}"><div th:replace="~{fragments :: cover(${m}, ${size}, ${emptySummary})}"></div></th:block>
+
+<!-- "Sommaire, suite" page, then one page per person -->
+<div th:replace="~{fragments :: summaryPage(${m}, ${emptySummary})}"></div>
+<th:block th:each="summary : ${personSummaries}"><div th:replace="~{fragments :: summaryPage(${m}, ${summary})}"></div></th:block>
+
+<!-- Piece page, for each title -->
+<th:block th:each="title : ${pieceTitles}"><div th:replace="~{fragments :: piece(${m}, ${title}, null, null)}"></div></th:block>
+
+</body>
+</html>

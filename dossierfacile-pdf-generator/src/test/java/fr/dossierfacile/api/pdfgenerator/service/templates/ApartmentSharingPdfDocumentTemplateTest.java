@@ -5,6 +5,7 @@ import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharin
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
 import org.assertj.core.api.Assertions;
@@ -36,6 +37,9 @@ public class ApartmentSharingPdfDocumentTemplateTest {
     private LogAggregator logAggregator;
     @MockitoBean
     private MailCommonService mailCommonService;
+    // H2 cannot create the tenant_log table, because of its jsonb column.
+    @MockitoBean
+    private TenantLogRepository tenantLogRepository;
     @Autowired
     private ApartmentSharingPdfDocumentTemplate pdfService;
 

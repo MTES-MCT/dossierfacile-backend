@@ -18,6 +18,7 @@
 		<!--PDF generation libraries-->
 		<metadata.extractor.version>2.19.0</metadata.extractor.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
+		<openhtmltopdf.version>1.1.105</openhtmltopdf.version>
 	</properties>
 
 	<dependencyManagement>
@@ -143,6 +144,28 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
 			<version>${tika.version}</version>
+		</dependency>
+
+		<!-- Dossier PDF rendered from HTML templates -->
+		<dependency>
+			<groupId>io.github.openhtmltopdf</groupId>
+			<artifactId>openhtmltopdf-pdfbox</artifactId>
+			<version>${openhtmltopdf.version}</version>
+		</dependency>
+		<!-- Aligned on the PDFBox version used by the rest of the project -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>xmpbox</artifactId>
+			<version>${pdfbox.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.thymeleaf</groupId>
+			<artifactId>thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.23.1</version>
 		</dependency>
 	</dependencies>
 

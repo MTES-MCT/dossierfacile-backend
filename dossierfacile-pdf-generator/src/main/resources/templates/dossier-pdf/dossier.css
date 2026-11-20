@@ -1,0 +1,771 @@
+/*
+ * This stylesheet lays out the dossier PDF. openhtmltopdf renders it with CSS 2.1 and paged media, without flexbox or grid.
+ * The sizes come from the Figma "PDF dossier v3", where an A4 page is 595 x 842 pt.
+ *
+ * There are two page types:
+ * - the default page is for the cover, "Sommaire, suite" and the statuses, and their header is in the flow;
+ * - the "clarification" and "piece" pages have a short header with the status band, in the page margin.
+ *
+ * DossierPdfMeasurer lays out a draft with this stylesheet and finds the blocks by these classes: cover, band-title-names,
+ * summary-page, column, person, person-role, piece-line, piece, frame and piece-image. No dimension exists in Java.
+ */
+
+@page {
+    size: 595pt 842pt;
+    margin: 10pt 20pt 58pt 20pt;
+    font-family: Marianne, "Noto Emoji";
+
+    @bottom-center {
+        content: element(footer);
+        vertical-align: bottom;
+    }
+}
+
+@page clarification {
+    margin-top: 120pt;
+
+    @top-center {
+        content: element(dossierHeader);
+        vertical-align: top;
+    }
+}
+
+@page piece {
+    margin-top: 120pt;
+    margin-bottom: 56pt;
+
+    @top-center {
+        content: element(pieceHeader);
+        vertical-align: top;
+    }
+}
+
+* {
+    font-family: Marianne, "Noto Emoji";
+}
+
+body {
+    margin: 0;
+    color: #161616;
+    font-size: 9pt;
+    line-height: 1.2;
+}
+
+h1, h2, p, ul, li {
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    font-weight: normal;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    color: #000091;
+    text-decoration: none;
+}
+
+strong {
+    font-weight: bold;
+}
+
+/* A name or an email without any space still fits its block. */
+.band-title-names, .dossier-of, .frame-title, .person-role, .person-name, .person-email {
+    word-wrap: break-word;
+}
+
+/* The @page rules move these running elements to the page margins. */
+
+.running-dossier-header {
+    position: running(dossierHeader);
+}
+
+.running-piece-header {
+    position: running(pieceHeader);
+}
+
+.running-footer {
+    position: running(footer);
+}
+
+.page-header {
+    padding-top: 10pt;
+}
+
+/* Brand block. It shows the Marianne, "République française" and the motto, then the service name. */
+
+.brand {
+    display: table;
+}
+
+.brand-mark, .brand-service {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.brand-mark img {
+    display: block;
+}
+
+.marianne {
+    width: 33pt;
+    height: 12pt;
+}
+
+.devise {
+    width: 32pt;
+    height: 22pt;
+}
+
+.brand-republique span {
+    display: block;
+}
+
+.brand-republique {
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06pt;
+}
+
+.brand-name {
+    color: #161616;
+}
+
+.brand-tagline {
+    color: #3a3a3a;
+}
+
+.brand-large .brand-mark {
+    padding: 8pt 0 8pt 8pt;
+}
+
+.brand-large .brand-republique {
+    margin: 4pt 0;
+    font-size: 10pt;
+    line-height: 12pt;
+}
+
+.brand-large .brand-service {
+    padding-left: 20pt;
+}
+
+.brand-large .brand-name {
+    font-size: 16pt;
+}
+
+.brand-large .brand-tagline {
+    font-size: 12pt;
+    line-height: 20pt;
+}
+
+.brand-small .brand-mark {
+    padding: 2pt 0 2pt 2pt;
+}
+
+.brand-small .brand-republique {
+    margin: 3pt 0;
+    font-size: 8pt;
+    line-height: 10pt;
+}
+
+.brand-small .brand-service {
+    padding-left: 12pt;
+}
+
+.brand-small .brand-name {
+    font-size: 12pt;
+}
+
+.brand-small .brand-tagline {
+    font-size: 9pt;
+}
+
+/* Status band */
+
+.band {
+    background-color: #ececfe;
+    border-top: 1pt solid #3a3a3a;
+    border-bottom: 1pt solid #3a3a3a;
+    text-align: center;
+}
+
+.band-icon {
+    vertical-align: middle;
+}
+
+.band-status {
+    color: #000091;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.band-mention {
+    color: #3a3a3a;
+    font-size: 9pt;
+}
+
+.band-large {
+    margin-top: 8pt;
+    padding: 5pt 12pt;
+}
+
+.band-large-status {
+    height: 25pt;
+    line-height: 25pt;
+}
+
+.band-large .band-icon {
+    width: 18pt;
+    height: 18pt;
+}
+
+.band-large .band-status {
+    font-size: 18pt;
+    letter-spacing: 0.427pt;
+}
+
+.band-large .band-mention {
+    margin-top: 6pt;
+    line-height: 12pt;
+}
+
+.band-title {
+    margin-top: 6pt;
+    font-weight: bold;
+    line-height: 22pt;
+}
+
+.band-title-intro, .band-title-names {
+    display: block;
+}
+
+.band-title-names {
+    padding: 0 10pt;
+}
+
+/* DossierPdfLayout chooses the largest of these sizes that fits the names on two lines. */
+
+.names-large {
+    font-size: 16pt;
+    line-height: 22pt;
+}
+
+.names-medium {
+    font-size: 14pt;
+    line-height: 19pt;
+}
+
+.names-small {
+    font-size: 12pt;
+    line-height: 17pt;
+}
+
+.band-title-intro {
+    font-size: 13pt;
+    font-weight: normal;
+}
+
+.band-small {
+    margin-top: 6pt;
+    padding: 5pt 12pt;
+}
+
+.summary-page .band-small {
+    margin-top: 8pt;
+}
+
+.band-small-row {
+    display: table;
+    height: 22pt;
+    margin: 0 auto;
+}
+
+.band-small-row span, .band-small-row strong {
+    display: table-cell;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.band-small .band-icon {
+    display: block;
+    width: 16pt;
+    height: 16pt;
+}
+
+.band-small .band-status {
+    padding: 0 4pt 0 3pt;
+    font-size: 14pt;
+}
+
+.band-statuses {
+    margin-top: 6pt;
+    height: 44pt;
+    border-top: 1pt solid #161616;
+    border-bottom: 1pt solid #161616;
+    line-height: 44pt;
+    text-align: center;
+}
+
+.band-statuses img {
+    width: 20pt;
+    height: 19pt;
+    vertical-align: middle;
+}
+
+.band-statuses span {
+    padding-left: 6pt;
+    color: #3a3a3a;
+    font-size: 14pt;
+    font-weight: bold;
+    letter-spacing: 0.56pt;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+/* The "Le dossier de CAMILLE LEFÈVRE" line */
+
+.dossier-of {
+    font-size: 8pt;
+    line-height: 10pt;
+    letter-spacing: 0.06pt;
+}
+
+.dossier-of strong {
+    text-transform: uppercase;
+}
+
+.summary-page .dossier-of {
+    margin-top: 8pt;
+}
+
+.summary-continued {
+    height: 15pt;
+    margin-top: 8pt;
+    line-height: 15pt;
+    color: #000091;
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+/* The draft has one cover per size of the names. */
+.draft .cover {
+    page-break-after: always;
+}
+
+/* Cover, list of the checks */
+
+.controls {
+    height: 102pt;
+    margin-top: 8pt;
+    padding-left: 8pt;
+    border-left: 2pt solid #000091;
+}
+
+.controls-intro {
+    font-size: 11pt;
+    line-height: 20pt;
+}
+
+/* The checks are two lists side by side. openhtmltopdf lays out floats badly, and it would no longer tag
+   inline blocks or columns as list items. */
+.checks {
+    display: table;
+    width: 100%;
+    margin-top: 3pt;
+}
+
+.checks ul {
+    display: table-cell;
+    width: 50%;
+}
+
+.checks li {
+    padding-bottom: 1pt;
+    line-height: 17.5pt;
+}
+
+.checks img {
+    width: 13.89pt;
+    height: 13pt;
+    margin-right: 5pt;
+    vertical-align: -3pt;
+}
+
+.controls-disclaimer {
+    margin-top: 3pt;
+    color: #3a3a3a;
+    font-weight: bold;
+    line-height: 18pt;
+}
+
+.controls-link {
+    margin-top: 3pt;
+    color: #3a3a3a;
+    line-height: 18pt;
+}
+
+.see-page::after {
+    content: target-counter(attr(href), page);
+}
+
+/* Cover, key figures */
+
+.recap {
+    display: table;
+    width: 100%;
+    margin-top: 8pt;
+}
+
+.recap-card {
+    display: table-cell;
+    width: 163pt;
+    padding: 8pt;
+    border: 1pt solid #dddddd;
+    vertical-align: middle;
+}
+
+.recap-spacer {
+    display: table-cell;
+    width: 6pt;
+}
+
+.recap-label {
+    color: #3a3a3a;
+    font-size: 8pt;
+    line-height: 11pt;
+}
+
+.recap-value {
+    margin-top: 3pt;
+    color: #000091;
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: 15pt;
+    white-space: nowrap;
+}
+
+.recap-detail {
+    color: #3a3a3a;
+    font-size: 8pt;
+    font-weight: normal;
+}
+
+/* Summary. SummaryLayout chooses the content of its two columns. A frame cut between two columns stays open at the cut. */
+
+.summary {
+    display: table;
+    width: 555pt;
+    padding-top: 8pt;
+    border-collapse: separate;
+}
+
+.summary-cell {
+    display: table-cell;
+    width: 272.5pt;
+    vertical-align: top;
+}
+
+.summary-gap {
+    display: table-cell;
+    width: 10pt;
+}
+
+.column {
+    padding: 8pt;
+    border: 1pt solid #e3e3fd;
+}
+
+.column-open-top {
+    border-top-color: #ffffff;
+}
+
+.column-open-bottom {
+    border-bottom-color: #ffffff;
+}
+
+.person {
+    padding-top: 12pt;
+}
+
+.person-first {
+    padding-top: 0;
+}
+
+.person-role {
+    font-size: 9pt;
+    line-height: 12pt;
+}
+
+.person-candidate .person-role {
+    color: #000091;
+    font-size: 12pt;
+    font-weight: bold;
+    line-height: 17pt;
+}
+
+.person-name {
+    margin-top: 3pt;
+    padding-bottom: 2pt;
+    border-bottom: 1pt solid #dddddd;
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: 15pt;
+}
+
+.person-email {
+    margin-top: 3pt;
+    font-size: 8pt;
+    line-height: 11pt;
+}
+
+.pieces {
+    padding-top: 3pt;
+    color: #000000;
+    font-size: 7pt;
+    line-height: 10pt;
+    white-space: nowrap;
+}
+
+.pieces li {
+    padding-top: 3pt;
+}
+
+.piece-page {
+    display: inline-block;
+    width: 23pt;
+    color: #000000;
+}
+
+.piece-page::after {
+    content: target-counter(attr(href), page);
+}
+
+.piece-amount {
+    color: #000091;
+    font-weight: bold;
+}
+
+.summary-page {
+    page-break-before: always;
+}
+
+/* Clarification and piece pages */
+
+.clarification {
+    page: clarification;
+    page-break-before: always;
+}
+
+.piece {
+    page: piece;
+    page-break-before: always;
+}
+
+.frame {
+    padding: 12pt;
+    border: 1pt solid #e3e3fd;
+    border-radius: 2pt;
+}
+
+.frame-title {
+    margin-top: 7pt;
+    padding-bottom: 4pt;
+    border-bottom: 1pt solid #dddddd;
+    color: #000091;
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: 15pt;
+}
+
+.clarification-text {
+    margin-top: 6pt;
+    font-size: 10pt;
+    white-space: pre-line;
+}
+
+/* The height is fixed, so that a piece always fits on one page, whatever the length of the names. */
+.piece .frame {
+    height: 660pt;
+    padding: 2pt 12pt;
+    overflow: hidden;
+}
+
+/* The draft leaves the frame as short as its header. */
+.draft .piece .frame {
+    height: auto;
+}
+
+.piece-image {
+    margin-top: 2pt;
+    text-align: center;
+}
+
+.piece-image img {
+    display: block;
+    margin: 0 auto;
+}
+
+/* Statuses page */
+
+.statuses {
+    page-break-before: always;
+}
+
+.statuses-title {
+    margin-top: 8pt;
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: 24pt;
+}
+
+.status {
+    margin-top: 8pt;
+    padding: 10pt 12pt;
+    border: 1pt solid #dddddd;
+}
+
+.status-current {
+    border-color: #161616;
+}
+
+.status-heading {
+    display: table;
+    width: 100%;
+}
+
+.status-heading .status-title, .status-badge-cell {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.status-badge-cell {
+    text-align: right;
+}
+
+.status-badge {
+    padding: 2pt 7.6pt;
+    border: 1pt solid #161616;
+    font-size: 10.7pt;
+    font-weight: bold;
+}
+
+.status-title {
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: 20pt;
+}
+
+.status-title img {
+    margin-right: 3pt;
+    vertical-align: -3pt;
+}
+
+.status-text {
+    margin-top: 6pt;
+    font-size: 9pt;
+    line-height: 16pt;
+}
+
+.status-text-next {
+    font-size: 9pt;
+    line-height: 16pt;
+}
+
+.contact {
+    display: table;
+    width: 100%;
+    margin-top: 24pt;
+}
+
+.contact-card {
+    display: table-cell;
+    width: 245pt;
+    padding: 10pt 12pt;
+    border: 1pt solid #dddddd;
+    vertical-align: top;
+}
+
+.contact-spacer {
+    display: table-cell;
+    width: 13pt;
+}
+
+.contact-title {
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: 18pt;
+}
+
+.contact-title img {
+    width: 14.28pt;
+    height: 13pt;
+    margin-right: 3pt;
+    vertical-align: -2pt;
+}
+
+.contact-text {
+    margin-top: 6pt;
+    font-size: 9pt;
+    line-height: 14pt;
+}
+
+.contact-link {
+    display: block;
+    margin-top: 6pt;
+    font-size: 11pt;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.feedback {
+    display: table;
+    width: 100%;
+}
+
+.feedback-qr-code, .feedback-text {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.feedback-qr-code {
+    width: 70pt;
+    padding-right: 13pt;
+}
+
+.qr-code {
+    width: 70pt;
+    height: 70pt;
+}
+
+/* Footer */
+
+.footer {
+    display: table;
+    width: 100%;
+    padding-top: 8pt;
+    padding-bottom: 10pt;
+    border-top: 1pt solid #3a3a3a;
+}
+
+.footer-mention {
+    display: table-cell;
+    padding: 6pt;
+    background-color: #ececfe;
+    font-size: 7pt;
+    vertical-align: bottom;
+}
+
+.footer-page {
+    display: table-cell;
+    width: 40pt;
+    font-size: 10pt;
+    font-weight: bold;
+    text-align: right;
+    vertical-align: bottom;
+}
+
+.page-number::after {
+    content: counter(page) "/" counter(pages);
+}

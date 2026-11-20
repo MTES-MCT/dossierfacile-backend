@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The dossier PDF templates share these blocks. -->
+<fragments xmlns:th="http://www.thymeleaf.org">
+
+    <!-- Brand block. The size is "large" on the cover and the summary pages, and "small" on the other pages. -->
+    <div th:fragment="brand(size)" th:class="'brand brand-' + ${size}">
+        <div class="brand-mark">
+            <img class="marianne" src="res:images/marianne.png" alt=""/>
+            <p class="brand-republique"><span>République</span><span>Française</span></p>
+            <img class="devise" src="res:images/devise.png" alt="Liberté, Égalité, Fraternité"/>
+        </div>
+        <div class="brand-service">
+            <p class="brand-name">Dossier<strong>Facile</strong></p>
+            <p class="brand-tagline">Le dossier de location numérique de l'État</p>
+        </div>
+    </div>
+
+    <!-- Short status band of the inner pages -->
+    <div th:fragment="smallBand(status, date)" class="band band-small">
+        <div class="band-small-row">
+            <span class="band-small-icon"><img class="band-icon" src="res:images/shield-blue.png" alt=""/></span>
+            <strong class="band-status" th:text="${status}">DOSSIER VALIDÉ</strong>
+            <span class="band-mention" th:text="|par une personne de l'équipe DossierFacile le ${date}|">par une personne de l'équipe DossierFacile le 6 octobre 2026</span>
+        </div>
+    </div>
+
+    <p th:fragment="dossierOf(names)" class="dossier-of">Le dossier de <strong th:text="${names}">Camille Lefèvre</strong></p>
+
+    <!-- Two columns of the summary. SummaryLayout chooses the content of each column. -->
+    <div th:fragment="summary(page)" class="summary">
+        <div class="summary-cell"><div th:replace="~{fragments :: summaryColumn(${page.left})}"></div></div>
+        <div class="summary-gap"></div>
+        <div class="summary-cell"><th:block th:if="${page.right != null}"><div th:replace="~{fragments :: summaryColumn(${page.right})}"></div></th:block></div>
+    </div>
+
+    <div th:fragment="summaryColumn(column)"
+         th:class="|column${column.openTop ? ' column-open-top' : ''}${column.openBottom ? ' column-open-bottom' : ''}|"
+         th:style="${column.height == null ? null : 'height: ' + column.height + 'pt;'}">
+        <div th:each="block, stat : ${column.blocks}" th:with="person=${block.person}"
+             th:class="|person${person.candidate ? ' person-candidate' : ''}${stat.first ? ' person-first' : ''}|">
+            <p class="person-role">[[${person.role}]]<th:block th:if="${block.continued}">, suite</th:block></p>
+            <p class="person-name" th:text="${person.name}">Camille Lefèvre</p>
+            <p class="person-email" th:if="${person.email != null and !block.continued}">
+                <a th:href="|mailto:${person.email}|" th:title="|Écrire à ${person.name}|" th:text="${person.email}">camille.lefevre@exemple.fr</a>
+            </p>
+            <ul class="pieces" th:if="${!block.lines.isEmpty()}">
+                <li class="piece-line" th:each="line : ${block.lines}">
+                    <a class="piece-page" th:href="|#${line.anchor}|" th:title="|${line.label}, ${person.name}|">p. </a>
+                    <span th:text="${line.label}">Justificatif de ressources</span>
+                    <span th:if="${line.amount != null}"> - <span class="piece-amount" th:text="${line.amount}">3 000 € net</span></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Cover. The page holds the two columns of the summary that it displays. -->
+    <div th:fragment="cover(m, namesSize, page)" class="cover" id="cover">
+        <div th:replace="~{fragments :: brand('large')}"></div>
+        <div class="band band-large">
+            <p class="band-large-status">
+                <img class="band-icon" src="res:images/shield-blue.png" alt=""/>
+                <strong class="band-status">DOSSIER VALIDÉ</strong>
+            </p>
+            <p class="band-mention" th:text="|par une personne de l'équipe DossierFacile le ${m.validationDate}|">par une personne de l'équipe DossierFacile le 6 octobre 2026</p>
+            <h1 class="band-title"><span class="band-title-intro">Dossier de location de</span><span th:class="|band-title-names ${namesSize.cssClass}|"
+                  th:text="${m.names}">Camille Lefèvre, Nadia Colin et Thomas Orio</span></h1>
+        </div>
+
+        <div class="controls">
+            <p class="controls-intro">Une personne de l'équipe DossierFacile a relu chaque pièce de ce dossier. Elle a contrôlé que :</p>
+            <div class="checks">
+                <ul>
+                    <li><img src="res:images/check.png" alt=""/>Les informations correspondent entre les pièces</li>
+                    <li><img src="res:images/check.png" alt=""/>Les dates sont à jour</li>
+                </ul>
+                <ul>
+                    <li><img src="res:images/check.png" alt=""/>Les pièces demandées sont présentes</li>
+                    <li><img src="res:images/check.png" alt=""/>Les pièces sont lisibles</li>
+                </ul>
+            </div>
+            <p class="controls-disclaimer">DossierFacile vérifie la cohérence des pièces entre elles. Il ne certifie pas leur origine, ni la solvabilité des personnes.</p>
+            <p class="controls-link">Comprendre les statuts d'un dossier : <a class="see-page" href="#statuses" title="Comprendre les statuts d'un dossier">voir page </a></p>
+        </div>
+
+        <div class="recap">
+            <div class="recap-card">
+                <p class="recap-label">Type de dossier</p>
+                <p class="recap-value" th:text="${m.candidateCount}">3 candidats</p>
+            </div>
+            <div class="recap-spacer"></div>
+            <div class="recap-card">
+                <p class="recap-label">Revenus mensuels nets cumulés</p>
+                <p class="recap-value" th:text="|${m.totalIncome} cumulés|">9 600 € cumulés</p>
+            </div>
+            <div class="recap-spacer"></div>
+            <div class="recap-card">
+                <p class="recap-label">Garants</p>
+                <p class="recap-value" th:each="g : ${m.guarantorSummaries}">
+                    <span th:text="${g.label}">Trois personnes</span>
+                    <span class="recap-detail" th:if="${g.detail != null}" th:text="${g.detail}">(10 700 € cumulés)</span>
+                </p>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments :: summary(${page})}"></div>
+    </div>
+
+    <!-- "Sommaire, suite" page -->
+    <div th:fragment="summaryPage(m, page)" class="summary-page">
+        <div th:replace="~{fragments :: brand('large')}"></div>
+        <div th:replace="~{fragments :: smallBand('DOSSIER VALIDÉ', ${m.validationDate})}"></div>
+        <p th:replace="~{fragments :: dossierOf(${m.names})}"></p>
+        <h2 class="summary-continued">Sommaire, suite</h2>
+        <div th:replace="~{fragments :: summary(${page})}"></div>
+    </div>
+
+    <!-- Page of a piece. The draft passes no page, to measure the room left for the image. -->
+    <div th:fragment="piece(m, title, page, size)" class="piece" th:id="${page == null ? null : page.anchor}">
+        <div class="frame">
+            <p th:replace="~{fragments :: dossierOf(${m.names})}"></p>
+            <h1 class="frame-title" th:text="${title}">La pièce d'identité de Camille Lefèvre</h1>
+            <div class="piece-image">
+                <!-- With a "page" attribute, the engine inserts that page of a PDF instead of an image. -->
+                <img th:if="${page != null}" th:src="${page.uri}" th:attr="page=${page.pdfPage}" th:alt="${page.alt}"
+                     th:style="|width: ${size.width}pt; height: ${size.height}pt;|" alt=""/>
+            </div>
+        </div>
+    </div>
+
+    <div th:fragment="footer" class="footer">
+        <p class="footer-mention">DossierFacile aide à constituer et à partager ce dossier. Il ne garantit pas la location et n'intervient pas dans un litige entre le locataire, le bailleur ou un intermédiaire.</p>
+        <p class="footer-page"><span class="page-number"></span></p>
+    </div>
+
+</fragments>

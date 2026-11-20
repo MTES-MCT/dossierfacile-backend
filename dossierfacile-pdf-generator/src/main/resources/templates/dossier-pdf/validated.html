@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PDF of a validated dossier. The variables "m" and "layout" hold its DossierPdfModel and its DossierPdfLayout. -->
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${m.title}">Dossier de location de Camille Lefèvre</title>
+    <meta name="subject" content="Dossier de location validé par une personne de l'équipe DossierFacile"/>
+    <meta name="author" content="DossierFacile"/>
+    <link rel="stylesheet" href="res:dossier.css"/>
+    <bookmarks>
+        <bookmark th:each="b : ${m.bookmarks}" th:attr="name=${b.name},href='#' + ${b.anchor}">
+            <bookmark th:each="c : ${b.children}" th:attr="name=${c.name},href='#' + ${c.anchor}"/>
+        </bookmark>
+    </bookmarks>
+</head>
+<body>
+
+<!-- The engine displays these running headers and this footer in the page margins. -->
+<div class="running-dossier-header page-header">
+    <div th:replace="~{fragments :: brand('small')}"></div>
+    <div th:replace="~{fragments :: smallBand('DOSSIER VALIDÉ', ${m.validationDate})}"></div>
+</div>
+<div class="running-piece-header page-header">
+    <div th:replace="~{fragments :: brand('small')}"></div>
+    <div th:replace="~{fragments :: smallBand('PIÈCE VÉRIFIÉE', ${m.validationDate})}"></div>
+</div>
+<div class="running-footer">
+    <div th:replace="~{fragments :: footer}"></div>
+</div>
+
+<!-- Cover -->
+<div th:replace="~{fragments :: cover(${m}, ${layout.namesSize}, ${layout.summaryPages[0]})}"></div>
+
+<!-- Summary, next pages -->
+<th:block th:each="page, stat : ${layout.summaryPages}" th:if="${!stat.first}"><div th:replace="~{fragments :: summaryPage(${m}, ${page})}"></div></th:block>
+
+<!-- Clarification -->
+<div class="clarification" id="clarification" th:if="${m.clarification != null}">
+    <div class="frame">
+        <p th:replace="~{fragments :: dossierOf(${m.names})}"></p>
+        <h1 class="frame-title" th:text="${m.clarificationTitle}">Le mot des candidats</h1>
+        <p class="clarification-text" th:text="${m.clarification}">Nous cherchons un T4 près du métro.</p>
+    </div>
+</div>
+
+<!-- Pieces, with one page per page of each piece -->
+<th:block th:each="page : ${m.piecePages}"><div th:replace="~{fragments :: piece(${m}, ${page.title}, ${page}, ${layout.imageSize(page)})}"></div></th:block>
+
+<!-- Statuses -->
+<div class="statuses" id="statuses">
+    <div>
+        <div th:replace="~{fragments :: brand('small')}"></div>
+        <p class="band-statuses"><img src="res:images/info.png" alt=""/><span>Comprendre les statuts</span></p>
+    </div>
+    <h1 class="statuses-title">Comprendre les statuts d'un dossier DossierFacile</h1>
+
+    <div class="status">
+        <h2 class="status-title"><img src="res:images/file-list.png" alt="" style="width: 16pt; height: 14.7pt;"/>Dossier complet, non vérifié par l'équipe DossierFacile</h2>
+        <p class="status-text">Les candidats ont déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées. Personne de l'équipe DossierFacile n'a relu les pièces.</p>
+        <p class="status-text-next">La vérification par l'équipe DossierFacile est facultative : les locataires choisissent de la demander ou non. Ce dossier n'est donc pas en attente. Il reste dans cet état tant que les locataires n'en font pas la demande.</p>
+    </div>
+    <div class="status">
+        <h2 class="status-title"><img src="res:images/clock.png" alt="" style="width: 14.9pt; height: 13.9pt;"/>Dossier complet, vérification en cours</h2>
+        <p class="status-text">Les candidats ont déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées. Les candidats ont demandé une vérification : personne de l'équipe DossierFacile n'a encore relu les pièces.</p>
+        <p class="status-text-next">À la fin de la vérification, le dossier est validé ou les candidats doivent remplacer des pièces.</p>
+    </div>
+    <div class="status status-current">
+        <div class="status-heading">
+            <h2 class="status-title"><img src="res:images/shield-grey.png" alt="" style="width: 16pt; height: 16pt;"/>Dossier validé</h2>
+            <p class="status-badge-cell"><span class="status-badge">Statut de ce dossier</span></p>
+        </div>
+        <p class="status-text">Une personne de l'équipe DossierFacile a relu chaque pièce. Elle a contrôlé que les informations correspondent entre les pièces, que les pièces demandées sont présentes, que les dates sont à jour et que les pièces sont lisibles.</p>
+        <p class="status-text-next">DossierFacile ne certifie pas l'origine des pièces, ni la solvabilité des personnes.</p>
+    </div>
+    <div class="status">
+        <h2 class="status-title"><img src="res:images/file-text.png" alt="" style="width: 16pt; height: 16pt;"/>Pièce déposée ou pièce vérifiée</h2>
+        <p class="status-text">Chaque page de pièce reprend le statut du dossier : « Pièce déposée » si personne de l'équipe ne l'a relue, « Pièce vérifiée » si une personne de l'équipe l'a relue.</p>
+    </div>
+
+    <div class="contact">
+        <div class="contact-card">
+            <h2 class="contact-title"><img src="res:images/flag.png" alt=""/>Signaler une pièce</h2>
+            <p class="contact-text">Une pièce vous semble fausse ou n'aurait pas dû être validée ? Écrivez-nous.</p>
+            <a class="contact-link" href="mailto:contact@dossierfacile.fr" title="Écrire à DossierFacile">contact@dossierfacile.fr</a>
+        </div>
+        <div class="contact-spacer"></div>
+        <div class="contact-card">
+            <div class="feedback">
+                <p class="feedback-qr-code"><img class="qr-code" th:src="${qrCode}" th:alt="|QR code vers ${questionnaireUrl}|" alt=""/></p>
+                <div class="feedback-text">
+                    <h2 class="contact-title">Donnez votre avis sur DossierFacile</h2>
+                    <p class="contact-text">Flashez le code ou rendez-vous sur :</p>
+                    <a class="contact-link" th:href="${questionnaireUrl}" title="Questionnaire DossierFacile">dossierfacile.fr/questionnaire</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
