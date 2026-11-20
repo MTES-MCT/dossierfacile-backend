@@ -50,8 +50,8 @@
         <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
         <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
-        <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
-        <bcpkix-jdk18on.version>1.85</bcpkix-jdk18on.version>
+        <bcprov-jdk18on.version>1.86</bcprov-jdk18on.version>
+        <bcpkix-jdk18on.version>1.86</bcpkix-jdk18on.version>
         <org-apache-commons-lang3.version>3.18.0</org-apache-commons-lang3.version>
         <netty.version>4.1.135.Final</netty.version>
         <jsoup.version>1.23.2</jsoup.version>
