@@ -1,5 +1,6 @@
 package fr.dossierfacile.scheduler.tasks.documentia;
 
+import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
@@ -49,8 +50,12 @@ public class SynchroniseDocumentIATask extends AbstractTask {
 
         log.info("Found {} analyses to synchronise with Document IA", analyses.size());
 
+        // Expired analyses are closed one at a time, before the concurrent status checks: the files of
+        // a document expire together, and the last one must see the others closed to analyse the document.
+        var pendingAnalyses = analyses.stream().filter(analysis -> !abandonIfTooOld(analysis)).toList();
+
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            for (var analysis : analyses) {
+            for (var analysis : pendingAnalyses) {
                 executor.submit(() -> {
                     try {
                         threadLimiter.acquire();
@@ -58,6 +63,10 @@ public class SynchroniseDocumentIATask extends AbstractTask {
                             log.info("Starting synchronise with Document IA for analysis id={}", analysis.getId());
                             documentIaService.checkAnalysisStatus(analysis);
                             log.info("Finished synchronise with Document IA for analysis id={}", analysis.getId());
+                        } catch (Exception e) {
+                            // Without this catch the exception stays in a Future nobody reads and is never logged.
+                            // The analysis keeps its STARTED status and is picked up again at the next run.
+                            log.error("Unable to synchronise Document IA analysis id={}", analysis.getId(), e);
                         } finally {
                             threadLimiter.release();
                         }
@@ -69,6 +78,15 @@ public class SynchroniseDocumentIATask extends AbstractTask {
             }
         }
         super.endTask();
+    }
+
+    private boolean abandonIfTooOld(DocumentIAFileAnalysis analysis) {
+        try {
+            return documentIaService.abandonIfTooOld(analysis);
+        } catch (Exception e) {
+            log.error("Unable to close the expired Document IA analysis id={}", analysis.getId(), e);
+            return true;
+        }
     }
 
 }

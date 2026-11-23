@@ -15,12 +15,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class DocumentIAServiceImpl implements DocumentIAService {
+
+    // Document IA normally answers within minutes. Past this age the result will not come:
+    // the analysis is closed so that it stops being retried and stops holding back its document.
+    static final Duration MAX_ANALYSIS_AGE = Duration.ofHours(24);
 
     private final DocumentIAClient documentIAClient;
     private final DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
@@ -54,14 +60,18 @@ public class DocumentIAServiceImpl implements DocumentIAService {
                 return;
             }
 
-            if (analysis.getFile() != null && analysis.getFile().getDocument() != null) {
-                analyseDocument(analysis.getFile().getDocument());
-            } else {
-                log.warn("Document IA file analysis saved but file or document is null for analysis id: {}", analysis.getId());
-            }
+            analyseDocumentOf(analysis);
 
         }, () -> log.warn("Document IA file analysis not found with id : {}", payload.getId()));
 
+    }
+
+    private void analyseDocumentOf(DocumentIAFileAnalysis analysis) {
+        if (analysis.getFile() != null && analysis.getFile().getDocument() != null) {
+            analyseDocument(analysis.getFile().getDocument());
+        } else {
+            log.warn("Document IA file analysis saved but file or document is null for analysis id: {}", analysis.getId());
+        }
     }
 
     public void analyseDocument(Document document) {
@@ -120,16 +130,43 @@ public class DocumentIAServiceImpl implements DocumentIAService {
     @Override
     @Transactional
     public void checkAnalysisStatus(DocumentIAFileAnalysis documentIAFileAnalysis) {
+        DocumentIAResultModel response;
         try {
-            var response = documentIAClient.checkAnalysisStatus(
+            response = documentIAClient.checkAnalysisStatus(
                     documentIAFileAnalysis.getDocumentIaExecutionId()
             );
-
-            this.saveFileAnalysis(response);
         } catch (Exception e) {
-            log.error("Error checking analysis status for Document IA execution id: {}", documentIAFileAnalysis.getDocumentIaExecutionId(), e);
-            documentIAFileAnalysis.setAnalysisStatus(DocumentIAFileAnalysisStatus.FAILED);
-            documentIAFileAnalysisRepository.save(documentIAFileAnalysis);
+            // A failed status request does not mean the remote analysis failed.
+            // Keep STARTED so the scheduler can retry at its next scheduled run.
+            // Do not save this detached entity: a callback may have completed it meanwhile.
+            // No stack trace: during an outage this is logged for every pending analysis, every run.
+            log.warn("Unable to read Document IA execution status; will retry execution id: {} ({})",
+                    documentIAFileAnalysis.getDocumentIaExecutionId(), e.toString());
+            return;
         }
+
+        // Only an explicit result from Document IA can finish the analysis.
+        // Persistence/processing failures must propagate instead of becoming a remote FAILED status.
+        this.saveFileAnalysis(response);
+    }
+
+    @Override
+    @Transactional
+    public boolean abandonIfTooOld(DocumentIAFileAnalysis staleAnalysis) {
+        if (staleAnalysis.getCreationDate() == null
+                || staleAnalysis.getCreationDate().isAfter(LocalDateTime.now().minus(MAX_ANALYSIS_AGE))) {
+            return false;
+        }
+        // Reload: the entity given by the scheduler is detached, and a callback may have completed it meanwhile.
+        documentIAFileAnalysisRepository.findById(staleAnalysis.getId())
+                .filter(analysis -> analysis.getAnalysisStatus() == DocumentIAFileAnalysisStatus.STARTED)
+                .ifPresent(analysis -> {
+                    log.error("Document IA analysis still not finished after {} hours, marking it failed. Execution id: {}",
+                            MAX_ANALYSIS_AGE.toHours(), analysis.getDocumentIaExecutionId());
+                    analysis.setAnalysisStatus(DocumentIAFileAnalysisStatus.FAILED);
+                    documentIAFileAnalysisRepository.save(analysis);
+                    analyseDocumentOf(analysis);
+                });
+        return true;
     }
 }

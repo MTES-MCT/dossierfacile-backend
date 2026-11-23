@@ -10,6 +10,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+
 @Component
 public class DocumentIAClient {
 
@@ -37,6 +39,7 @@ public class DocumentIAClient {
         String url = String.format("%s/v2/workflows/%s/execute", baseUrl, workflowId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.set("X-Api-Key", apiKey);
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(createMultipartRequest(request), headers);
@@ -54,6 +57,7 @@ public class DocumentIAClient {
     public DocumentIAResultModel checkAnalysisStatus(String executionId) {
         String url = String.format("%s/v1/executions/%s", baseUrl, executionId);
         HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.set("X-Api-Key", apiKey);
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         ResponseEntity<DocumentIAResultModel> response = restTemplate.exchange(

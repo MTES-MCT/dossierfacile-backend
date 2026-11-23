@@ -13,14 +13,22 @@ import fr.dossierfacile.document.analysis.external.documentia.DocumentIAResponse
 import fr.dossierfacile.document.analysis.external.documentia.DocumentIAResponseData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.web.client.ResourceAccessException;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -94,31 +102,6 @@ class DocumentIAServiceImplTest {
 
         // Then
         verify(documentIAFileAnalysisRepository, never()).save(any());
-    }
-
-    @Test
-    void should_update_to_failed_status() {
-        // Given
-        String executionId = "exec-1";
-        DocumentIAResultModel resultModel = DocumentIAResultModel.builder()
-                .id(executionId)
-                .status(DocumentIAFileAnalysisStatus.FAILED)
-                .build();
-
-        DocumentIAFileAnalysis analysis = DocumentIAFileAnalysis.builder()
-                .id(1L)
-                .documentIaExecutionId(executionId)
-                .analysisStatus(DocumentIAFileAnalysisStatus.STARTED)
-                .build();
-
-        when(documentIAFileAnalysisRepository.findByDocumentIaExecutionId(executionId))
-                .thenReturn(Optional.of(analysis));
-
-        // When
-        documentIAService.saveFileAnalysis(resultModel);
-
-        // Then
-        verify(documentIAFileAnalysisRepository).save(analysis);
     }
 
     @Test
@@ -201,6 +184,117 @@ class DocumentIAServiceImplTest {
         verify(documentIAClient).checkAnalysisStatus(executionId);
         // saveFileAnalysis is called internally, which updates and saves analysis
         verify(documentIAFileAnalysisRepository).save(analysis);
+    }
+
+    private static final Duration TOO_OLD = DocumentIAServiceImpl.MAX_ANALYSIS_AGE.plusMinutes(1);
+
+    private static DocumentIAFileAnalysis startedAnalysis(Duration age) {
+        return DocumentIAFileAnalysis.builder()
+                .id(7L)
+                .documentIaExecutionId("exec-1")
+                .analysisStatus(DocumentIAFileAnalysisStatus.STARTED)
+                .creationDate(LocalDateTime.now().minus(age))
+                .build();
+    }
+
+    private static Document documentWithOnlyFile(DocumentIAFileAnalysis analysis) {
+        Document document = new Document();
+        File file = File.builder().document(document).build();
+        file.setDocumentIAFileAnalysis(analysis);
+        document.setFiles(List.of(file));
+        analysis.setFile(file);
+        return document;
+    }
+
+    private static DocumentIAResultModel failedResult() {
+        return DocumentIAResultModel.builder().id("exec-1").status(DocumentIAFileAnalysisStatus.FAILED).build();
+    }
+
+    static Stream<Exception> statusReadFailures() {
+        return Stream.of(
+                new ResourceAccessException("Read timed out"),
+                // Not a RestClientException: Spring throws it when an error response has an invalid Content-Type.
+                new InvalidMediaTypeException("application/json, application/yaml", "Invalid token")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("statusReadFailures")
+    void should_keep_analysis_started_when_status_read_fails(Exception failure) {
+        DocumentIAFileAnalysis analysis = startedAnalysis(Duration.ZERO);
+        when(documentIAClient.checkAnalysisStatus("exec-1")).thenThrow(failure);
+
+        documentIAService.checkAnalysisStatus(analysis);
+
+        assertEquals(DocumentIAFileAnalysisStatus.STARTED, analysis.getAnalysisStatus());
+        verify(documentIAFileAnalysisRepository, never()).save(any());
+        verifyNoInteractions(documentAnalysisService);
+    }
+
+    @Test
+    void should_finish_analysis_when_document_ia_explicitly_reports_failure() {
+        DocumentIAFileAnalysis analysis = startedAnalysis(Duration.ZERO);
+        Document document = documentWithOnlyFile(analysis);
+        when(documentIAClient.checkAnalysisStatus("exec-1")).thenReturn(failedResult());
+        when(documentIAFileAnalysisRepository.findByDocumentIaExecutionId("exec-1"))
+                .thenReturn(Optional.of(analysis));
+
+        documentIAService.checkAnalysisStatus(analysis);
+
+        assertEquals(DocumentIAFileAnalysisStatus.FAILED, analysis.getAnalysisStatus());
+        verify(documentIAFileAnalysisRepository).save(analysis);
+        verify(documentAnalysisService).analyseDocument(document);
+    }
+
+    @Test
+    void should_propagate_processing_errors_instead_of_marking_remote_analysis_failed() {
+        DocumentIAFileAnalysis analysis = startedAnalysis(Duration.ZERO);
+        when(documentIAClient.checkAnalysisStatus("exec-1")).thenReturn(failedResult());
+        when(documentIAFileAnalysisRepository.findByDocumentIaExecutionId("exec-1"))
+                .thenThrow(new IllegalStateException("Database unavailable"));
+
+        assertThrows(IllegalStateException.class, () -> documentIAService.checkAnalysisStatus(analysis));
+
+        assertEquals(DocumentIAFileAnalysisStatus.STARTED, analysis.getAnalysisStatus());
+        verify(documentIAFileAnalysisRepository, never()).save(any());
+    }
+
+    @Test
+    void should_give_up_on_an_analysis_older_than_the_maximum_age() {
+        // The scheduler passes a detached copy: only the reloaded row may be changed and saved.
+        DocumentIAFileAnalysis detachedCopy = startedAnalysis(TOO_OLD);
+        DocumentIAFileAnalysis reloaded = startedAnalysis(TOO_OLD);
+        Document document = documentWithOnlyFile(reloaded);
+        when(documentIAFileAnalysisRepository.findById(7L)).thenReturn(Optional.of(reloaded));
+
+        assertTrue(documentIAService.abandonIfTooOld(detachedCopy));
+
+        assertEquals(DocumentIAFileAnalysisStatus.FAILED, reloaded.getAnalysisStatus());
+        assertEquals(DocumentIAFileAnalysisStatus.STARTED, detachedCopy.getAnalysisStatus());
+        verify(documentIAFileAnalysisRepository).save(same(reloaded));
+        verify(documentAnalysisService).analyseDocument(document);
+    }
+
+    @Test
+    void should_not_overwrite_an_old_analysis_completed_by_a_callback_meanwhile() {
+        DocumentIAFileAnalysis completed = startedAnalysis(TOO_OLD);
+        completed.setAnalysisStatus(DocumentIAFileAnalysisStatus.SUCCESS);
+        when(documentIAFileAnalysisRepository.findById(7L)).thenReturn(Optional.of(completed));
+
+        assertTrue(documentIAService.abandonIfTooOld(startedAnalysis(TOO_OLD)));
+
+        assertEquals(DocumentIAFileAnalysisStatus.SUCCESS, completed.getAnalysisStatus());
+        verify(documentIAFileAnalysisRepository, never()).save(any());
+        verifyNoInteractions(documentAnalysisService);
+    }
+
+    @Test
+    void should_not_give_up_on_an_analysis_younger_than_the_maximum_age() {
+        DocumentIAFileAnalysis analysis = startedAnalysis(DocumentIAServiceImpl.MAX_ANALYSIS_AGE.minusMinutes(1));
+
+        assertFalse(documentIAService.abandonIfTooOld(analysis));
+
+        verifyNoInteractions(documentIAFileAnalysisRepository, documentAnalysisService);
     }
 
     @Test
