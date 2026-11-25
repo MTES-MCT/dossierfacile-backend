@@ -1,5 +1,8 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates.dossier;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Describes one page of a piece, ready for the layout of the dossier PDF.
  *
@@ -12,10 +15,31 @@ package fr.dossierfacile.api.pdfgenerator.service.templates.dossier;
 public record PieceContent(byte[] file, int pdfPage, float width, float height, String text) {
 
     static PieceContent image(byte[] jpeg, int width, int height) {
-        return new PieceContent(jpeg, 0, width, height, "");
+        return new PieceContent(jpeg, 0, (float) width, (float) height, "");
     }
 
     boolean isImage() {
         return pdfPage == 0;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof PieceContent(byte[] otherFile, int otherPdfPage, float otherWidth, float otherHeight, String otherText)
+                && Arrays.equals(file, otherFile)
+                && pdfPage == otherPdfPage
+                && Float.compare(width, otherWidth) == 0
+                && Float.compare(height, otherHeight) == 0
+                && Objects.equals(text, otherText);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(Arrays.hashCode(file), pdfPage, width, height, text);
+    }
+
+    /** Leaves out the content of the file and the text of the page, which are personal data. */
+    @Override
+    public String toString() {
+        return "PieceContent[file=" + file.length + " bytes, pdfPage=" + pdfPage + ", width=" + width + ", height=" + height + "]";
     }
 }

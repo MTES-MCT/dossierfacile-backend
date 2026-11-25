@@ -18,7 +18,7 @@ final class DossierPdfFormat {
     private static final DateTimeFormatter MONTH_YEAR = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH);
     private static final String[] COUNT_WORDS = {"Zéro", "Un", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Onze", "Douze"};
     // A non-breaking space keeps "9 600 €" on one line. Marianne lacks the narrow one that the French locale uses.
-    private static final char NON_BREAKING_SPACE = ' ';
+    private static final char NON_BREAKING_SPACE = '\u00A0';
 
     private DossierPdfFormat() {}
 

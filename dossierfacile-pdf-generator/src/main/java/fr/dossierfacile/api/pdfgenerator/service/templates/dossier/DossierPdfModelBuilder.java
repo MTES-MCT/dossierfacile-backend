@@ -249,7 +249,7 @@ class DossierPdfModelBuilder {
         }
 
         String numbered(int number) {
-            return (subject + " n° " + number + " " + owner).strip();
+            return (subject + " n°\u00A0" + number + " " + owner).strip();
         }
     }
 }

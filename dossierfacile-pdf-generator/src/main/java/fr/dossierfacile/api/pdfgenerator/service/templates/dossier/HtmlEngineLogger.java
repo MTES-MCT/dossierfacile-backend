@@ -14,6 +14,8 @@ import java.util.logging.Level;
 @Slf4j
 class HtmlEngineLogger implements XRLogger {
 
+    private static final String FORMAT = "{}: {}";
+
     @Override
     public void log(Diagnostic diagnostic) {
         // The decorative images of our templates have an empty alternative on purpose.
@@ -30,11 +32,11 @@ class HtmlEngineLogger implements XRLogger {
     @Override
     public void log(String where, Level level, String message, Throwable error) {
         if (level.intValue() >= Level.SEVERE.intValue()) {
-            log.error("{}: {}", where, message, error);
+            log.error(FORMAT, where, message, error);
         } else if (level.intValue() >= Level.WARNING.intValue()) {
-            log.warn("{}: {}", where, message, error);
+            log.warn(FORMAT, where, message, error);
         } else {
-            log.debug("{}: {}", where, message, error);
+            log.debug(FORMAT, where, message, error);
         }
     }
 

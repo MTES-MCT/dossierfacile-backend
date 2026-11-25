@@ -110,7 +110,7 @@ class SummaryLayoutTest {
     @Test
     void should_lose_no_piece_and_never_exceed_a_column() {
         for (int room = PERSON; room < 500; room++) {
-            List<SummaryPage> pages = layOut(room, room, camille(), List.of(candidate("Nadia Colin")), camille());
+            List<SummaryPage> pages = layOut((float) room, (float) room, camille(), List.of(candidate("Nadia Colin")), camille());
 
             assertThat(columns(pages).stream().flatMap(c -> c.getBlocks().stream()).mapToInt(b -> b.getLines().size()).sum()).isEqualTo(35);
             int capacity = room;

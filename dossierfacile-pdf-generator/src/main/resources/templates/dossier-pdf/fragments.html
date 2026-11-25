@@ -99,7 +99,7 @@
     </div>
 
     <!-- Cover of a validated dossier. The page holds the two columns of the summary that it displays. -->
-    <div th:fragment="validatedCover(m, namesSize, page)" class="cover" id="cover">
+    <div th:fragment="validatedCover(m, namesSize, page)" class="cover">
         <div th:replace="~{fragments :: brand('large')}"></div>
         <div class="band band-large">
             <p class="band-large-status">
@@ -151,7 +151,7 @@
     </div>
 
     <!-- Cover of a complete dossier, whether it waits for a verification or not -->
-    <div th:fragment="completedCover(m, namesSize, rows)" class="cover completed-cover" id="cover">
+    <div th:fragment="completedCover(m, namesSize, rows)" class="cover completed-cover">
         <div th:replace="~{fragments :: brand('large')}"></div>
         <div class="band band-large band-completed">
             <p class="band-large-status">

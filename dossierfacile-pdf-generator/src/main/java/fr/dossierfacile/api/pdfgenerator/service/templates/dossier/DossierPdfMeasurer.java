@@ -116,10 +116,6 @@ class DossierPdfMeasurer {
         return (int) IntStream.range(0, box.getChildCount()).filter(index -> box.getChild(index) instanceof LineBox).count();
     }
 
-    private static int bottom(Box box) {
-        return box.getAbsY() + box.getHeight();
-    }
-
     /** Reads the laid out draft. The engine counts in dots, from the top of the first page and without the page margins. */
     private record Draft(BlockBox root, float dotsPerPoint) {
 
@@ -151,6 +147,10 @@ class DossierPdfMeasurer {
             List<Box> lines = find(person, "piece-line");
             int bottom = lines.isEmpty() ? bottom(person) : lines.get(0).getAbsY();
             return points(bottom - first(person, "person-role").getAbsY());
+        }
+
+        private static int bottom(Box box) {
+            return box.getAbsY() + box.getHeight();
         }
     }
 }

@@ -13,7 +13,7 @@
 @page {
     size: 595pt 842pt;
     margin: 10pt 20pt 58pt 20pt;
-    font-family: Marianne, "Noto Emoji";
+    font-family: Marianne, "Noto Emoji", sans-serif;
 
     @bottom-center {
         content: element(footer);
@@ -59,7 +59,7 @@
 }
 
 * {
-    font-family: Marianne, "Noto Emoji";
+    font-family: Marianne, "Noto Emoji", sans-serif;
 }
 
 body {

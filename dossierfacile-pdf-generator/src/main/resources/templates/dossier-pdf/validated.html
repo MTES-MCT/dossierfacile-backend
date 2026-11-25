@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- PDF of a validated dossier. The variables "m" and "layout" hold its DossierPdfModel and its DossierPdfLayout. -->
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
-<head th:replace="~{fragments :: head(${m})}"></head>
+<head th:replace="~{fragments :: head(${m})}">
+    <title>Dossier de location</title>
+</head>
 <body>
 
 <th:block th:replace="~{fragments :: running(${m})}"></th:block>
 
 <!-- Cover -->
-<div th:replace="~{fragments :: validatedCover(${m}, ${layout.namesSize}, ${layout.summaryPages[0]})}"></div>
+<div id="cover">
+    <div th:replace="~{fragments :: validatedCover(${m}, ${layout.namesSize}, ${layout.summaryPages[0]})}"></div>
+</div>
 
 <!-- Summary, next pages -->
 <th:block th:each="page, stat : ${layout.summaryPages}" th:if="${!stat.first}"><div th:replace="~{fragments :: summaryPage(${m}, ${page})}"></div></th:block>

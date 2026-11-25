@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -134,7 +135,7 @@ public class DossierPdfRenderer {
 
     private static LocalDate today(ApartmentSharing apartmentSharing, LogType logType) {
         log.warn("No {} date found for apartment sharing {}, using today", logType, apartmentSharing.getId());
-        return LocalDate.now();
+        return LocalDate.now(ZoneId.systemDefault());
     }
 
     private static byte[] qrCode() {
