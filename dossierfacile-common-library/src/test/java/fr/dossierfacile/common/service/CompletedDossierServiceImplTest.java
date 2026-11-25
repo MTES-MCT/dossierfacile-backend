@@ -10,6 +10,7 @@ import fr.dossierfacile.common.enums.QueueEntrySource;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -33,6 +34,7 @@ class CompletedDossierServiceImplTest {
     private TenantMapperForMail tenantMapperForMail;
     private MailCommonService mailCommonService;
     private LotteryTicketService lotteryTicketService;
+    private ApartmentSharingCommonService apartmentSharingCommonService;
 
     private CompletedDossierServiceImpl service;
 
@@ -46,13 +48,15 @@ class CompletedDossierServiceImplTest {
         tenantMapperForMail = mock(TenantMapperForMail.class);
         mailCommonService = mock(MailCommonService.class);
         lotteryTicketService = mock(LotteryTicketService.class);
+        apartmentSharingCommonService = mock(ApartmentSharingCommonService.class);
 
         service = new CompletedDossierServiceImpl(
                 tenantCommonRepository,
                 tenantLogCommonService,
                 tenantMapperForMail,
                 Optional.of(mailCommonService),
-                lotteryTicketService
+                lotteryTicketService,
+                apartmentSharingCommonService
         );
 
         apartmentSharing = ApartmentSharing.builder().id(300L).build();
@@ -105,6 +109,8 @@ class CompletedDossierServiceImplTest {
             // Then - the switch happens but no mail is sent (the template mentions a partner)
             assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
             verify(tenantCommonRepository).save(tenant);
+            // And - the full PDF, which shows the status, is regenerated
+            verify(apartmentSharingCommonService).resetDossierPdfGenerated(apartmentSharing);
             verify(tenantLogCommonService).saveTenantLog(any(TenantLog.class));
             verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
         }

@@ -1,7 +1,6 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.dto.mail.TenantDto;
-import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.UserApi;
@@ -10,6 +9,7 @@ import fr.dossierfacile.common.enums.QueueEntrySource;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
@@ -35,6 +35,7 @@ public class CompletedDossierServiceImpl implements CompletedDossierService {
     private final TenantMapperForMail tenantMapperForMail;
     private final Optional<MailCommonService> mailCommonService;
     private final LotteryTicketService lotteryTicketService;
+    private final ApartmentSharingCommonService apartmentSharingCommonService;
 
     // A COMPLETED dossier must never be exposed to partners: it goes back to the
     // operator queue, positioned at the time of the switch. The user's explicit
@@ -74,6 +75,8 @@ public class CompletedDossierServiceImpl implements CompletedDossierService {
         tenant.setStatus(TenantFileStatus.TO_PROCESS);
         tenant.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
         tenantCommonRepository.save(tenant);
+        // The full PDF shows the status of the dossier
+        apartmentSharingCommonService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantLogCommonService.saveTenantLog(new TenantLog(LogType.COMPLETED_SWITCHED_TO_PROCESS, tenant.getId(), operatorId));
         tenantLogCommonService.logQueueEntered(tenant.getId(), source);
         lotteryTicketService.cancelActiveTicket(tenant);

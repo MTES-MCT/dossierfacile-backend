@@ -301,6 +301,16 @@ strong {
     white-space: nowrap;
 }
 
+.tag-in-progress {
+    border-color: #716043;
+    background-color: #feecc2;
+}
+
+.tag.tag-in-progress img {
+    width: 13.9pt;
+    height: 13pt;
+}
+
 .band-large .tag {
     margin: 6pt auto 0 auto;
 }
@@ -492,7 +502,7 @@ strong {
     content: target-counter(attr(href), page);
 }
 
-/* Cover of a completed dossier */
+/* Cover of a complete dossier */
 
 .completed-cover {
     page: completed-cover;
@@ -502,6 +512,15 @@ strong {
     margin-top: 8pt;
     padding: 8pt 10pt;
     background-color: #fee9e7;
+}
+
+.notice-in-progress {
+    padding: 9.3pt 13.3pt;
+    background-color: #feecc2;
+}
+
+.notice-in-progress .notice-title {
+    line-height: 15pt;
 }
 
 .notice-title {

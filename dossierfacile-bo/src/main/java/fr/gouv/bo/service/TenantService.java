@@ -635,6 +635,8 @@ public class TenantService {
         TenantFileStatus statusBeforeReprocess = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
+        // The full PDF shows the status of the dossier and the date of its entry in the queue
+        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         // Deliberate operator re-queue: an assumed lottery bypass
         if (statusBeforeReprocess != TenantFileStatus.TO_PROCESS && tenant.getStatus() == TenantFileStatus.TO_PROCESS) {
             tenantLogCommonService.logQueueEntered(tenant.getId(), QueueEntrySource.BO_REPROCESS);

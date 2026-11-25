@@ -16,6 +16,7 @@ import fr.dossierfacile.common.repository.LotteryDrawRepository;
 import fr.dossierfacile.common.repository.ProcessingCapacityRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryDrawService;
@@ -59,6 +60,7 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
     private final TenantLogRepository tenantLogRepository;
     private final TenantCommonRepository tenantCommonRepository;
     private final TenantLogCommonService tenantLogCommonService;
+    private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final TenantMapperForMail tenantMapperForMail;
     private final Optional<MailCommonService> mailCommonService;
 
@@ -275,6 +277,8 @@ public class LotteryDrawServiceImpl implements LotteryDrawService {
         tenant.setStatus(TenantFileStatus.TO_PROCESS);
         tenant.setLastUpdateDate(now);
         tenantCommonRepository.save(tenant);
+        // The full PDF shows the status of the dossier
+        apartmentSharingCommonService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantLogCommonService.saveTenantLog(new TenantLog(LogType.LOTTERY_DRAWN, tenant.getId()));
         // Ticket already DRAWN: logged with bypass=false
         tenantLogCommonService.logQueueEntered(tenant.getId(), QueueEntrySource.LOTTERY_DRAW);

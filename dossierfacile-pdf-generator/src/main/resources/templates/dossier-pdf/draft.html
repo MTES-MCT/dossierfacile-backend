@@ -11,7 +11,7 @@
 </head>
 <body class="draft">
 
-<th:block th:if="${m.status.name() == 'VALIDATED'}">
+<th:block th:if="${m.validated}">
     <!-- Cover, for each size of the names -->
     <th:block th:each="size : ${namesSizes}"><div th:replace="~{fragments :: validatedCover(${m}, ${size}, ${emptySummary})}"></div></th:block>
 
@@ -20,7 +20,7 @@
     <th:block th:each="summary : ${personSummaries}"><div th:replace="~{fragments :: summaryPage(${m}, ${summary})}"></div></th:block>
 </th:block>
 
-<th:block th:if="${m.status.name() == 'COMPLETED'}">
+<th:block th:unless="${m.validated}">
     <!-- Cover, for each size of the names -->
     <th:block th:each="size : ${namesSizes}"><div th:replace="~{fragments :: completedCover(${m}, ${size}, ${noCard})}"></div></th:block>
 </th:block>

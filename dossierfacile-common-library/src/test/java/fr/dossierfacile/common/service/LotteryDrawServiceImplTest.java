@@ -18,6 +18,7 @@ import fr.dossierfacile.common.repository.ProcessingCapacityRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.OperatorReviewPolicy;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.LotteryTicketService;
@@ -59,6 +60,7 @@ class LotteryDrawServiceImplTest {
     private TenantCommonRepository tenantCommonRepository;
     private TenantLogCommonService tenantLogCommonService;
     private TenantMapperForMail tenantMapperForMail;
+    private ApartmentSharingCommonService apartmentSharingCommonService;
     private MailCommonService mailCommonService;
 
     private LotteryDrawServiceImpl service;
@@ -75,6 +77,7 @@ class LotteryDrawServiceImplTest {
         tenantCommonRepository = mock(TenantCommonRepository.class);
         tenantLogCommonService = mock(TenantLogCommonService.class);
         tenantMapperForMail = mock(TenantMapperForMail.class);
+        apartmentSharingCommonService = mock(ApartmentSharingCommonService.class);
         mailCommonService = mock(MailCommonService.class);
         lotteryTicketService = new LotteryTicketServiceImpl(
                 lotteryTicketRepository, tenantLogCommonService, featureFlagService);
@@ -92,6 +95,7 @@ class LotteryDrawServiceImplTest {
                 tenantLogRepository,
                 tenantCommonRepository,
                 tenantLogCommonService,
+                apartmentSharingCommonService,
                 tenantMapperForMail,
                 Optional.of(mailCommonService)
         );
@@ -187,7 +191,7 @@ class LotteryDrawServiceImplTest {
             mockCapacity(10);
             mockBypass(0);
             LotteryTicket ticket = pendingTicket(1L, 100L);
-            tenant(100L, TenantFileStatus.COMPLETED);
+            Tenant tenant = tenant(100L, TenantFileStatus.COMPLETED);
             when(lotteryTicketRepository.findDrawTickets()).thenReturn(List.of(ticket));
 
             Optional<LotteryDraw> secondDraw = service.executeDrawIfNeeded(DRAW_DATE);
@@ -195,6 +199,7 @@ class LotteryDrawServiceImplTest {
             assertThat(secondDraw).isPresent();
             assertThat(secondDraw.get().getId()).isNotEqualTo(firstDraw.getId());
             assertThat(ticket.getStatus()).isEqualTo(LotteryTicketStatus.DRAWN);
+            verify(apartmentSharingCommonService).resetDossierPdfGenerated(tenant.getApartmentSharing());
         }
 
         @Test

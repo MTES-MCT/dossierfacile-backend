@@ -23,7 +23,10 @@ public interface TenantLogRepository extends JpaRepository<TenantLog, Long> {
             """, nativeQuery = true)
     long countProcessedDossiersFromToday();
 
-    /** Returns the date of the most recent log of the given type among the given tenants. The dossier PDF uses it as the validation date. */
+    /**
+     * Returns the date of the most recent log of the given type among the given tenants. The dossier PDF uses it for
+     * the dates of validation, deposit and verification request.
+     */
     @Query("SELECT MAX(l.creationDateTime) FROM TenantLog l WHERE l.tenantId IN :tenantIds AND l.logType = :logType")
     Optional<LocalDateTime> findLastLogDate(@Param("tenantIds") Collection<Long> tenantIds, @Param("logType") LogType logType);
 

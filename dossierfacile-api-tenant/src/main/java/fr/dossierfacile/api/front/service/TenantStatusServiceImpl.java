@@ -53,6 +53,8 @@ public class TenantStatusServiceImpl implements TenantStatusService {
             } else {
                 tenant.setStatus(newTenantStatus);
                 tenant = tenantRepository.save(tenant);
+                // The full PDF shows the status of the dossier
+                apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
                 if (newTenantStatus == TenantFileStatus.DECLINED) {
                     // Safety net: normally consumed by the BO decline
                     lotteryTicketService.consumeDrawnTicket(tenant.getId());

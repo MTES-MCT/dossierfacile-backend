@@ -45,20 +45,28 @@
 
     <!-- Short status band of the inner pages. A piece page names the status of the piece, and the other pages the one of the dossier. -->
     <th:block th:fragment="smallBand(m, piece)">
-        <div class="band band-small" th:if="${m.status.name() == 'VALIDATED'}">
+        <div class="band band-small" th:if="${m.validated}">
             <div class="band-small-row">
                 <span class="band-small-icon"><img class="band-icon" src="res:images/shield-blue.png" alt=""/></span>
                 <strong class="band-status" th:text="${piece ? 'PIÈCE VÉRIFIÉE' : 'DOSSIER VALIDÉ'}">DOSSIER VALIDÉ</strong>
                 <span class="band-mention" th:text="|par une personne de l'équipe DossierFacile le ${m.date}|">par une personne de l'équipe DossierFacile le 6 octobre 2026</span>
             </div>
         </div>
-        <div class="band band-small band-completed" th:if="${m.status.name() == 'COMPLETED'}">
+        <div class="band band-small band-completed" th:unless="${m.validated}">
             <div class="band-small-row">
                 <span class="band-small-icon"><img class="band-icon" src="res:images/file-list.png" alt=""/></span>
                 <strong class="band-status" th:text="${piece ? 'PIÈCE DÉPOSÉE' : 'DOSSIER COMPLET'}">DOSSIER COMPLET</strong>
-                <span class="band-small-tag"><span class="tag"><span><img src="res:images/error-warning.png" alt=""/></span><span class="tag-text">Non vérifié : vérification non demandée</span></span></span>
+                <span class="band-small-tag"><th:block th:replace="~{fragments :: tag(${m}, '')}"></th:block></span>
             </div>
         </div>
+    </th:block>
+
+    <!-- Label of a complete dossier. The author completes "vérification non demandée", for example with " par les candidats". -->
+    <th:block th:fragment="tag(m, author)">
+        <span class="tag" th:unless="${m.inProgress}"><span><img src="res:images/error-warning.png" alt=""/></span><span class="tag-text"
+              th:text="|Non vérifié : vérification non demandée${author}|">Non vérifié : vérification non demandée par les candidats</span></span>
+        <span class="tag tag-in-progress" th:if="${m.inProgress}"><span><img src="res:images/clock-brown.png" alt=""/></span><span class="tag-text"
+              th:text="|Vérification en cours, demandée le ${m.requestDate}|">Vérification en cours, demandée le 25 octobre 2026</span></span>
     </th:block>
 
     <p th:fragment="dossierOf(names)" class="dossier-of">Le dossier de <strong th:text="${names}">Camille Lefèvre</strong></p>
@@ -142,7 +150,7 @@
         <div th:replace="~{fragments :: summary(${page})}"></div>
     </div>
 
-    <!-- Cover of a completed dossier -->
+    <!-- Cover of a complete dossier, whether it waits for a verification or not -->
     <div th:fragment="completedCover(m, namesSize, rows)" class="cover completed-cover" id="cover">
         <div th:replace="~{fragments :: brand('large')}"></div>
         <div class="band band-large band-completed">
@@ -150,21 +158,23 @@
                 <img class="band-icon" src="res:images/file-list.png" alt=""/>
                 <strong class="band-status">DOSSIER COMPLET</strong>
             </p>
-            <p class="tag"><span><img src="res:images/error-warning.png" alt=""/></span><span class="tag-text"
-                  th:text="|Non vérifié : vérification non demandée par ${m.plural ? 'les candidats' : 'le candidat'}|">Non vérifié : vérification non demandée par les candidats</span></p>
+            <p><th:block th:replace="~{fragments :: tag(${m}, ${m.plural ? ' par les candidats' : ' par le candidat'})}"></th:block></p>
             <h1 class="band-title"><span class="band-title-intro">Documents de</span><span th:class="|band-title-names ${namesSize.cssClass}|"
                   th:text="${m.names}">Camille Lefèvre, Nadia Colin et Thomas Orio</span></h1>
             <p class="band-date" th:text="|Pièces déposées le ${m.date}|">Pièces déposées le 5 octobre 2026</p>
         </div>
 
-        <div class="notice">
+        <div class="notice notice-in-progress" th:if="${m.inProgress}">
+            <p class="notice-title"><strong th:text="|${m.plural ? 'Les candidats ont' : 'Le candidat a'} demandé une vérification par l'équipe DossierFacile le ${m.requestDate}. Elle est en cours.|">Les candidats ont demandé une vérification par l'équipe DossierFacile le 25 octobre 2026. Elle est en cours.</strong></p>
+        </div>
+        <div class="notice" th:unless="${m.inProgress}">
             <p class="notice-title"><strong>Ce dossier n'est pas en attente de vérification.</strong></p>
             <p class="notice-text" th:if="${m.plural}">La vérification par l'équipe DossierFacile est facultative. Les candidats ne l'ont pas demandée. Le dossier reste dans cet état tant qu'ils n'en font pas la demande.</p>
             <p class="notice-text" th:unless="${m.plural}">La vérification par l'équipe DossierFacile est facultative. Le candidat ne l'a pas demandée. Le dossier reste dans cet état tant que le candidat n'en fait pas la demande.</p>
         </div>
 
         <div class="deposit">
-            <p class="deposit-intro" th:text="|${m.plural ? 'Les candidats ont' : 'Le candidat a'} déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées : personne de l'équipe DossierFacile n'a relu les pièces.|">Les candidats ont déposé toutes les pièces demandées.</p>
+            <p class="deposit-intro" th:text="|${m.plural ? 'Les candidats ont' : 'Le candidat a'} déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées : ${m.inProgress ? 'aucun agent' : 'personne de l\'équipe'} DossierFacile n'a relu les pièces.|">Les candidats ont déposé toutes les pièces demandées.</p>
             <p class="deposit-request"><strong th:text="|${m.plural ? 'Les locataires peuvent' : 'Le locataire peut'} demander une vérification gratuite à DossierFacile.|">Les locataires peuvent demander une vérification gratuite à DossierFacile.</strong></p>
             <p class="deposit-link">Comprendre les statuts d'un dossier : <a class="see-page" href="#statuses" title="Comprendre les statuts d'un dossier">voir page </a></p>
         </div>
@@ -242,15 +252,18 @@
                 <p class="status-text">Les candidats ont déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées. Personne de l'équipe DossierFacile n'a relu les pièces.</p>
                 <p class="status-text-next">La vérification par l'équipe DossierFacile est facultative : les locataires choisissent de la demander ou non. Ce dossier n'est donc pas en attente. Il reste dans cet état tant que les locataires n'en font pas la demande.</p>
             </div>
-            <div class="status">
-                <h2 class="status-title"><img src="res:images/clock.png" alt="" style="width: 14.9pt; height: 13.9pt;"/>Dossier complet, vérification en cours</h2>
+            <div th:class="|status${m.inProgress ? ' status-current' : ''}|">
+                <div class="status-heading">
+                    <h2 class="status-title"><img src="res:images/clock.png" alt="" style="width: 14.9pt; height: 13.9pt;"/>Dossier complet, vérification en cours</h2>
+                    <p class="status-badge-cell" th:if="${m.inProgress}"><span class="status-badge">Statut de ce dossier</span></p>
+                </div>
                 <p class="status-text">Les candidats ont déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées. Les candidats ont demandé une vérification : personne de l'équipe DossierFacile n'a encore relu les pièces.</p>
                 <p class="status-text-next">À la fin de la vérification, le dossier est validé ou les candidats doivent remplacer des pièces.</p>
             </div>
-            <div th:class="|status${m.status.name() == 'VALIDATED' ? ' status-current' : ''}|">
+            <div th:class="|status${m.validated ? ' status-current' : ''}|">
                 <div class="status-heading">
                     <h2 class="status-title"><img src="res:images/shield-grey.png" alt="" style="width: 16pt; height: 16pt;"/>Dossier validé</h2>
-                    <p class="status-badge-cell" th:if="${m.status.name() == 'VALIDATED'}"><span class="status-badge">Statut de ce dossier</span></p>
+                    <p class="status-badge-cell" th:if="${m.validated}"><span class="status-badge">Statut de ce dossier</span></p>
                 </div>
                 <p class="status-text">Une personne de l'équipe DossierFacile a relu chaque pièce. Elle a contrôlé que les informations correspondent entre les pièces, que les pièces demandées sont présentes, que les dates sont à jour et que les pièces sont lisibles.</p>
                 <p class="status-text-next">DossierFacile ne certifie pas l'origine des pièces, ni la solvabilité des personnes.</p>

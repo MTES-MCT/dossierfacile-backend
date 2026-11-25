@@ -20,6 +20,8 @@ public class DossierPdfModel {
     String names;
     /** This is the validation date of a validated dossier, or else the deposit date of the pieces, for example "6 octobre 2026". */
     String date;
+    /** This is the date when the dossier entered the verification queue, for example "25 octobre 2026". It is null for other statuses. */
+    String requestDate;
     /** This is the number of candidates, for example "1 candidat" or "3 candidats". */
     String candidateCount;
     /** This is the sum of the net monthly incomes of the candidates, for example "9 600 €". */
@@ -35,6 +37,14 @@ public class DossierPdfModel {
     /** The list has one entry per page of every piece, in document order. */
     List<PiecePage> piecePages;
     List<Bookmark> bookmarks;
+
+    public boolean isValidated() {
+        return status == DossierPdfStatus.VALIDATED;
+    }
+
+    public boolean isInProgress() {
+        return status == DossierPdfStatus.TO_PROCESS;
+    }
 
     /** Tells whether the texts about the candidates are in the plural. */
     public boolean isPlural() {

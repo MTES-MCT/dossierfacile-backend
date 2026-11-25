@@ -61,7 +61,6 @@ public class ApartmentSharingPdfDocumentTemplateTest {
         }
     }
 
-    // A TO_PROCESS dossier shares the rendering of a COMPLETED one (visual check: target/fullPdfGenerationCompleted.pdf / ...ToProcess.pdf)
     @Test
     void should_generate_pdf_for_completed_dossier(ApartmentSharing apartmentSharing) throws IOException {
         apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.COMPLETED));

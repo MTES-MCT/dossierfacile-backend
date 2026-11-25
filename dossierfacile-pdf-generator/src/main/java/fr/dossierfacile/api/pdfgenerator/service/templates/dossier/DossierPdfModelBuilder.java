@@ -42,7 +42,7 @@ class DossierPdfModelBuilder {
         this.pieceContents = pieceContents;
     }
 
-    DossierPdfModel build(ApartmentSharing apartmentSharing, DossierPdfStatus status, LocalDate date) {
+    DossierPdfModel build(ApartmentSharing apartmentSharing, DossierPdfStatus status, LocalDate date, LocalDate requestDate) {
         List<Tenant> tenants = apartmentSharing.getTenants().stream()
                 .sorted(Comparator.comparing(Tenant::getTenantType))
                 .toList();
@@ -79,6 +79,7 @@ class DossierPdfModelBuilder {
                 .title(("Dossier de location " + DossierPdfFormat.of(names)).strip())
                 .names(names)
                 .date(DossierPdfFormat.date(date))
+                .requestDate(requestDate == null ? null : DossierPdfFormat.date(requestDate))
                 .candidateCount(tenants.size() + (tenants.size() > 1 ? " candidats" : " candidat"))
                 .totalIncome(DossierPdfFormat.euros(apartmentSharing.totalSalary()))
                 .guarantorSummaries(guarantorSummaries(tenants))
@@ -119,7 +120,7 @@ class DossierPdfModelBuilder {
             pieceBookmarks.add(bookmark(title.summaryLabel(), firstAnchor, List.of()));
         });
         if (!pieceBookmarks.isEmpty()) {
-            bookmarks.add(bookmark(name + " (" + role.toLowerCase() + ")", pieceBookmarks.get(0).getAnchor(), pieceBookmarks));
+            bookmarks.add(bookmark(name + " (" + StringUtils.uncapitalize(role) + ")", pieceBookmarks.get(0).getAnchor(), pieceBookmarks));
         }
         String pieceCount = documents.size() + (documents.size() > 1 ? " pièces" : " pièce");
         return SummaryPerson.builder().candidate(candidate).role(role).name(name).email(email).pieceCount(pieceCount).lines(lines).build();
@@ -228,7 +229,8 @@ class DossierPdfModelBuilder {
     private static PieceTitle guarantorPieceTitle(Guarantor guarantor, DocumentCategory category, String tenantName) {
         return switch (guarantor.getTypeGuarantor()) {
             case NATURAL_PERSON -> tenantPieceTitle(category, guarantor.getCompleteName());
-            case LEGAL_PERSON -> category == DocumentCategory.IDENTIFICATION
+            // IDENTIFICATION is the identity of the representative, and IDENTIFICATION_LEGAL_PERSON the one of the legal person.
+            case LEGAL_PERSON -> category == DocumentCategory.IDENTIFICATION_LEGAL_PERSON
                     ? new PieceTitle("Identification de la personne morale", "L'identification de la personne morale garante", DossierPdfFormat.of(tenantName))
                     : new PieceTitle("Pièce d'identité du représentant", "La pièce d'identité du représentant de la personne morale garante",
                             DossierPdfFormat.of(tenantName));

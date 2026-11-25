@@ -39,6 +39,7 @@ class TenantServiceReprocessTenantTest {
     private TenantLogService tenantLogService;
     private TenantLogCommonService tenantLogCommonService;
     private CompletedDossierService completedDossierService;
+    private ApartmentSharingService apartmentSharingService;
     private TenantService tenantService;
 
     private final UserPrincipal principal = new UserPrincipal(OPERATOR_ID, "support", OPERATOR_EMAIL,
@@ -51,6 +52,7 @@ class TenantServiceReprocessTenantTest {
         tenantLogService = mock(TenantLogService.class);
         tenantLogCommonService = mock(TenantLogCommonService.class);
         completedDossierService = mock(CompletedDossierService.class);
+        apartmentSharingService = mock(ApartmentSharingService.class);
         UserService userService = mock(UserService.class);
         when(userService.findUserByEmail(OPERATOR_EMAIL)).thenReturn(BOUser.builder().id(OPERATOR_ID).build());
 
@@ -69,7 +71,7 @@ class TenantServiceReprocessTenantTest {
                 null, // documentService
                 tenantLogService,
                 null, // keycloakService
-                null, // apartmentSharingService
+                apartmentSharingService,
                 null, // apartmentSharingLinkService
                 null, // guarantorRepository
                 null, // tenantMapperForMail
@@ -111,6 +113,7 @@ class TenantServiceReprocessTenantTest {
         assertThat(validated.getDocumentStatus()).isEqualTo(DocumentStatus.VALIDATED);
         verify(documentRepository).save(declined);
         verify(tenantRepository).save(tenant);
+        verify(apartmentSharingService).resetDossierPdfGenerated(tenant.getApartmentSharing());
         verify(tenantLogService).addReprocessTenantLog(TENANT_ID, OPERATOR_ID, 1);
         verify(completedDossierService, never()).forceOperatorReview(any(), any());
     }

@@ -10,6 +10,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -58,7 +60,8 @@ public class DossierPdfRenderer {
         DossierPdfResources resources = new DossierPdfResources();
         DossierPdfStatus status = DossierPdfStatus.of(apartmentSharing);
         LocalDate date = status == DossierPdfStatus.VALIDATED ? validationDate(apartmentSharing) : depositDate(apartmentSharing);
-        DossierPdfModel model = new DossierPdfModelBuilder(resources, this::pieceContents).build(apartmentSharing, status, date);
+        LocalDate requestDate = status == DossierPdfStatus.TO_PROCESS ? requestDate(apartmentSharing) : null;
+        DossierPdfModel model = new DossierPdfModelBuilder(resources, this::pieceContents).build(apartmentSharing, status, date, requestDate);
         DossierPdfLayout layout = DossierPdfLayout.of(model, measurer.measure(model, resources));
         Map<String, Object> variables = Map.of(
                 "m", model,
@@ -70,7 +73,7 @@ public class DossierPdfRenderer {
 
         ByteArrayOutputStream signed = new ByteArrayOutputStream();
         try (PDDocument document = Loader.loadPDF(pdf.toByteArray())) {
-            pdfSignatureService.signAndSaveKeepingDescription(document, signed);
+            pdfSignatureService.signAndSaveKeepingMetadata(document, signed);
         } catch (Exception e) {
             throw new IOException("Unable to sign the dossier PDF of apartment sharing " + apartmentSharing.getId(), e);
         }
@@ -90,27 +93,48 @@ public class DossierPdfRenderer {
      * Returns the validation date of the dossier, which is the last validation among its tenants.
      */
     private LocalDate validationDate(ApartmentSharing apartmentSharing) {
-        return lastLogDate(apartmentSharing, LogType.ACCOUNT_VALIDATED, apartmentSharing.getTenants().stream().map(Tenant::getOperatorDateTime));
+        List<Tenant> tenants = apartmentSharing.getTenants();
+        return lastLogDate(tenants, LogType.ACCOUNT_VALIDATED)
+                .or(() -> lastDate(tenants.stream().map(Tenant::getOperatorDateTime)))
+                .orElseGet(() -> today(apartmentSharing, LogType.ACCOUNT_VALIDATED));
     }
 
     /**
      * Returns the date of the last submission among the tenants, or else the date of the last document.
      */
     private LocalDate depositDate(ApartmentSharing apartmentSharing) {
-        return lastLogDate(apartmentSharing, LogType.ACCOUNT_COMPLETED, apartmentSharing.getTenants().stream()
-                .flatMap(tenant -> Stream.concat(tenant.getDocuments().stream(), tenant.getGuarantors().stream().flatMap(g -> g.getDocuments().stream())))
-                .map(Document::getCreationDateTime));
+        List<Tenant> tenants = apartmentSharing.getTenants();
+        return lastLogDate(tenants, LogType.ACCOUNT_COMPLETED)
+                .or(() -> lastDate(tenants.stream()
+                        .flatMap(tenant -> Stream.concat(tenant.getDocuments().stream(),
+                                tenant.getGuarantors().stream().flatMap(g -> g.getDocuments().stream())))
+                        .map(Document::getCreationDateTime)))
+                .orElseGet(() -> today(apartmentSharing, LogType.ACCOUNT_COMPLETED));
     }
 
-    private LocalDate lastLogDate(ApartmentSharing apartmentSharing, LogType logType, Stream<LocalDateTime> fallbacks) {
-        List<Long> tenantIds = apartmentSharing.getTenants().stream().map(Tenant::getId).filter(Objects::nonNull).toList();
-        return tenantLogRepository.findLastLogDate(tenantIds, logType)
-                .or(() -> fallbacks.filter(Objects::nonNull).max(Comparator.naturalOrder()))
-                .orElseGet(() -> {
-                    log.warn("No {} date found for apartment sharing {}, using today", logType, apartmentSharing.getId());
-                    return LocalDateTime.now();
-                })
-                .toLocalDate();
+    /**
+     * Returns the date when the last tenant that waits for a verification entered the queue, or else its submission
+     * date. The older dossiers have no log of their entry.
+     */
+    private LocalDate requestDate(ApartmentSharing apartmentSharing) {
+        List<Tenant> tenants = apartmentSharing.getTenants().stream().filter(t -> t.getStatus() == TenantFileStatus.TO_PROCESS).toList();
+        return lastLogDate(tenants, LogType.QUEUE_ENTERED)
+                .or(() -> lastLogDate(tenants, LogType.ACCOUNT_COMPLETED))
+                .orElseGet(() -> depositDate(apartmentSharing));
+    }
+
+    private Optional<LocalDate> lastLogDate(List<Tenant> tenants, LogType logType) {
+        List<Long> tenantIds = tenants.stream().map(Tenant::getId).filter(Objects::nonNull).toList();
+        return tenantLogRepository.findLastLogDate(tenantIds, logType).map(LocalDateTime::toLocalDate);
+    }
+
+    private static Optional<LocalDate> lastDate(Stream<LocalDateTime> dates) {
+        return dates.filter(Objects::nonNull).max(Comparator.naturalOrder()).map(LocalDateTime::toLocalDate);
+    }
+
+    private static LocalDate today(ApartmentSharing apartmentSharing, LogType logType) {
+        log.warn("No {} date found for apartment sharing {}, using today", logType, apartmentSharing.getId());
+        return LocalDate.now();
     }
 
     private static byte[] qrCode() {

@@ -31,14 +31,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Generates the PDF of validated and completed dossiers, for a single candidate, a couple and a flatsharing of seven,
+ * Generates the PDF of validated, completed and in progress dossiers, for a single candidate, a couple and a flatsharing of seven,
  * all with very long names. Open target/dossier-pdf/*.pdf to look at the result.
  */
 class DossierPdfRendererTest {
@@ -58,6 +60,8 @@ class DossierPdfRendererTest {
                 .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 6, 14, 30)));
         when(tenantLogRepository.findLastLogDate(anyCollection(), eq(LogType.ACCOUNT_COMPLETED)))
                 .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 5, 9, 0)));
+        when(tenantLogRepository.findLastLogDate(anyCollection(), eq(LogType.QUEUE_ENTERED)))
+                .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 25, 10, 0)));
         renderer = new DossierPdfRenderer(downloadService, tenantLogRepository, new PdfSignatureServiceImpl(), new PieceExtractor());
         OUTPUT.mkdirs();
     }
@@ -230,7 +234,89 @@ class DossierPdfRendererTest {
         assertThat(text).contains("Pièces déposées le 1er octobre 2026");
     }
 
-    /** Renders a dossier that is not validated. Such a PDF shows neither an amount nor any mention of a verified piece. */
+    @Test
+    void should_render_in_progress_dossier_of_a_single_candidate() throws IOException {
+        String text = renderInProgressAndCheck(DossierFixtures.alone(), "in-progress-alone.pdf");
+
+        assertThat(text)
+                .contains("Documents de\nAnne-Laure Bourdonnaye-Lanvaux De Kerangal-Le Bihan")
+                .contains("Le candidat a demandé une vérification par l'équipe DossierFacile le 25 octobre 2026. Elle est")
+                .contains("Le locataire peut demander une vérification gratuite");
+    }
+
+    @Test
+    void should_render_in_progress_dossier_of_three_candidates() throws IOException {
+        String text = renderInProgressAndCheck(DossierFixtures.shortNames(), "in-progress-short-names.pdf");
+
+        assertThat(text)
+                .contains("Pièces déposées le 5 octobre 2026")
+                .contains("Les candidats ont demandé une vérification par l'équipe DossierFacile le 25 octobre 2026. Elle est")
+                .contains("aucun agent DossierFacile n'a relu les pièces");
+    }
+
+    @Test
+    void should_render_in_progress_dossier_of_a_large_flatsharing() throws IOException {
+        String text = renderInProgressAndCheck(DossierFixtures.largeFlatsharing(), "in-progress-flatsharing.pdf");
+
+        assertThat(StringUtils.countMatches(text, "\nCandidat\n")).isEqualTo(7);
+    }
+
+    @Test
+    void should_use_the_submission_date_of_an_in_progress_dossier_without_queue_log() throws IOException {
+        when(tenantLogRepository.findLastLogDate(anyCollection(), eq(LogType.QUEUE_ENTERED))).thenReturn(Optional.empty());
+        ApartmentSharing apartmentSharing = DossierFixtures.couple();
+        apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.TO_PROCESS));
+
+        assertThat(textOf(renderTo(apartmentSharing, "in-progress-couple.pdf"))).contains("Vérification en cours, demandée le 5 octobre 2026");
+    }
+
+    @Test
+    void should_ask_only_the_queue_date_of_the_tenants_that_wait_for_a_verification() throws IOException {
+        ApartmentSharing apartmentSharing = DossierFixtures.shortNames();
+        apartmentSharing.getTenants().get(1).setStatus(TenantFileStatus.TO_PROCESS);
+
+        renderer.render(apartmentSharing).close();
+
+        verify(tenantLogRepository).findLastLogDate(List.of(apartmentSharing.getTenants().get(1).getId()), LogType.QUEUE_ENTERED);
+    }
+
+    @Test
+    void should_refuse_a_dossier_that_is_not_complete() {
+        ApartmentSharing apartmentSharing = DossierFixtures.alone();
+        apartmentSharing.getTenants().get(0).setStatus(TenantFileStatus.DECLINED);
+
+        assertThatThrownBy(() -> renderer.render(apartmentSharing)).isInstanceOf(IllegalStateException.class).hasMessageContaining("DECLINED");
+    }
+
+    private String renderInProgressAndCheck(ApartmentSharing apartmentSharing, String fileName) throws IOException {
+        apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.TO_PROCESS));
+        String text = textOf(renderTo(apartmentSharing, fileName));
+        assertThat(StringUtils.countMatches(text, "PIÈCE DÉPOSÉE")).isEqualTo(numberOfPiecePages(apartmentSharing));
+        assertThat(StringUtils.countMatches(text, "Statut de ce dossier")).isEqualTo(1);
+        assertThat(text)
+                .contains("DOSSIER COMPLET")
+                .contains("Vérification en cours, demandée le 25 octobre 2026")
+                .doesNotContain("vérification non demandée")
+                .doesNotContain("n'est pas en attente de vérification")
+                .doesNotContain("€");
+        return text;
+    }
+
+    private byte[] renderTo(ApartmentSharing apartmentSharing, String fileName) throws IOException {
+        try (InputStream rendered = renderer.render(apartmentSharing)) {
+            byte[] pdf = rendered.readAllBytes();
+            Files.write(new File(OUTPUT, fileName).toPath(), pdf);
+            return pdf;
+        }
+    }
+
+    private static String textOf(byte[] pdf) throws IOException {
+        try (PDDocument document = Loader.loadPDF(pdf)) {
+            return new PDFTextStripper().getText(document);
+        }
+    }
+
+    /** Renders a dossier that nobody asked to verify. Such a PDF shows neither an amount nor any mention of a verified piece. */
     private String renderCompletedAndCheck(ApartmentSharing apartmentSharing, String fileName) throws IOException {
         apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.COMPLETED));
         byte[] pdf;
@@ -265,6 +351,8 @@ class DossierPdfRendererTest {
 
         try (PDDocument document = Loader.loadPDF(pdf)) {
             assertThat(document.getDocumentInformation().getTitle()).startsWith(titleStart);
+            assertThat(document.getDocumentInformation().getAuthor()).isEqualTo("DossierFacile");
+            assertThat(document.getDocumentInformation().getProducer()).isEqualTo("DossierFacile");
             assertThat(document.getDocumentCatalog().getLanguage()).isEqualTo("fr");
             assertThat(document.getDocumentCatalog().getMarkInfo().isMarked()).isTrue();
             assertThat(document.getDocumentCatalog().getDocumentOutline()).isNotNull();
