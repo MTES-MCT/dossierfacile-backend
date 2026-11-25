@@ -13,12 +13,13 @@ import java.util.List;
 @Builder(toBuilder = true)
 public class DossierPdfModel {
 
+    DossierPdfStatus status;
     /** The document and the PDF metadata use this title, for example "Dossier de location de Camille Lefèvre". */
     String title;
     /** This text joins the full names of all the candidates, as in "A, B et C". */
     String names;
-    /** This is the validation date, already formatted, for example "6 octobre 2026". */
-    String validationDate;
+    /** This is the validation date of a validated dossier, or else the deposit date of the pieces, for example "6 octobre 2026". */
+    String date;
     /** This is the number of candidates, for example "1 candidat" or "3 candidats". */
     String candidateCount;
     /** This is the sum of the net monthly incomes of the candidates, for example "9 600 €". */
@@ -34,6 +35,11 @@ public class DossierPdfModel {
     /** The list has one entry per page of every piece, in document order. */
     List<PiecePage> piecePages;
     List<Bookmark> bookmarks;
+
+    /** Tells whether the texts about the candidates are in the plural. */
+    public boolean isPlural() {
+        return candidates.size() > 1;
+    }
 
     @Value
     @Builder
@@ -55,6 +61,8 @@ public class DossierPdfModel {
         String name;
         /** The email is null for a guarantor. */
         String email;
+        /** This counts the documents of the person, for example "5 pièces" or "1 pièce". */
+        String pieceCount;
         List<SummaryLine> lines;
     }
 

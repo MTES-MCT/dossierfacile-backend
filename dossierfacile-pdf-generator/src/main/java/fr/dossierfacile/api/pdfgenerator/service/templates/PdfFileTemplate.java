@@ -10,7 +10,6 @@ import java.io.InputStream;
 
 public enum PdfFileTemplate {
 
-    ATTACHMENTS_AND_CLARIFICATIONS("template_Dossier_PDF_attachments_and_clarification.pdf"),
     ATTESTATION("template_attestation.pdf");
 
     private final String resourcePath;

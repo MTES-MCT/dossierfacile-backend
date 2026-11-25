@@ -9,9 +9,9 @@ import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfLay
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfLayout.SummaryBlock;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfLayout.SummaryColumn;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfLayout.SummaryPage;
-import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfMeasures.Cover;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfMeasures.PersonHeights;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfMeasures.Room;
+import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfMeasures.Summary;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfModel.PiecePage;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfModel.SummaryPerson;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +45,7 @@ class DossierPdfMeasurer {
                 "m", model,
                 "namesSizes", NamesSize.values(),
                 "emptySummary", EMPTY_SUMMARY,
+                "noCard", List.of(),
                 "personSummaries", persons.stream().map(DossierPdfMeasurer::personSummary).toList(),
                 "pieceTitles", pieceTitles);
 
@@ -52,19 +53,13 @@ class DossierPdfMeasurer {
             renderer.layout();
             Draft draft = new Draft(renderer.getRootBox(), renderer.getDotsPerPoint());
 
-            Map<NamesSize, Cover> covers = new EnumMap<>(NamesSize.class);
+            Map<NamesSize, Box> covers = new EnumMap<>(NamesSize.class);
             List<Box> coverBoxes = find(draft.root, "cover");
             for (NamesSize size : NamesSize.values()) {
-                Box cover = coverBoxes.get(size.ordinal());
-                covers.put(size, new Cover(lineCount(first(cover, "band-title-names")), draft.roomBelow(first(cover, "column"))));
+                covers.put(size, coverBoxes.get(size.ordinal()));
             }
-
-            List<Box> summaryPages = find(draft.root, "summary-page");
-            float nextSummaryRoom = draft.roomBelow(first(summaryPages.get(0), "column"));
-            Map<SummaryPerson, PersonHeights> heights = new HashMap<>();
-            for (int index = 0; index < persons.size(); index++) {
-                heights.put(persons.get(index), draft.personHeights(summaryPages.get(index + 1)));
-            }
+            Map<NamesSize, Integer> nameLines = new EnumMap<>(NamesSize.class);
+            covers.forEach((size, cover) -> nameLines.put(size, lineCount(first(cover, "band-title-names"))));
 
             Map<String, Room> pieceRooms = new HashMap<>();
             List<Box> pieces = find(draft.root, "piece");
@@ -73,8 +68,20 @@ class DossierPdfMeasurer {
                 float width = draft.points(first(piece, "piece-image").getContentWidth());
                 pieceRooms.put(pieceTitles.get(index), new Room(width, draft.roomBelow(first(piece, "frame"))));
             }
-            return new DossierPdfMeasures(covers, nextSummaryRoom, heights, pieceRooms);
+            Summary summary = model.getStatus() == DossierPdfStatus.VALIDATED ? summary(draft, covers, persons) : null;
+            return new DossierPdfMeasures(nameLines, pieceRooms, summary);
         }
+    }
+
+    private static Summary summary(Draft draft, Map<NamesSize, Box> covers, List<SummaryPerson> persons) {
+        Map<NamesSize, Float> coverRooms = new EnumMap<>(NamesSize.class);
+        covers.forEach((size, cover) -> coverRooms.put(size, draft.roomBelow(first(cover, "column"))));
+        List<Box> pages = find(draft.root, "summary-page");
+        Map<SummaryPerson, PersonHeights> heights = new HashMap<>();
+        for (int index = 0; index < persons.size(); index++) {
+            heights.put(persons.get(index), draft.personHeights(pages.get(index + 1)));
+        }
+        return new Summary(coverRooms, draft.roomBelow(first(pages.get(0), "column")), heights);
     }
 
     /** Displays a person three times: twice in the left column, to measure the gap, and as a continuation in the right one. */

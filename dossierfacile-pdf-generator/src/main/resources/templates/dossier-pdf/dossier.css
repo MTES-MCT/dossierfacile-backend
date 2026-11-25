@@ -30,6 +30,24 @@
     }
 }
 
+/* The cards of a completed dossier may continue on a second page. Only the first page has its header in the flow. */
+@page completed-cover {
+    margin-top: 114pt;
+
+    @top-center {
+        content: element(dossierHeader);
+        vertical-align: top;
+    }
+}
+
+@page completed-cover:first {
+    margin-top: 10pt;
+
+    @top-center {
+        content: none;
+    }
+}
+
 @page piece {
     margin-top: 120pt;
     margin-bottom: 56pt;
@@ -72,7 +90,7 @@ strong {
 }
 
 /* A name or an email without any space still fits its block. */
-.band-title-names, .dossier-of, .frame-title, .person-role, .person-name, .person-email {
+.band-title-names, .dossier-of, .frame-title, .card-role, .card-name, .card-email, .person-role, .person-name, .person-email {
     word-wrap: break-word;
 }
 
@@ -191,6 +209,10 @@ strong {
     text-align: center;
 }
 
+.band-completed {
+    background-color: transparent;
+}
+
 .band-icon {
     vertical-align: middle;
 }
@@ -199,6 +221,10 @@ strong {
     color: #000091;
     font-weight: bold;
     vertical-align: middle;
+}
+
+.band-completed .band-status {
+    color: #3a3a3a;
 }
 
 .band-mention {
@@ -229,6 +255,58 @@ strong {
 .band-large .band-mention {
     margin-top: 6pt;
     line-height: 12pt;
+}
+
+.band-large.band-completed .band-icon {
+    width: 20pt;
+    height: 18.3pt;
+}
+
+.band-small.band-completed .band-icon {
+    width: 16pt;
+    height: 14.7pt;
+}
+
+.band-date {
+    margin-top: 6pt;
+    color: #3a3a3a;
+    font-size: 9pt;
+    line-height: 16pt;
+}
+
+/* Label that shows the status of the verification */
+
+.tag {
+    display: table;
+    padding: 3pt 4pt;
+    border: 1pt solid #b34000;
+    background-color: #ffe9e6;
+    font-size: 9pt;
+    line-height: 16pt;
+}
+
+.tag span {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.tag img {
+    display: block;
+    width: 12pt;
+    height: 12pt;
+}
+
+.tag .tag-text {
+    padding-left: 3pt;
+    white-space: nowrap;
+}
+
+.band-large .tag {
+    margin: 6pt auto 0 auto;
+}
+
+.band-small .tag {
+    padding: 1pt 2pt;
 }
 
 .band-title {
@@ -265,6 +343,10 @@ strong {
 .band-title-intro {
     font-size: 13pt;
     font-weight: normal;
+}
+
+.band-completed .band-title-intro {
+    font-size: 14pt;
 }
 
 .band-small {
@@ -408,6 +490,131 @@ strong {
 
 .see-page::after {
     content: target-counter(attr(href), page);
+}
+
+/* Cover of a completed dossier */
+
+.completed-cover {
+    page: completed-cover;
+}
+
+.notice {
+    margin-top: 8pt;
+    padding: 8pt 10pt;
+    background-color: #fee9e7;
+}
+
+.notice-title {
+    font-size: 11pt;
+    line-height: 20pt;
+}
+
+.notice-text {
+    margin-top: 2pt;
+    font-size: 9pt;
+    line-height: 12pt;
+}
+
+.deposit {
+    margin-top: 8pt;
+    padding-left: 8pt;
+    border-left: 2pt solid #161616;
+}
+
+.deposit-intro {
+    font-size: 11pt;
+    line-height: 15pt;
+}
+
+.deposit-request {
+    margin-top: 3pt;
+    line-height: 12pt;
+}
+
+.deposit-link {
+    margin-top: 3pt;
+    color: #3a3a3a;
+    line-height: 18pt;
+}
+
+.cards-title {
+    margin: 8pt 0 -2pt 0;
+    font-size: 12pt;
+    font-weight: bold;
+    line-height: 22pt;
+    page-break-after: avoid;
+}
+
+/* A row has three cards at most. */
+.card-row {
+    padding-top: 10pt;
+    page-break-inside: avoid;
+}
+
+.cards {
+    display: table;
+    table-layout: fixed;
+}
+
+/* A card takes 178.3 pt, and the gap between two cards 10 pt. The cards keep the same width in every row. */
+.cards-1 {
+    width: 178.3pt;
+}
+
+.cards-2 {
+    width: 366.6pt;
+}
+
+.cards-3 {
+    width: 555pt;
+}
+
+.card-gap {
+    display: table-cell;
+    width: 10pt;
+}
+
+.card {
+    display: table-cell;
+    width: 160.3pt;
+    height: 57pt;
+    padding: 8pt;
+    border: 1pt solid #f6f6f6;
+    vertical-align: middle;
+}
+
+.card-role {
+    font-size: 9pt;
+    line-height: 12pt;
+}
+
+.card-name {
+    color: #000091;
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: 15pt;
+}
+
+.card-email {
+    font-size: 8pt;
+    line-height: 11pt;
+}
+
+.card-email a {
+    color: #161616;
+}
+
+.card-count {
+    padding-top: 4pt;
+    font-size: 10pt;
+    line-height: 15pt;
+}
+
+.card-count img {
+    width: 12pt;
+    height: 12pt;
+    margin-right: 4pt;
+    vertical-align: -1pt;
 }
 
 /* Cover, key figures */

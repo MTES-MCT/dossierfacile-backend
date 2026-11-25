@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PDF of a completed dossier. The variables "m" and "layout" hold its DossierPdfModel and its DossierPdfLayout. -->
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{fragments :: head(${m})}"></head>
+<body>
+
+<th:block th:replace="~{fragments :: running(${m})}"></th:block>
+
+<div th:replace="~{fragments :: completedCover(${m}, ${layout.namesSize}, ${layout.cardRows})}"></div>
+
+<th:block th:replace="~{fragments :: content(${m}, ${layout}, ${qrCode}, ${questionnaireUrl})}"></th:block>
+
+</body>
+</html>

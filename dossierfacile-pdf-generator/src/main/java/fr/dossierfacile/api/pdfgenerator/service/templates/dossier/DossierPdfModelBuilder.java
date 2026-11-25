@@ -42,7 +42,7 @@ class DossierPdfModelBuilder {
         this.pieceContents = pieceContents;
     }
 
-    DossierPdfModel build(ApartmentSharing apartmentSharing, LocalDate validationDate) {
+    DossierPdfModel build(ApartmentSharing apartmentSharing, DossierPdfStatus status, LocalDate date) {
         List<Tenant> tenants = apartmentSharing.getTenants().stream()
                 .sorted(Comparator.comparing(Tenant::getTenantType))
                 .toList();
@@ -67,7 +67,7 @@ class DossierPdfModelBuilder {
         String clarificationTitle = tenants.size() > 1 ? "Le mot des candidats" : "Le mot du candidat";
 
         List<Bookmark> bookmarks = new ArrayList<>();
-        bookmarks.add(bookmark("Sommaire", "cover", List.of()));
+        bookmarks.add(bookmark(status == DossierPdfStatus.VALIDATED ? "Sommaire" : "Page de garde", "cover", List.of()));
         if (clarification != null) {
             bookmarks.add(bookmark(clarificationTitle, "clarification", List.of()));
         }
@@ -75,9 +75,10 @@ class DossierPdfModelBuilder {
         bookmarks.add(bookmark("Comprendre les statuts", "statuses", List.of()));
 
         return DossierPdfModel.builder()
+                .status(status)
                 .title(("Dossier de location " + DossierPdfFormat.of(names)).strip())
                 .names(names)
-                .validationDate(DossierPdfFormat.date(validationDate))
+                .date(DossierPdfFormat.date(date))
                 .candidateCount(tenants.size() + (tenants.size() > 1 ? " candidats" : " candidat"))
                 .totalIncome(DossierPdfFormat.euros(apartmentSharing.totalSalary()))
                 .guarantorSummaries(guarantorSummaries(tenants))
@@ -120,7 +121,8 @@ class DossierPdfModelBuilder {
         if (!pieceBookmarks.isEmpty()) {
             bookmarks.add(bookmark(name + " (" + role.toLowerCase() + ")", pieceBookmarks.get(0).getAnchor(), pieceBookmarks));
         }
-        return SummaryPerson.builder().candidate(candidate).role(role).name(name).email(email).lines(lines).build();
+        String pieceCount = documents.size() + (documents.size() > 1 ? " pièces" : " pièce");
+        return SummaryPerson.builder().candidate(candidate).role(role).name(name).email(email).pieceCount(pieceCount).lines(lines).build();
     }
 
     /**

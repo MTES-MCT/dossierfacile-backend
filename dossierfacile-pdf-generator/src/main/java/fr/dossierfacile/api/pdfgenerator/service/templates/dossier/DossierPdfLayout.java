@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates.dossier;
 
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfMeasures.Room;
+import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfMeasures.Summary;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfModel.PiecePage;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfModel.SummaryLine;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfModel.SummaryPerson;
@@ -10,30 +11,49 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Contains the layout choices that CSS cannot make: the size of the cover names, the columns of the summary and the
- * size of the piece images. It decides from the measures of the engine, so it knows no dimension of the stylesheet.
+ * Contains the layout choices that CSS cannot make: the size of the cover names, the columns of the summary, the rows
+ * of the person cards and the size of the piece images. It decides from the measures of the engine, so it knows no dimension of the stylesheet.
  */
 @Value
 public class DossierPdfLayout {
 
     private static final int MAX_NAME_LINES = 2;
+    private static final int CARDS_PER_ROW = 3;
 
     NamesSize namesSize;
-    /** The first summary page goes on the cover. The next ones are the "Sommaire, suite" pages. */
+    /** The first summary page goes on the cover. The next ones are the "Sommaire, suite" pages. Only a validated dossier has some. */
     List<SummaryPage> summaryPages;
+    /** Each candidate starts a new row, followed by its guarantors. */
+    List<List<SummaryPerson>> cardRows;
     @Getter(AccessLevel.NONE)
     Map<String, Room> pieceRooms;
 
     static DossierPdfLayout of(DossierPdfModel model, DossierPdfMeasures measures) {
         NamesSize namesSize = namesSize(measures);
-        List<SummaryPage> summaryPages = new SummaryLayout(measures.covers().get(namesSize).summaryRoom(), measures.nextSummaryRoom(), measures.persons())
-                .layOut(model.getCandidates());
-        return new DossierPdfLayout(namesSize, summaryPages, measures.pieceRooms());
+        return new DossierPdfLayout(namesSize, summaryPages(model, measures.summary(), namesSize), cardRows(model), measures.pieceRooms());
+    }
+
+    private static List<SummaryPage> summaryPages(DossierPdfModel model, Summary summary, NamesSize namesSize) {
+        if (summary == null) {
+            return List.of();
+        }
+        return new SummaryLayout(summary.coverRooms().get(namesSize), summary.nextRoom(), summary.persons()).layOut(model.getCandidates());
+    }
+
+    private static List<List<SummaryPerson>> cardRows(DossierPdfModel model) {
+        List<List<SummaryPerson>> rows = new ArrayList<>();
+        for (List<SummaryPerson> persons : model.getCandidates()) {
+            for (int start = 0; start < persons.size(); start += CARDS_PER_ROW) {
+                rows.add(persons.subList(start, Math.min(start + CARDS_PER_ROW, persons.size())));
+            }
+        }
+        return rows;
     }
 
     /**
@@ -42,7 +62,7 @@ public class DossierPdfLayout {
      */
     private static NamesSize namesSize(DossierPdfMeasures measures) {
         return Arrays.stream(NamesSize.values())
-                .filter(size -> measures.covers().get(size).nameLines() <= MAX_NAME_LINES)
+                .filter(size -> measures.nameLines().get(size) <= MAX_NAME_LINES)
                 .findFirst()
                 .orElse(NamesSize.SMALL);
     }

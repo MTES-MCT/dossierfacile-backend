@@ -8,6 +8,7 @@ import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
@@ -37,24 +38,27 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Generates the validated dossier PDF for a single candidate, a couple and a flatsharing of seven,
+ * Generates the PDF of validated and completed dossiers, for a single candidate, a couple and a flatsharing of seven,
  * all with very long names. Open target/dossier-pdf/*.pdf to look at the result.
  */
-class ValidatedDossierPdfRendererTest {
+class DossierPdfRendererTest {
 
     private static final File OUTPUT = new File("target/dossier-pdf");
     private static final Pattern SUMMARY_LINE = Pattern.compile("(?m)^ *p\\. \\d+ ");
 
-    private ValidatedDossierPdfRenderer renderer;
+    private DossierPdfRenderer renderer;
+    private TenantLogRepository tenantLogRepository;
 
     @BeforeEach
     void setUp() {
         DownloadService downloadService = mock(DownloadService.class);
         when(downloadService.getDocumentInputStream(any())).then(invocation -> piece(invocation.getArgument(0)));
-        TenantLogRepository tenantLogRepository = mock(TenantLogRepository.class);
+        tenantLogRepository = mock(TenantLogRepository.class);
         when(tenantLogRepository.findLastLogDate(anyCollection(), eq(LogType.ACCOUNT_VALIDATED)))
                 .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 6, 14, 30)));
-        renderer = new ValidatedDossierPdfRenderer(downloadService, tenantLogRepository, new PdfSignatureServiceImpl(), new PieceExtractor());
+        when(tenantLogRepository.findLastLogDate(anyCollection(), eq(LogType.ACCOUNT_COMPLETED)))
+                .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 5, 9, 0)));
+        renderer = new DossierPdfRenderer(downloadService, tenantLogRepository, new PdfSignatureServiceImpl(), new PieceExtractor());
         OUTPUT.mkdirs();
     }
 
@@ -174,6 +178,84 @@ class ValidatedDossierPdfRendererTest {
         }
     }
 
+    @Test
+    void should_render_completed_dossier_of_a_single_candidate() throws IOException {
+        ApartmentSharing apartmentSharing = DossierFixtures.alone();
+        apartmentSharing.getTenants().get(0).getGuarantors().remove(1);
+
+        String text = renderCompletedAndCheck(apartmentSharing, "completed-alone.pdf");
+
+        assertThat(text)
+                .contains("Documents de\nAnne-Laure Bourdonnaye-Lanvaux De Kerangal-Le Bihan")
+                .contains("Pièces déposées le 5 octobre 2026")
+                .contains("Non vérifié : vérification non demandée par le candidat")
+                .contains("Le candidat a déposé toutes les pièces demandées.")
+                .contains("Le locataire peut demander une vérification gratuite")
+                .contains("7 pièces")
+                .contains("Le mot du candidat");
+    }
+
+    @Test
+    void should_render_completed_dossier_of_three_candidates() throws IOException {
+        String text = renderCompletedAndCheck(DossierFixtures.shortNames(), "completed-short-names.pdf");
+
+        assertThat(text)
+                .contains("Documents de\nCamille Lefèvre, Nadia Colin et Thomas Orio")
+                .contains("Non vérifié : vérification non demandée par les candidats")
+                .contains("Les candidats ne l'ont pas demandée.")
+                .contains("Les candidats ont déposé toutes les pièces demandées.")
+                .contains("Garant de Nadia\nOrganisme")
+                .contains("1 pièce")
+                .contains("Le mot des candidats");
+    }
+
+    @Test
+    void should_render_completed_dossier_of_a_large_flatsharing() throws IOException {
+        String text = renderCompletedAndCheck(DossierFixtures.largeFlatsharing(), "completed-flatsharing.pdf");
+
+        assertThat(StringUtils.countMatches(text, "\nCandidat\n")).isEqualTo(7);
+        try (PDDocument document = Loader.loadPDF(new File(OUTPUT, "completed-flatsharing.pdf"))) {
+            assertThat(structureTypes(document.getDocumentCatalog().getStructureTreeRoot().getKids())).as("rows of cards").filteredOn("LI"::equals).hasSize(7);
+        }
+    }
+
+    @Test
+    void should_render_completed_dossier_without_submission_log() throws IOException {
+        when(tenantLogRepository.findLastLogDate(anyCollection(), eq(LogType.ACCOUNT_COMPLETED))).thenReturn(Optional.empty());
+        ApartmentSharing apartmentSharing = DossierFixtures.couple();
+        apartmentSharing.getTenants().get(1).getDocuments().get(0).setCreationDateTime(LocalDateTime.of(2026, 10, 1, 8, 0));
+
+        String text = renderCompletedAndCheck(apartmentSharing, "completed-couple.pdf");
+
+        assertThat(text).contains("Pièces déposées le 1er octobre 2026");
+    }
+
+    /** Renders a dossier that is not validated. Such a PDF shows neither an amount nor any mention of a verified piece. */
+    private String renderCompletedAndCheck(ApartmentSharing apartmentSharing, String fileName) throws IOException {
+        apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.COMPLETED));
+        byte[] pdf;
+        try (InputStream rendered = renderer.render(apartmentSharing)) {
+            pdf = rendered.readAllBytes();
+        }
+        Files.write(new File(OUTPUT, fileName).toPath(), pdf);
+
+        try (PDDocument document = Loader.loadPDF(pdf)) {
+            assertThat(document.getDocumentInformation().getSubject()).isEqualTo("Dossier de location complet, non vérifié par l'équipe DossierFacile");
+            assertThat(document.getDocumentCatalog().getMarkInfo().isMarked()).isTrue();
+            String text = new PDFTextStripper().getText(document);
+            assertThat(StringUtils.countMatches(text, "PIÈCE DÉPOSÉE")).isEqualTo(numberOfPiecePages(apartmentSharing));
+            assertThat(StringUtils.countMatches(text, "Statut de ce dossier")).isEqualTo(1);
+            assertThat(text)
+                    .contains("DOSSIER COMPLET")
+                    .contains("Comprendre les statuts")
+                    .doesNotContain("€")
+                    .doesNotContain("DOSSIER VALIDÉ")
+                    .doesNotContain("PIÈCE VÉRIFIÉE")
+                    .doesNotContain("Sommaire");
+            return text;
+        }
+    }
+
     private String renderAndCheck(ApartmentSharing apartmentSharing, String fileName, String titleStart) throws IOException {
         byte[] pdf;
         try (InputStream rendered = renderer.render(apartmentSharing)) {
@@ -235,6 +317,17 @@ class ValidatedDossierPdfRendererTest {
         return alternatives;
     }
 
+    private static List<String> structureTypes(List<Object> structure) {
+        List<String> types = new ArrayList<>();
+        for (Object kid : structure) {
+            if (kid instanceof PDStructureElement element) {
+                types.add(element.getStructureType());
+                types.addAll(structureTypes(element.getKids()));
+            }
+        }
+        return types;
+    }
+
     /** The pieces are test files: a scan saved as an image, a JPEG page, a landscape page and a sworn statement of two pages. */
     private static InputStream piece(Document document) {
         if (document.getDocumentSubCategory() == DocumentSubCategory.OTHER_TAX) {
@@ -245,6 +338,6 @@ class ValidatedDossierPdfRendererTest {
             case PROFESSIONAL -> "/landscapeid.pdf";
             default -> "/CNI.pdf";
         };
-        return ValidatedDossierPdfRendererTest.class.getResourceAsStream(file);
+        return DossierPdfRendererTest.class.getResourceAsStream(file);
     }
 }

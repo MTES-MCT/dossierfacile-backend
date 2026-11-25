@@ -33,6 +33,15 @@ class DossierPdfMeasurerTest {
     }
 
     @Test
+    void should_measure_a_completed_dossier() {
+        DossierPdfModel model = model(MARIE + ", " + JEAN + " et " + ANNE, List.of()).toBuilder().status(DossierPdfStatus.COMPLETED).build();
+        DossierPdfMeasures measures = measure(model);
+
+        assertThat(DossierPdfLayout.of(model, measures).getNamesSize()).isEqualTo(NamesSize.SMALL);
+        assertThat(measures.summary()).isNull();
+    }
+
+    @Test
     void should_measure_the_room_left_by_the_names_and_the_guarantors() {
         float room = summaryRoom("Camille Lefèvre", "Aucun garant");
 
@@ -44,7 +53,7 @@ class DossierPdfMeasurerTest {
     void should_measure_a_guarantor_line_that_wraps() {
         GuarantorSummary wrapped = GuarantorSummary.builder().label("Quatre personnes").detail("(7 500 € cumulés)").build();
 
-        assertThat(measure(model("Camille Lefèvre", List.of(wrapped))).covers().get(NamesSize.LARGE).summaryRoom())
+        assertThat(measure(model("Camille Lefèvre", List.of(wrapped))).summary().coverRooms().get(NamesSize.LARGE))
                 .isLessThan(summaryRoom("Camille Lefèvre", "Quatre personnes") - 10);
     }
 
@@ -59,14 +68,14 @@ class DossierPdfMeasurerTest {
                 .candidates(List.of(List.of(candidate, guarantor, longName, longEmail)))
                 .build());
 
-        PersonHeights heights = measures.persons().get(candidate);
+        PersonHeights heights = measures.summary().persons().get(candidate);
         assertThat(heights.gap()).isCloseTo(12, within(ROUNDING));
         assertThat(height(heights)).isCloseTo(120, within(ROUNDING));
-        assertThat(height(measures.persons().get(guarantor))).isCloseTo(101, within(ROUNDING));
+        assertThat(height(measures.summary().persons().get(guarantor))).isCloseTo(101, within(ROUNDING));
         assertThat(heights.lines()).hasSize(5);
         assertThat(heights.header() - heights.continuedHeader()).as("email").isCloseTo(14, within(ROUNDING));
-        assertThat(height(measures.persons().get(longName))).as("name on two lines").isCloseTo(101 + 15, within(ROUNDING));
-        assertThat(measures.persons().get(longEmail).header()).as("email on three lines").isCloseTo(heights.header() + 22, within(ROUNDING));
+        assertThat(height(measures.summary().persons().get(longName))).as("name on two lines").isCloseTo(101 + 15, within(ROUNDING));
+        assertThat(measures.summary().persons().get(longEmail).header()).as("email on three lines").isCloseTo(heights.header() + 22, within(ROUNDING));
     }
 
     @Test
@@ -88,7 +97,7 @@ class DossierPdfMeasurerTest {
 
     private float summaryRoom(String names, String... guarantors) {
         List<GuarantorSummary> summaries = List.of(guarantors).stream().map(label -> GuarantorSummary.builder().label(label).build()).toList();
-        return measure(model(names, summaries)).covers().get(NamesSize.LARGE).summaryRoom();
+        return measure(model(names, summaries)).summary().coverRooms().get(NamesSize.LARGE);
     }
 
     private DossierPdfMeasures measure(DossierPdfModel model) {
@@ -102,7 +111,8 @@ class DossierPdfMeasurerTest {
     private static DossierPdfModel model(String names, List<GuarantorSummary> guarantors) {
         return DossierPdfModel.builder()
                 .names(names)
-                .validationDate("6 octobre 2026")
+                .status(DossierPdfStatus.VALIDATED)
+                .date("6 octobre 2026")
                 .candidateCount("1 candidat")
                 .totalIncome("3 000 €")
                 .guarantorSummaries(guarantors)

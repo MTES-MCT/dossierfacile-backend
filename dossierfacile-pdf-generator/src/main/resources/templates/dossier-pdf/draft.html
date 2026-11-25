@@ -11,12 +11,19 @@
 </head>
 <body class="draft">
 
-<!-- Cover, for each size of the names -->
-<th:block th:each="size : ${namesSizes}"><div th:replace="~{fragments :: cover(${m}, ${size}, ${emptySummary})}"></div></th:block>
+<th:block th:if="${m.status.name() == 'VALIDATED'}">
+    <!-- Cover, for each size of the names -->
+    <th:block th:each="size : ${namesSizes}"><div th:replace="~{fragments :: validatedCover(${m}, ${size}, ${emptySummary})}"></div></th:block>
 
-<!-- "Sommaire, suite" page, then one page per person -->
-<div th:replace="~{fragments :: summaryPage(${m}, ${emptySummary})}"></div>
-<th:block th:each="summary : ${personSummaries}"><div th:replace="~{fragments :: summaryPage(${m}, ${summary})}"></div></th:block>
+    <!-- "Sommaire, suite" page, then one page per person -->
+    <div th:replace="~{fragments :: summaryPage(${m}, ${emptySummary})}"></div>
+    <th:block th:each="summary : ${personSummaries}"><div th:replace="~{fragments :: summaryPage(${m}, ${summary})}"></div></th:block>
+</th:block>
+
+<th:block th:if="${m.status.name() == 'COMPLETED'}">
+    <!-- Cover, for each size of the names -->
+    <th:block th:each="size : ${namesSizes}"><div th:replace="~{fragments :: completedCover(${m}, ${size}, ${noCard})}"></div></th:block>
+</th:block>
 
 <!-- Piece page, for each title -->
 <th:block th:each="title : ${pieceTitles}"><div th:replace="~{fragments :: piece(${m}, ${title}, null, null)}"></div></th:block>

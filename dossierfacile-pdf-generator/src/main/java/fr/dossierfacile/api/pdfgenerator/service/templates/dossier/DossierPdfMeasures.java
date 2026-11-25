@@ -9,19 +9,18 @@ import java.util.Map;
 /**
  * Holds what {@link DossierPdfMeasurer} reads from the HTML engine. All the lengths are in points.
  *
- * @param covers          the cover, for each size of the names
- * @param nextSummaryRoom the height left for the content of a summary column on a "Sommaire, suite" page
- * @param persons         the heights of each person of the summary
- * @param pieceRooms      the room left for the image of a piece, for each piece title
+ * @param nameLines  the number of lines that the names of the cover take, for each size
+ * @param pieceRooms the room left for the image of a piece, for each piece title
+ * @param summary    the measures of the summary, which is null when the dossier has no summary
  */
-record DossierPdfMeasures(Map<NamesSize, Cover> covers, float nextSummaryRoom, Map<SummaryPerson, PersonHeights> persons,
-        Map<String, Room> pieceRooms) {
+record DossierPdfMeasures(Map<NamesSize, Integer> nameLines, Map<String, Room> pieceRooms, Summary summary) {
 
     /**
-     * @param nameLines   the number of lines that the names take
-     * @param summaryRoom the height left for the content of a summary column
+     * @param coverRooms the height left for the content of a column on the cover, for each size of the names
+     * @param nextRoom   the height left for the content of a column on a "Sommaire, suite" page
+     * @param persons    the heights of each person
      */
-    record Cover(int nameLines, float summaryRoom) {
+    record Summary(Map<NamesSize, Float> coverRooms, float nextRoom, Map<SummaryPerson, PersonHeights> persons) {
     }
 
     /**

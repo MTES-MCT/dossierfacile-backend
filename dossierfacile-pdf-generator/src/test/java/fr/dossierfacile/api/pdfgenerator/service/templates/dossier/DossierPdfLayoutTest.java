@@ -2,9 +2,9 @@ package fr.dossierfacile.api.pdfgenerator.service.templates.dossier;
 
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfLayout.ImageSize;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfLayout.NamesSize;
-import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfMeasures.Cover;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfMeasures.Room;
 import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfModel.PiecePage;
+import fr.dossierfacile.api.pdfgenerator.service.templates.dossier.DossierPdfModel.SummaryPerson;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -36,16 +36,32 @@ class DossierPdfLayoutTest {
         assertThat(layout.imageSize(page("Long title", 1000, 2000))).isEqualTo(new ImageSize(250, 500));
     }
 
+    @Test
+    void should_start_a_row_of_cards_for_each_candidate() {
+        List<SummaryPerson> camille = List.of(person("Camille"), person("Frédéric"), person("Odile"), person("Hélène"));
+        List<SummaryPerson> nadia = List.of(person("Nadia"));
+
+        DossierPdfLayout layout = layout(DossierPdfModel.builder().candidates(List.of(camille, nadia)).build(), 1, 1, 1);
+
+        assertThat(layout.getCardRows()).containsExactly(camille.subList(0, 3), camille.subList(3, 4), nadia);
+        assertThat(layout.getSummaryPages()).isEmpty();
+    }
+
+    private static SummaryPerson person(String name) {
+        return SummaryPerson.builder().name(name).build();
+    }
+
     private static PiecePage page(String title, float width, float height) {
         return PiecePage.builder().title(title).width(width).height(height).build();
     }
 
     private static DossierPdfLayout layout(int largeLines, int mediumLines, int smallLines) {
-        Map<NamesSize, Cover> covers = Map.of(
-                NamesSize.LARGE, new Cover(largeLines, 300),
-                NamesSize.MEDIUM, new Cover(mediumLines, 300),
-                NamesSize.SMALL, new Cover(smallLines, 300));
+        return layout(DossierPdfModel.builder().candidates(List.of()).build(), largeLines, mediumLines, smallLines);
+    }
+
+    private static DossierPdfLayout layout(DossierPdfModel model, int largeLines, int mediumLines, int smallLines) {
+        Map<NamesSize, Integer> nameLines = Map.of(NamesSize.LARGE, largeLines, NamesSize.MEDIUM, mediumLines, NamesSize.SMALL, smallLines);
         Map<String, Room> pieceRooms = Map.of("Portrait", new Room(500, 600), "Long title", new Room(500, 500));
-        return DossierPdfLayout.of(DossierPdfModel.builder().candidates(List.of()).build(), new DossierPdfMeasures(covers, 500, Map.of(), pieceRooms));
+        return DossierPdfLayout.of(model, new DossierPdfMeasures(nameLines, pieceRooms, null));
     }
 }
