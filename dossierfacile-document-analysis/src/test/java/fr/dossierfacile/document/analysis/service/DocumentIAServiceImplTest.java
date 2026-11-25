@@ -186,7 +186,7 @@ class DocumentIAServiceImplTest {
         verify(documentIAFileAnalysisRepository).save(analysis);
     }
 
-    private static final Duration TOO_OLD = DocumentIAServiceImpl.MAX_ANALYSIS_AGE.plusMinutes(1);
+    private static final Duration TIMED_OUT = DocumentIAServiceImpl.ANALYSIS_TIMEOUT.plusMinutes(1);
 
     private static DocumentIAFileAnalysis startedAnalysis(Duration age) {
         return DocumentIAFileAnalysis.builder()
@@ -247,9 +247,10 @@ class DocumentIAServiceImplTest {
     }
 
     @Test
-    void should_propagate_processing_errors_instead_of_marking_remote_analysis_failed() {
+    void should_not_mark_analysis_failed_when_saving_its_result_fails() {
         DocumentIAFileAnalysis analysis = startedAnalysis(Duration.ZERO);
-        when(documentIAClient.checkAnalysisStatus("exec-1")).thenReturn(failedResult());
+        when(documentIAClient.checkAnalysisStatus("exec-1")).thenReturn(DocumentIAResultModel.builder()
+                .id("exec-1").status(DocumentIAFileAnalysisStatus.SUCCESS).build());
         when(documentIAFileAnalysisRepository.findByDocumentIaExecutionId("exec-1"))
                 .thenThrow(new IllegalStateException("Database unavailable"));
 
@@ -260,14 +261,14 @@ class DocumentIAServiceImplTest {
     }
 
     @Test
-    void should_give_up_on_an_analysis_older_than_the_maximum_age() {
-        // The scheduler passes a detached copy: only the reloaded row may be changed and saved.
-        DocumentIAFileAnalysis detachedCopy = startedAnalysis(TOO_OLD);
-        DocumentIAFileAnalysis reloaded = startedAnalysis(TOO_OLD);
+    void should_fail_a_timed_out_analysis() {
+        // Only the reloaded row may change: the copy read by the scheduler is detached.
+        DocumentIAFileAnalysis detachedCopy = startedAnalysis(TIMED_OUT);
+        DocumentIAFileAnalysis reloaded = startedAnalysis(TIMED_OUT);
         Document document = documentWithOnlyFile(reloaded);
         when(documentIAFileAnalysisRepository.findById(7L)).thenReturn(Optional.of(reloaded));
 
-        assertTrue(documentIAService.abandonIfTooOld(detachedCopy));
+        assertTrue(documentIAService.failIfTimedOut(detachedCopy));
 
         assertEquals(DocumentIAFileAnalysisStatus.FAILED, reloaded.getAnalysisStatus());
         assertEquals(DocumentIAFileAnalysisStatus.STARTED, detachedCopy.getAnalysisStatus());
@@ -276,12 +277,12 @@ class DocumentIAServiceImplTest {
     }
 
     @Test
-    void should_not_overwrite_an_old_analysis_completed_by_a_callback_meanwhile() {
-        DocumentIAFileAnalysis completed = startedAnalysis(TOO_OLD);
+    void should_not_fail_a_timed_out_analysis_completed_by_a_callback_meanwhile() {
+        DocumentIAFileAnalysis completed = startedAnalysis(TIMED_OUT);
         completed.setAnalysisStatus(DocumentIAFileAnalysisStatus.SUCCESS);
         when(documentIAFileAnalysisRepository.findById(7L)).thenReturn(Optional.of(completed));
 
-        assertTrue(documentIAService.abandonIfTooOld(startedAnalysis(TOO_OLD)));
+        assertTrue(documentIAService.failIfTimedOut(startedAnalysis(TIMED_OUT)));
 
         assertEquals(DocumentIAFileAnalysisStatus.SUCCESS, completed.getAnalysisStatus());
         verify(documentIAFileAnalysisRepository, never()).save(any());
@@ -289,10 +290,10 @@ class DocumentIAServiceImplTest {
     }
 
     @Test
-    void should_not_give_up_on_an_analysis_younger_than_the_maximum_age() {
-        DocumentIAFileAnalysis analysis = startedAnalysis(DocumentIAServiceImpl.MAX_ANALYSIS_AGE.minusMinutes(1));
+    void should_not_fail_an_analysis_before_the_timeout() {
+        DocumentIAFileAnalysis analysis = startedAnalysis(DocumentIAServiceImpl.ANALYSIS_TIMEOUT.minusMinutes(1));
 
-        assertFalse(documentIAService.abandonIfTooOld(analysis));
+        assertFalse(documentIAService.failIfTimedOut(analysis));
 
         verifyNoInteractions(documentIAFileAnalysisRepository, documentAnalysisService);
     }

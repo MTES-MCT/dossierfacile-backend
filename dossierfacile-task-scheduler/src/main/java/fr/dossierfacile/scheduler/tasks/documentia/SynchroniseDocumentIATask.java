@@ -50,9 +50,8 @@ public class SynchroniseDocumentIATask extends AbstractTask {
 
         log.info("Found {} analyses to synchronise with Document IA", analyses.size());
 
-        // Expired analyses are closed one at a time, before the concurrent status checks: the files of
-        // a document expire together, and the last one must see the others closed to analyse the document.
-        var pendingAnalyses = analyses.stream().filter(analysis -> !abandonIfTooOld(analysis)).toList();
+        // Sequential: the last timed-out file of a document must see the others failed to analyse it.
+        var pendingAnalyses = analyses.stream().filter(analysis -> !failIfTimedOut(analysis)).toList();
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             for (var analysis : pendingAnalyses) {
@@ -64,8 +63,6 @@ public class SynchroniseDocumentIATask extends AbstractTask {
                             documentIaService.checkAnalysisStatus(analysis);
                             log.info("Finished synchronise with Document IA for analysis id={}", analysis.getId());
                         } catch (Exception e) {
-                            // Without this catch the exception stays in a Future nobody reads and is never logged.
-                            // The analysis keeps its STARTED status and is picked up again at the next run.
                             log.error("Unable to synchronise Document IA analysis id={}", analysis.getId(), e);
                         } finally {
                             threadLimiter.release();
@@ -80,11 +77,11 @@ public class SynchroniseDocumentIATask extends AbstractTask {
         super.endTask();
     }
 
-    private boolean abandonIfTooOld(DocumentIAFileAnalysis analysis) {
+    private boolean failIfTimedOut(DocumentIAFileAnalysis analysis) {
         try {
-            return documentIaService.abandonIfTooOld(analysis);
+            return documentIaService.failIfTimedOut(analysis);
         } catch (Exception e) {
-            log.error("Unable to close the expired Document IA analysis id={}", analysis.getId(), e);
+            log.error("Unable to check the timeout of Document IA analysis id={}", analysis.getId(), e);
             return true;
         }
     }

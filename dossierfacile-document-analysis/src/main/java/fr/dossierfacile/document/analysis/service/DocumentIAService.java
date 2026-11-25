@@ -16,9 +16,9 @@ public interface DocumentIAService {
     void checkAnalysisStatus(DocumentIAFileAnalysis documentIAFileAnalysis);
 
     /**
-     * Marks the analysis as failed when Document IA has not finished it within the maximum age.
+     * Marks the analysis as failed if Document IA has not finished it within the timeout.
      *
-     * @return true when the analysis is too old: there is nothing left to ask Document IA
+     * @return true if the analysis has timed out
      */
-    boolean abandonIfTooOld(DocumentIAFileAnalysis documentIAFileAnalysis);
+    boolean failIfTimedOut(DocumentIAFileAnalysis documentIAFileAnalysis);
 }

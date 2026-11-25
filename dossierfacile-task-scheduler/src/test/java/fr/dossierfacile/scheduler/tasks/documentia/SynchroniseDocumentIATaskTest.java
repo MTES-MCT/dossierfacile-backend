@@ -110,24 +110,24 @@ class SynchroniseDocumentIATaskTest {
     }
 
     @Test
-    void should_not_check_status_of_abandoned_analyses() {
-        DocumentIAFileAnalysis expired = analysis(1L);
+    void should_not_check_status_of_timed_out_analyses() {
+        DocumentIAFileAnalysis timedOut = analysis(1L);
         DocumentIAFileAnalysis recent = analysis(2L);
-        givenStartedAnalyses(expired, recent);
-        when(documentIaService.abandonIfTooOld(any())).thenAnswer(invocation -> invocation.getArgument(0) == expired);
+        givenStartedAnalyses(timedOut, recent);
+        when(documentIaService.failIfTimedOut(any())).thenAnswer(invocation -> invocation.getArgument(0) == timedOut);
 
         synchroniseDocumentIaTask.synchroniseDocumentIA();
 
-        verify(documentIaService, never()).checkAnalysisStatus(expired);
+        verify(documentIaService, never()).checkAnalysisStatus(timedOut);
         verify(documentIaService).checkAnalysisStatus(recent);
     }
 
     @Test
-    void should_keep_checking_the_others_when_abandoning_an_analysis_fails() {
+    void should_keep_checking_the_others_when_the_timeout_check_fails() {
         DocumentIAFileAnalysis broken = analysis(1L);
         DocumentIAFileAnalysis healthy = analysis(2L);
         givenStartedAnalyses(broken, healthy);
-        when(documentIaService.abandonIfTooOld(any())).thenAnswer(invocation -> {
+        when(documentIaService.failIfTimedOut(any())).thenAnswer(invocation -> {
             if (invocation.getArgument(0) == broken) {
                 throw new IllegalStateException("Database unavailable");
             }
