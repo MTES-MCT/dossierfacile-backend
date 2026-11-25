@@ -5,10 +5,12 @@ import fr.dossierfacile.common.model.document_ia.DocumentIAResultModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
 class DocumentIAClientTest {
 
@@ -48,6 +51,7 @@ class DocumentIAClientTest {
         mockServer.expect(requestTo(expectedUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("X-Api-Key", API_KEY))
+                .andExpect(header("Accept", "application/json"))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.MULTIPART_FORM_DATA))
                 .andRespond(
                         withSuccess("{\"status\":\"STARTED\",\"data\":{\"execution_id\":\"exec-1\",\"workflow_id\":\"wf-test\"}}", MediaType.APPLICATION_JSON));
@@ -155,6 +159,7 @@ class DocumentIAClientTest {
         mockServer.expect(requestTo(expectedUrl))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header("X-Api-Key", API_KEY))
+                .andExpect(header("Accept", "application/json"))
                 .andRespond(
                         withSuccess("{\"id\":\"exec-abc\",\"status\":\"SUCCESS\",\"data\":{\"total_processing_time_ms\":250}}", MediaType.APPLICATION_JSON));
 
@@ -165,5 +170,18 @@ class DocumentIAClientTest {
         assertNotNull(response);
         assertEquals("exec-abc", response.getId());
         mockServer.verify();
+    }
+
+    @Test
+    void should_preserve_http_error_when_server_echoes_accept_as_content_type() {
+        // Document IA can echo Accept into Content-Type on error responses.
+        // A multi-value Accept would hide the HTTP error behind InvalidMediaTypeException.
+        mockServer.expect(requestTo(BASE_URL + "/v1/executions/exec-abc"))
+                .andRespond(request -> withStatus(HttpStatus.SERVICE_UNAVAILABLE)
+                        .header("Content-Type", String.join(", ", request.getHeaders().getOrEmpty("Accept")))
+                        .createResponse(request));
+
+        assertThrows(HttpServerErrorException.ServiceUnavailable.class,
+                () -> documentIAClient.checkAnalysisStatus("exec-abc"));
     }
 }

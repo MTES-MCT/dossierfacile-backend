@@ -14,4 +14,11 @@ public interface DocumentIAService {
     void analyseDocument(Document document);
 
     void checkAnalysisStatus(DocumentIAFileAnalysis documentIAFileAnalysis);
+
+    /**
+     * Marks the analysis as failed if Document IA has not finished it within the timeout.
+     *
+     * @return true if the analysis has timed out
+     */
+    boolean failIfTimedOut(DocumentIAFileAnalysis documentIAFileAnalysis);
 }

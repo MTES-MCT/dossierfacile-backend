@@ -3,11 +3,14 @@ package fr.dossierfacile.scheduler.tasks.documentia;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
+import fr.dossierfacile.logging.task.LogAggregator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -15,11 +18,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import fr.dossierfacile.logging.task.LogAggregator;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 class SynchroniseDocumentIATaskTest {
 
     @Mock
@@ -27,28 +29,35 @@ class SynchroniseDocumentIATaskTest {
     @Mock
     DocumentIAService documentIaService;
 
-    // Remove @InjectMocks
     SynchroniseDocumentIATask synchroniseDocumentIaTask;
 
-    @Test
-    void should_synchronize_maximum_10_analysis_at_same_time() {
-        // Initialize the task manually to override the @Lookup method
+    @BeforeEach
+    void setUp() {
+        // Created by hand to override the @Lookup method
         synchroniseDocumentIaTask = new SynchroniseDocumentIATask(documentIAFileAnalysisRepository, documentIaService) {
             @Override
             protected LogAggregator logAggregator() {
                 return mock(LogAggregator.class);
             }
         };
+    }
 
+    private void givenStartedAnalyses(DocumentIAFileAnalysis... analyses) {
+        when(documentIAFileAnalysisRepository.findAllByAnalysisStatus(any(), any(Pageable.class)))
+                .thenReturn(List.of(analyses));
+    }
+
+    private static DocumentIAFileAnalysis analysis(long id) {
+        return DocumentIAFileAnalysis.builder().id(id).build();
+    }
+
+    @Test
+    void should_synchronize_maximum_10_analysis_at_same_time() {
         // Given
         int totalAnalyses = 100;
-        List<DocumentIAFileAnalysis> analyses = IntStream.range(0, totalAnalyses)
-                .mapToObj(i -> DocumentIAFileAnalysis.builder().id((long) i).build())
-                .toList();
-
-        // Assuming the repository returns a List directly
-        when(documentIAFileAnalysisRepository.findAllByAnalysisStatus(any(), any(Pageable.class)))
-                .thenReturn(analyses);
+        givenStartedAnalyses(IntStream.range(0, totalAnalyses)
+                .mapToObj(SynchroniseDocumentIATaskTest::analysis)
+                .toArray(DocumentIAFileAnalysis[]::new));
 
         AtomicInteger concurrentCounter = new AtomicInteger(0);
         AtomicInteger maxConcurrent = new AtomicInteger(0);
@@ -76,5 +85,58 @@ class SynchroniseDocumentIATaskTest {
 
         // Ensure all were processed
         verify(documentIaService, times(totalAnalyses)).checkAnalysisStatus(any());
+    }
+
+    // The stubs below match any analysis and compare references: the analyses are checked in parallel,
+    // in no fixed order, and a stub for one analysis only would fail on the call for the other one.
+
+    @Test
+    void should_log_a_failed_synchronisation_and_continue_with_the_other_analyses(CapturedOutput output) {
+        DocumentIAFileAnalysis failing = analysis(1L);
+        DocumentIAFileAnalysis healthy = analysis(2L);
+        givenStartedAnalyses(failing, healthy);
+        doAnswer(invocation -> {
+            if (invocation.getArgument(0) == failing) {
+                throw new IllegalStateException("Database unavailable");
+            }
+            return null;
+        }).when(documentIaService).checkAnalysisStatus(any());
+
+        synchroniseDocumentIaTask.synchroniseDocumentIA();
+
+        verify(documentIaService).checkAnalysisStatus(healthy);
+        // The exception itself must be logged, not only the fact that something failed.
+        assertThat(output).contains("analysis id=1", "IllegalStateException: Database unavailable");
+    }
+
+    @Test
+    void should_not_check_status_of_timed_out_analyses() {
+        DocumentIAFileAnalysis timedOut = analysis(1L);
+        DocumentIAFileAnalysis recent = analysis(2L);
+        givenStartedAnalyses(timedOut, recent);
+        when(documentIaService.failIfTimedOut(any())).thenAnswer(invocation -> invocation.getArgument(0) == timedOut);
+
+        synchroniseDocumentIaTask.synchroniseDocumentIA();
+
+        verify(documentIaService, never()).checkAnalysisStatus(timedOut);
+        verify(documentIaService).checkAnalysisStatus(recent);
+    }
+
+    @Test
+    void should_keep_checking_the_others_when_the_timeout_check_fails() {
+        DocumentIAFileAnalysis broken = analysis(1L);
+        DocumentIAFileAnalysis healthy = analysis(2L);
+        givenStartedAnalyses(broken, healthy);
+        when(documentIaService.failIfTimedOut(any())).thenAnswer(invocation -> {
+            if (invocation.getArgument(0) == broken) {
+                throw new IllegalStateException("Database unavailable");
+            }
+            return false;
+        });
+
+        synchroniseDocumentIaTask.synchroniseDocumentIA();
+
+        verify(documentIaService, never()).checkAnalysisStatus(broken);
+        verify(documentIaService).checkAnalysisStatus(healthy);
     }
 }

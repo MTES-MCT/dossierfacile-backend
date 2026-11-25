@@ -15,12 +15,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class DocumentIAServiceImpl implements DocumentIAService {
+
+    // Document IA answers within minutes: past this delay, stop waiting and release the document.
+    static final Duration ANALYSIS_TIMEOUT = Duration.ofHours(24);
 
     private final DocumentIAClient documentIAClient;
     private final DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
@@ -54,14 +59,18 @@ public class DocumentIAServiceImpl implements DocumentIAService {
                 return;
             }
 
-            if (analysis.getFile() != null && analysis.getFile().getDocument() != null) {
-                analyseDocument(analysis.getFile().getDocument());
-            } else {
-                log.warn("Document IA file analysis saved but file or document is null for analysis id: {}", analysis.getId());
-            }
+            analyseParentDocument(analysis);
 
         }, () -> log.warn("Document IA file analysis not found with id : {}", payload.getId()));
 
+    }
+
+    private void analyseParentDocument(DocumentIAFileAnalysis analysis) {
+        if (analysis.getFile() != null && analysis.getFile().getDocument() != null) {
+            analyseDocument(analysis.getFile().getDocument());
+        } else {
+            log.warn("Document IA file analysis saved but file or document is null for analysis id: {}", analysis.getId());
+        }
     }
 
     public void analyseDocument(Document document) {
@@ -120,16 +129,39 @@ public class DocumentIAServiceImpl implements DocumentIAService {
     @Override
     @Transactional
     public void checkAnalysisStatus(DocumentIAFileAnalysis documentIAFileAnalysis) {
+        DocumentIAResultModel response;
         try {
-            var response = documentIAClient.checkAnalysisStatus(
+            response = documentIAClient.checkAnalysisStatus(
                     documentIAFileAnalysis.getDocumentIaExecutionId()
             );
-
-            this.saveFileAnalysis(response);
         } catch (Exception e) {
-            log.error("Error checking analysis status for Document IA execution id: {}", documentIAFileAnalysis.getDocumentIaExecutionId(), e);
-            documentIAFileAnalysis.setAnalysisStatus(DocumentIAFileAnalysisStatus.FAILED);
-            documentIAFileAnalysisRepository.save(documentIAFileAnalysis);
+            // The remote analysis may still succeed: keep STARTED, the scheduler retries at its next run.
+            log.warn("Unable to read Document IA execution status; will retry execution id: {} ({})",
+                    documentIAFileAnalysis.getDocumentIaExecutionId(), e.toString());
+            return;
         }
+
+        // Outside the try: a local error must not mark the analysis FAILED.
+        this.saveFileAnalysis(response);
+    }
+
+    @Override
+    @Transactional
+    public boolean failIfTimedOut(DocumentIAFileAnalysis analysis) {
+        if (analysis.getCreationDate() == null
+                || analysis.getCreationDate().isAfter(LocalDateTime.now().minus(ANALYSIS_TIMEOUT))) {
+            return false;
+        }
+        // Reloaded: a callback may have completed it since the scheduler read it.
+        documentIAFileAnalysisRepository.findById(analysis.getId())
+                .filter(current -> current.getAnalysisStatus() == DocumentIAFileAnalysisStatus.STARTED)
+                .ifPresent(current -> {
+                    log.error("Document IA analysis timed out after {} hours, marking it failed. Execution id: {}",
+                            ANALYSIS_TIMEOUT.toHours(), current.getDocumentIaExecutionId());
+                    current.setAnalysisStatus(DocumentIAFileAnalysisStatus.FAILED);
+                    documentIAFileAnalysisRepository.save(current);
+                    analyseParentDocument(current);
+                });
+        return true;
     }
 }

@@ -1,5 +1,6 @@
 package fr.dossierfacile.scheduler.tasks.documentia;
 
+import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
@@ -49,8 +50,11 @@ public class SynchroniseDocumentIATask extends AbstractTask {
 
         log.info("Found {} analyses to synchronise with Document IA", analyses.size());
 
+        // Sequential: the last timed-out file of a document must see the others failed to analyse it.
+        var pendingAnalyses = analyses.stream().filter(analysis -> !failIfTimedOut(analysis)).toList();
+
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            for (var analysis : analyses) {
+            for (var analysis : pendingAnalyses) {
                 executor.submit(() -> {
                     try {
                         threadLimiter.acquire();
@@ -58,6 +62,8 @@ public class SynchroniseDocumentIATask extends AbstractTask {
                             log.info("Starting synchronise with Document IA for analysis id={}", analysis.getId());
                             documentIaService.checkAnalysisStatus(analysis);
                             log.info("Finished synchronise with Document IA for analysis id={}", analysis.getId());
+                        } catch (Exception e) {
+                            log.error("Unable to synchronise Document IA analysis id={}", analysis.getId(), e);
                         } finally {
                             threadLimiter.release();
                         }
@@ -69,6 +75,15 @@ public class SynchroniseDocumentIATask extends AbstractTask {
             }
         }
         super.endTask();
+    }
+
+    private boolean failIfTimedOut(DocumentIAFileAnalysis analysis) {
+        try {
+            return documentIaService.failIfTimedOut(analysis);
+        } catch (Exception e) {
+            log.error("Unable to check the timeout of Document IA analysis id={}", analysis.getId(), e);
+            return true;
+        }
     }
 
 }
