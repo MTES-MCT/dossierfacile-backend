@@ -22,6 +22,8 @@ public class TenantWarningService {
 
     /**
      * Sends the first inactivity warning email and increments the tenant's warning counter to 1.
+     * On a transient Brevo failure, {@link TransientMailDeliveryException} is propagated and the transaction
+     * rolls back, so the tenant stays eligible and is warned again on the next run.
      */
     @Transactional
     public void sendFirstWarning(Tenant t) {
@@ -37,6 +39,8 @@ public class TenantWarningService {
 
     /**
      * Sends the second inactivity warning email and increments the tenant's warning counter to 2.
+     * On a transient Brevo failure, {@link TransientMailDeliveryException} is propagated and the transaction
+     * rolls back, so the tenant stays eligible and is warned again on the next run.
      */
     @Transactional
     public void sendSecondWarning(Tenant t) {

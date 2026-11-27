@@ -4,7 +4,6 @@ import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -44,21 +43,21 @@ public class TenantDeletionTask extends AbstractTask {
 
     private void deleteTenantsNotActiveSince(LocalDateTime limitDate) {
         List<Long> listOfTenantIds = new ArrayList<>();
-        Page<Long> toDelete = tenantRepository.findByLastUpdateDate(limitDate, PageRequest.of(0, PAGE_SIZE));
-        log.info("Found {} inactive tenants to delete ({} months old)", toDelete.getTotalElements(), monthsForDeletionOfTenants);
+        log.info("Found {} inactive tenants to delete ({} months old)",
+                tenantRepository.countByLastUpdateDateBefore(limitDate), monthsForDeletionOfTenants);
 
-        deleteAllTenants(toDelete, listOfTenantIds);
-
-        while (toDelete.hasNext()) {
-            toDelete = tenantRepository.findByLastUpdateDate(limitDate, toDelete.nextPageable());
-            deleteAllTenants(toDelete, listOfTenantIds);
+        // Keyset pagination: deleted tenants leave the result set, an offset would skip the following ones
+        long beforeId = Long.MAX_VALUE;
+        while (true) {
+            List<Long> tenantIds = tenantRepository.findIdsByLastUpdateDateBefore(limitDate, beforeId, PageRequest.of(0, PAGE_SIZE));
+            listOfTenantIds.addAll(tenantIds);
+            tenantIds.forEach(this::deleteTenant);
+            if (tenantIds.size() < PAGE_SIZE) {
+                break;
+            }
+            beforeId = tenantIds.getLast();
         }
         countTenantIdForLogging(listOfTenantIds);
-    }
-
-    private void deleteAllTenants(Page<Long> tenantIds, List<Long> listOfTenantIds) {
-        listOfTenantIds.addAll(tenantIds.getContent());
-        tenantIds.forEach(this::deleteTenant);
     }
 
     private void deleteTenant(Long tenantId) {
