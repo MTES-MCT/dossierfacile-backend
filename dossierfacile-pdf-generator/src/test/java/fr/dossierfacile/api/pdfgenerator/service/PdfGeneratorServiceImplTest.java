@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
@@ -46,6 +47,10 @@ class PdfGeneratorServiceImplTest {
 
     @MockitoBean
     MailCommonService mailCommonService;
+
+    // H2 cannot create the tenant_log table, because of its jsonb column.
+    @MockitoBean
+    TenantLogRepository tenantLogRepository;
 
     @Value("${mock.storage.path}")
     private String filePath;

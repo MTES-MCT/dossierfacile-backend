@@ -9,7 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface TenantLogRepository extends JpaRepository<TenantLog, Long> {
 
@@ -20,6 +22,13 @@ public interface TenantLogRepository extends JpaRepository<TenantLog, Long> {
                 AND t.creation_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 1
             """, nativeQuery = true)
     long countProcessedDossiersFromToday();
+
+    /**
+     * Returns the date of the most recent log of the given type among the given tenants. The dossier PDF uses it for
+     * the dates of validation, deposit and verification request.
+     */
+    @Query("SELECT MAX(l.creationDateTime) FROM TenantLog l WHERE l.tenantId IN :tenantIds AND l.logType = :logType")
+    Optional<LocalDateTime> findLastLogDate(@Param("tenantIds") Collection<Long> tenantIds, @Param("logType") LogType logType);
 
     /** Queue entries bypassing the lottery. TODO(lottery-bypass): drop once every dossier goes through the lottery. */
     @Query(value = """

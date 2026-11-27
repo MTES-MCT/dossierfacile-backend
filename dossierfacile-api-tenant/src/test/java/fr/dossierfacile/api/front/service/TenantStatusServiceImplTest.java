@@ -120,6 +120,38 @@ class TenantStatusServiceImplTest {
         }
     }
 
+    // The full PDF shows the status of the dossier
+    @Nested
+    class FullPdf {
+
+        @Test
+        void requestingTheReview_resetsTheFullPdf() {
+            Tenant tenant = tenantGoingFrom(TenantFileStatus.COMPLETED, TenantFileStatus.TO_PROCESS, TenantFileStatus.TO_PROCESS);
+
+            service.updateTenantStatus(tenant);
+
+            verify(apartmentSharingService).resetDossierPdfGenerated(tenant.getApartmentSharing());
+        }
+
+        @Test
+        void withdrawingTheReviewRequest_resetsTheFullPdf() {
+            Tenant tenant = tenantGoingFrom(TenantFileStatus.TO_PROCESS, TenantFileStatus.TO_PROCESS, TenantFileStatus.COMPLETED);
+
+            service.updateTenantStatus(tenant);
+
+            verify(apartmentSharingService).resetDossierPdfGenerated(tenant.getApartmentSharing());
+        }
+
+        @Test
+        void unchangedStatus_keepsTheFullPdf() {
+            Tenant tenant = tenantGoingFrom(TenantFileStatus.TO_PROCESS, TenantFileStatus.TO_PROCESS, TenantFileStatus.TO_PROCESS);
+
+            service.updateTenantStatus(tenant);
+
+            verify(apartmentSharingService, never()).resetDossierPdfGenerated(any());
+        }
+    }
+
     @Test
     void declined_emitsDeniedAccount() {
         Tenant tenant = tenantGoingFrom(TenantFileStatus.TO_PROCESS, TenantFileStatus.DECLINED, TenantFileStatus.DECLINED);

@@ -47,7 +47,21 @@ public class PdfSignatureServiceImpl implements PdfSignatureService {
 
     @Override
     public void signAndSave(PDDocument document, ByteArrayOutputStream baos) throws Exception {
+        sign(document, baos, new PDDocumentInformation());
+    }
+
+    @Override
+    public void signAndSaveKeepingMetadata(PDDocument document, ByteArrayOutputStream baos) throws IOException {
         PDDocumentInformation information = new PDDocumentInformation();
+        PDDocumentInformation original = document.getDocumentInformation();
+        information.setTitle(original.getTitle());
+        information.setSubject(original.getSubject());
+        information.setAuthor(original.getAuthor());
+        information.setProducer(original.getProducer());
+        sign(document, baos, information);
+    }
+
+    private void sign(PDDocument document, ByteArrayOutputStream baos, PDDocumentInformation information) throws IOException {
         information.setCreator("DossierFacile");
         information.setCreationDate(Calendar.getInstance());
         document.setDocumentInformation(information);

@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
+import fr.dossierfacile.api.pdfgenerator.service.PdfSignatureServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -41,7 +42,7 @@ class AttestationPdfTemplateTest {
     private final AttestationPdfTemplate template = template();
 
     static AttestationPdfTemplate template() {
-        AttestationPdfTemplate template = new AttestationPdfTemplate(messageSource(), (document, outputStream) -> document.save(outputStream));
+        AttestationPdfTemplate template = new AttestationPdfTemplate(messageSource(), new PdfSignatureServiceImpl());
         template.setClock(CLOCK);
         return template;
     }

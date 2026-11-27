@@ -8,7 +8,7 @@ Ce module ouvre `COMPLETED` **partenaire par partenaire** : un partenaire **ayan
 
 Garanties :
 - **Flag inactif = comportement antérieur exact** : aucun partenaire n'a intégré `COMPLETED`, les trois verrous de l'opt-in (completed-optin.md §7) s'appliquent à tous.
-- Le partenaire n'est **pas notifié** du passage `COMPLETED → TO_PROCESS`. : depuis l'itération « partage en TO_PROCESS », les deux statuts sont des dossiers *non vérifiés* au rendu identique (page publique, full PDF, URLs). Le partenaire n'a donc **pas** à être notifié du passage `COMPLETED → TO_PROCESS`.
+- Le partenaire n'est **pas notifié** du passage `COMPLETED → TO_PROCESS`. : depuis l'itération « partage en TO_PROCESS », les deux statuts sont des dossiers *non vérifiés* au rendu identique (page publique, URLs), seul le full PDF distinguant « vérification non demandée » et « vérification en cours ». Le partenaire n'a donc **pas** à être notifié du passage `COMPLETED → TO_PROCESS`.
 - **Un partenaire n'ayant pas intégré `COMPLETED` ne le voit jamais** : verrous conditionnels + filets défensifs (§4).
 - **L'espace propriétaire (`dfconnect-proprietaire`) n'est pas considéré comme ayant intégré `COMPLETED`** 
 - **Pas de rollback par partenaire** dans cette version (§9).

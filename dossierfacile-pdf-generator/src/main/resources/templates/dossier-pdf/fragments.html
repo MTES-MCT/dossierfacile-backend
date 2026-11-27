@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The dossier PDF templates share these blocks. -->
+<fragments xmlns:th="http://www.thymeleaf.org">
+
+    <head th:fragment="head(m)">
+        <meta charset="UTF-8"/>
+        <title th:text="${m.title}">Dossier de location de Camille Lefèvre</title>
+        <meta name="subject" th:attr="content=${m.status.description}" content="Dossier de location"/>
+        <meta name="author" content="DossierFacile"/>
+        <link rel="stylesheet" href="res:dossier.css"/>
+        <bookmarks>
+            <bookmark th:each="b : ${m.bookmarks}" th:attr="name=${b.name},href='#' + ${b.anchor}">
+                <bookmark th:each="c : ${b.children}" th:attr="name=${c.name},href='#' + ${c.anchor}"/>
+            </bookmark>
+        </bookmarks>
+    </head>
+
+    <!-- The engine displays these running headers and this footer in the page margins. -->
+    <th:block th:fragment="running(m)">
+        <div class="running-dossier-header page-header">
+            <div th:replace="~{fragments :: brand('small')}"></div>
+            <div th:replace="~{fragments :: smallBand(${m}, false)}"></div>
+        </div>
+        <div class="running-piece-header page-header">
+            <div th:replace="~{fragments :: brand('small')}"></div>
+            <div th:replace="~{fragments :: smallBand(${m}, true)}"></div>
+        </div>
+        <div class="running-footer">
+            <div th:replace="~{fragments :: footer}"></div>
+        </div>
+    </th:block>
+
+    <!-- Brand block. The size is "large" on the cover and the summary pages, and "small" on the other pages. -->
+    <div th:fragment="brand(size)" th:class="'brand brand-' + ${size}">
+        <div class="brand-mark">
+            <img class="marianne" src="res:images/marianne.png" alt=""/>
+            <p class="brand-republique"><span>République</span><span>Française</span></p>
+            <img class="devise" src="res:images/devise.png" alt="Liberté, Égalité, Fraternité"/>
+        </div>
+        <div class="brand-service">
+            <p class="brand-name">Dossier<strong>Facile</strong></p>
+            <p class="brand-tagline">Le dossier de location numérique de l'État</p>
+        </div>
+    </div>
+
+    <!-- Short status band of the inner pages. A piece page names the status of the piece, and the other pages the one of the dossier. -->
+    <th:block th:fragment="smallBand(m, piece)">
+        <div class="band band-small" th:if="${m.validated}">
+            <div class="band-small-row">
+                <span class="band-small-icon"><img class="band-icon" src="res:images/shield-blue.png" alt=""/></span>
+                <strong class="band-status" th:text="${piece ? 'PIÈCE VÉRIFIÉE' : 'DOSSIER VALIDÉ'}">DOSSIER VALIDÉ</strong>
+                <span class="band-mention" th:text="|par une personne de l'équipe DossierFacile le ${m.date}|">par une personne de l'équipe DossierFacile le 6 octobre 2026</span>
+            </div>
+        </div>
+        <div class="band band-small band-completed" th:unless="${m.validated}">
+            <div class="band-small-row">
+                <span class="band-small-icon"><img class="band-icon" src="res:images/file-list.png" alt=""/></span>
+                <strong class="band-status" th:text="${piece ? 'PIÈCE DÉPOSÉE' : 'DOSSIER COMPLET'}">DOSSIER COMPLET</strong>
+                <span class="band-small-tag"><th:block th:replace="~{fragments :: tag(${m}, '')}"></th:block></span>
+            </div>
+        </div>
+    </th:block>
+
+    <!-- Label of a complete dossier. The author completes "vérification non demandée", for example with " par les candidats". -->
+    <th:block th:fragment="tag(m, author)">
+        <span class="tag" th:unless="${m.inProgress}"><span><img src="res:images/error-warning.png" alt=""/></span><span class="tag-text"
+              th:text="|Non vérifié : vérification non demandée${author}|">Non vérifié : vérification non demandée par les candidats</span></span>
+        <span class="tag tag-in-progress" th:if="${m.inProgress}"><span><img src="res:images/clock-brown.png" alt=""/></span><span class="tag-text"
+              th:text="|Vérification en cours, demandée le ${m.requestDate}|">Vérification en cours, demandée le 25 octobre 2026</span></span>
+    </th:block>
+
+    <p th:fragment="dossierOf(names)" class="dossier-of">Le dossier de <strong th:text="${names}">Camille Lefèvre</strong></p>
+
+    <!-- Two columns of the summary. SummaryLayout chooses the content of each column. -->
+    <div th:fragment="summary(page)" class="summary">
+        <div class="summary-cell"><div th:replace="~{fragments :: summaryColumn(${page.left})}"></div></div>
+        <div class="summary-gap"></div>
+        <div class="summary-cell"><th:block th:if="${page.right != null}"><div th:replace="~{fragments :: summaryColumn(${page.right})}"></div></th:block></div>
+    </div>
+
+    <div th:fragment="summaryColumn(column)"
+         th:class="|column${column.openTop ? ' column-open-top' : ''}${column.openBottom ? ' column-open-bottom' : ''}|"
+         th:style="${column.height == null ? null : 'height: ' + column.height + 'pt;'}">
+        <div th:each="block, stat : ${column.blocks}" th:with="person=${block.person}"
+             th:class="|person${person.candidate ? ' person-candidate' : ''}${stat.first ? ' person-first' : ''}|">
+            <p class="person-role">[[${person.role}]]<th:block th:if="${block.continued}">, suite</th:block></p>
+            <p class="person-name" th:text="${person.name}">Camille Lefèvre</p>
+            <p class="person-email" th:if="${person.email != null and !block.continued}">
+                <a th:href="|mailto:${person.email}|" th:title="|Écrire à ${person.name}|" th:text="${person.email}">camille.lefevre@exemple.fr</a>
+            </p>
+            <ul class="pieces" th:if="${!block.lines.isEmpty()}">
+                <li class="piece-line" th:each="line : ${block.lines}">
+                    <a class="piece-page" th:href="|#${line.anchor}|" th:title="|${line.label}, ${person.name}|">p. </a>
+                    <span th:text="${line.label}">Justificatif de ressources</span>
+                    <span th:if="${line.amount != null}"> - <span class="piece-amount" th:text="${line.amount}">3 000 € net</span></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Cover of a validated dossier. The page holds the two columns of the summary that it displays. -->
+    <div th:fragment="validatedCover(m, namesSize, page)" class="cover">
+        <div th:replace="~{fragments :: brand('large')}"></div>
+        <div class="band band-large">
+            <p class="band-large-status">
+                <img class="band-icon" src="res:images/shield-blue.png" alt=""/>
+                <strong class="band-status">DOSSIER VALIDÉ</strong>
+            </p>
+            <p class="band-mention" th:text="|par une personne de l'équipe DossierFacile le ${m.date}|">par une personne de l'équipe DossierFacile le 6 octobre 2026</p>
+            <h1 class="band-title"><span class="band-title-intro">Dossier de location de</span><span th:class="|band-title-names ${namesSize.cssClass}|"
+                  th:text="${m.names}">Camille Lefèvre, Nadia Colin et Thomas Orio</span></h1>
+        </div>
+
+        <div class="controls">
+            <p class="controls-intro">Une personne de l'équipe DossierFacile a relu chaque pièce de ce dossier. Elle a contrôlé que :</p>
+            <div class="checks">
+                <ul>
+                    <li><img src="res:images/check.png" alt=""/>Les informations correspondent entre les pièces</li>
+                    <li><img src="res:images/check.png" alt=""/>Les dates sont à jour</li>
+                </ul>
+                <ul>
+                    <li><img src="res:images/check.png" alt=""/>Les pièces demandées sont présentes</li>
+                    <li><img src="res:images/check.png" alt=""/>Les pièces sont lisibles</li>
+                </ul>
+            </div>
+            <p class="controls-disclaimer">DossierFacile vérifie la cohérence des pièces entre elles. Il ne certifie pas leur origine, ni la solvabilité des personnes.</p>
+            <p class="controls-link">Comprendre les statuts d'un dossier : <a class="see-page" href="#statuses" title="Comprendre les statuts d'un dossier">voir page </a></p>
+        </div>
+
+        <div class="recap">
+            <div class="recap-card">
+                <p class="recap-label">Type de dossier</p>
+                <p class="recap-value" th:text="${m.candidateCount}">3 candidats</p>
+            </div>
+            <div class="recap-spacer"></div>
+            <div class="recap-card">
+                <p class="recap-label">Revenus mensuels nets cumulés</p>
+                <p class="recap-value" th:text="|${m.totalIncome} cumulés|">9 600 € cumulés</p>
+            </div>
+            <div class="recap-spacer"></div>
+            <div class="recap-card">
+                <p class="recap-label">Garants</p>
+                <p class="recap-value" th:each="g : ${m.guarantorSummaries}">
+                    <span th:text="${g.label}">Trois personnes</span>
+                    <span class="recap-detail" th:if="${g.detail != null}" th:text="${g.detail}">(10 700 € cumulés)</span>
+                </p>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments :: summary(${page})}"></div>
+    </div>
+
+    <!-- Cover of a complete dossier, whether it waits for a verification or not -->
+    <div th:fragment="completedCover(m, namesSize, rows)" class="cover completed-cover">
+        <div th:replace="~{fragments :: brand('large')}"></div>
+        <div class="band band-large band-completed">
+            <p class="band-large-status">
+                <img class="band-icon" src="res:images/file-list.png" alt=""/>
+                <strong class="band-status">DOSSIER COMPLET</strong>
+            </p>
+            <p><th:block th:replace="~{fragments :: tag(${m}, ${m.plural ? ' par les candidats' : ' par le candidat'})}"></th:block></p>
+            <h1 class="band-title"><span class="band-title-intro">Documents de</span><span th:class="|band-title-names ${namesSize.cssClass}|"
+                  th:text="${m.names}">Camille Lefèvre, Nadia Colin et Thomas Orio</span></h1>
+            <p class="band-date" th:text="|Pièces déposées le ${m.date}|">Pièces déposées le 5 octobre 2026</p>
+        </div>
+
+        <div class="notice notice-in-progress" th:if="${m.inProgress}">
+            <p class="notice-title"><strong th:text="|${m.plural ? 'Les candidats ont' : 'Le candidat a'} demandé une vérification par l'équipe DossierFacile le ${m.requestDate}. Elle est en cours.|">Les candidats ont demandé une vérification par l'équipe DossierFacile le 25 octobre 2026. Elle est en cours.</strong></p>
+        </div>
+        <div class="notice" th:unless="${m.inProgress}">
+            <p class="notice-title"><strong>Ce dossier n'est pas en attente de vérification.</strong></p>
+            <p class="notice-text" th:if="${m.plural}">La vérification par l'équipe DossierFacile est facultative. Les candidats ne l'ont pas demandée. Le dossier reste dans cet état tant qu'ils n'en font pas la demande.</p>
+            <p class="notice-text" th:unless="${m.plural}">La vérification par l'équipe DossierFacile est facultative. Le candidat ne l'a pas demandée. Le dossier reste dans cet état tant que le candidat n'en fait pas la demande.</p>
+        </div>
+
+        <div class="deposit">
+            <p class="deposit-intro" th:text="|${m.plural ? 'Les candidats ont' : 'Le candidat a'} déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées : ${m.inProgress ? 'aucun agent' : 'personne de l\'équipe'} DossierFacile n'a relu les pièces.|">Les candidats ont déposé toutes les pièces demandées.</p>
+            <p class="deposit-request"><strong th:text="|${m.plural ? 'Les locataires peuvent' : 'Le locataire peut'} demander une vérification gratuite à DossierFacile.|">Les locataires peuvent demander une vérification gratuite à DossierFacile.</strong></p>
+            <p class="deposit-link">Comprendre les statuts d'un dossier : <a class="see-page" href="#statuses" title="Comprendre les statuts d'un dossier">voir page </a></p>
+        </div>
+
+        <h2 class="cards-title">Ce dossier contient les pièces de</h2>
+        <!-- Each list item is a row, with a candidate and its guarantors. The engine would not tag a list item that is also a table cell. -->
+        <ul th:if="${!rows.isEmpty()}">
+            <li th:each="row : ${rows}" class="card-row">
+                <div th:class="|cards cards-${row.size()}|">
+                    <th:block th:each="person, stat : ${row}">
+                        <div class="card-gap" th:if="${!stat.first}"></div>
+                        <div class="card">
+                            <p class="card-role" th:text="${person.role}">Candidat</p>
+                            <p class="card-name" th:text="${person.name}">Camille Lefèvre</p>
+                            <p class="card-email" th:if="${person.email != null}">
+                                <a th:href="|mailto:${person.email}|" th:title="|Écrire à ${person.name}|" th:text="${person.email}">camille.lefevre@exemple.fr</a>
+                            </p>
+                            <p class="card-count"><img src="res:images/file-text.png" alt=""/><span th:text="${person.pieceCount}">5 pièces</span></p>
+                        </div>
+                    </th:block>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- "Sommaire, suite" page -->
+    <div th:fragment="summaryPage(m, page)" class="summary-page">
+        <div th:replace="~{fragments :: brand('large')}"></div>
+        <div th:replace="~{fragments :: smallBand(${m}, false)}"></div>
+        <p th:replace="~{fragments :: dossierOf(${m.names})}"></p>
+        <h2 class="summary-continued">Sommaire, suite</h2>
+        <div th:replace="~{fragments :: summary(${page})}"></div>
+    </div>
+
+    <!-- Page of a piece. The draft passes no page, to measure the room left for the image. -->
+    <div th:fragment="piece(m, title, page, size)" class="piece" th:id="${page == null ? null : page.anchor}">
+        <div class="frame">
+            <p th:replace="~{fragments :: dossierOf(${m.names})}"></p>
+            <h1 class="frame-title" th:text="${title}">La pièce d'identité de Camille Lefèvre</h1>
+            <div class="piece-image">
+                <!-- With a "page" attribute, the engine inserts that page of a PDF instead of an image. -->
+                <img th:if="${page != null}" th:src="${page.uri}" th:attr="page=${page.pdfPage}" th:alt="${page.alt}"
+                     th:style="|width: ${size.width}pt; height: ${size.height}pt;|" alt=""/>
+            </div>
+        </div>
+    </div>
+
+    <!-- The pages that follow the cover and the summary, for every status -->
+    <th:block th:fragment="content(m, layout, qrCode, questionnaireUrl)">
+        <!-- Clarification -->
+        <div class="clarification" id="clarification" th:if="${m.clarification != null}">
+            <div class="frame">
+                <p th:replace="~{fragments :: dossierOf(${m.names})}"></p>
+                <h1 class="frame-title" th:text="${m.clarificationTitle}">Le mot des candidats</h1>
+                <p class="clarification-text" th:text="${m.clarification}">Nous cherchons un T4 près du métro.</p>
+            </div>
+        </div>
+
+        <!-- Pieces, with one page per page of each piece -->
+        <th:block th:each="page : ${m.piecePages}"><div th:replace="~{fragments :: piece(${m}, ${page.title}, ${page}, ${layout.imageSize(page)})}"></div></th:block>
+
+        <!-- Statuses -->
+        <div class="statuses" id="statuses">
+            <div>
+                <div th:replace="~{fragments :: brand('small')}"></div>
+                <p class="band-statuses"><img src="res:images/info.png" alt=""/><span>Comprendre les statuts</span></p>
+            </div>
+            <h1 class="statuses-title">Comprendre les statuts d'un dossier DossierFacile</h1>
+
+            <div th:class="|status${m.status.name() == 'COMPLETED' ? ' status-current' : ''}|">
+                <div class="status-heading">
+                    <h2 class="status-title"><img src="res:images/file-list.png" alt="" style="width: 16pt; height: 14.7pt;"/>Dossier complet, non vérifié par l'équipe DossierFacile</h2>
+                    <p class="status-badge-cell" th:if="${m.status.name() == 'COMPLETED'}"><span class="status-badge">Statut de ce dossier</span></p>
+                </div>
+                <p class="status-text">Les candidats ont déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées. Personne de l'équipe DossierFacile n'a relu les pièces.</p>
+                <p class="status-text-next">La vérification par l'équipe DossierFacile est facultative : les locataires choisissent de la demander ou non. Ce dossier n'est donc pas en attente. Il reste dans cet état tant que les locataires n'en font pas la demande.</p>
+            </div>
+            <div th:class="|status${m.inProgress ? ' status-current' : ''}|">
+                <div class="status-heading">
+                    <h2 class="status-title"><img src="res:images/clock.png" alt="" style="width: 14.9pt; height: 13.9pt;"/>Dossier complet, vérification en cours</h2>
+                    <p class="status-badge-cell" th:if="${m.inProgress}"><span class="status-badge">Statut de ce dossier</span></p>
+                </div>
+                <p class="status-text">Les candidats ont déposé toutes les pièces demandées. Seules certaines vérifications automatisées ont été réalisées. Les candidats ont demandé une vérification : personne de l'équipe DossierFacile n'a encore relu les pièces.</p>
+                <p class="status-text-next">À la fin de la vérification, le dossier est validé ou les candidats doivent remplacer des pièces.</p>
+            </div>
+            <div th:class="|status${m.validated ? ' status-current' : ''}|">
+                <div class="status-heading">
+                    <h2 class="status-title"><img src="res:images/shield-grey.png" alt="" style="width: 16pt; height: 16pt;"/>Dossier validé</h2>
+                    <p class="status-badge-cell" th:if="${m.validated}"><span class="status-badge">Statut de ce dossier</span></p>
+                </div>
+                <p class="status-text">Une personne de l'équipe DossierFacile a relu chaque pièce. Elle a contrôlé que les informations correspondent entre les pièces, que les pièces demandées sont présentes, que les dates sont à jour et que les pièces sont lisibles.</p>
+                <p class="status-text-next">DossierFacile ne certifie pas l'origine des pièces, ni la solvabilité des personnes.</p>
+            </div>
+            <div class="status">
+                <h2 class="status-title"><img src="res:images/file-text.png" alt="" style="width: 16pt; height: 16pt;"/>Pièce déposée ou pièce vérifiée</h2>
+                <p class="status-text">Chaque page de pièce reprend le statut du dossier : « Pièce déposée » si personne de l'équipe ne l'a relue, « Pièce vérifiée » si une personne de l'équipe l'a relue.</p>
+            </div>
+
+            <div class="contact">
+                <div class="contact-card">
+                    <h2 class="contact-title"><img src="res:images/flag.png" alt=""/>Signaler une pièce</h2>
+                    <p class="contact-text">Une pièce vous semble fausse ou n'aurait pas dû être validée ? Écrivez-nous.</p>
+                    <a class="contact-link" href="mailto:contact@dossierfacile.fr" title="Écrire à DossierFacile">contact@dossierfacile.fr</a>
+                </div>
+                <div class="contact-spacer"></div>
+                <div class="contact-card">
+                    <div class="feedback">
+                        <p class="feedback-qr-code"><img class="qr-code" th:src="${qrCode}" th:alt="|QR code vers ${questionnaireUrl}|" alt=""/></p>
+                        <div class="feedback-text">
+                            <h2 class="contact-title">Donnez votre avis sur DossierFacile</h2>
+                            <p class="contact-text">Flashez le code ou rendez-vous sur :</p>
+                            <a class="contact-link" th:href="${questionnaireUrl}" title="Questionnaire DossierFacile">dossierfacile.fr/questionnaire</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <div th:fragment="footer" class="footer">
+        <p class="footer-mention">DossierFacile aide à constituer et à partager ce dossier. Il ne garantit pas la location et n'intervient pas dans un litige entre le locataire, le bailleur ou un intermédiaire.</p>
+        <p class="footer-page"><span class="page-number"></span></p>
+    </div>
+
+</fragments>

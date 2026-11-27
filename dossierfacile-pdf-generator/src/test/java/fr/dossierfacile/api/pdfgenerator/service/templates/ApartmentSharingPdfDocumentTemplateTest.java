@@ -5,6 +5,7 @@ import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharin
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
 import org.assertj.core.api.Assertions;
@@ -36,6 +37,9 @@ public class ApartmentSharingPdfDocumentTemplateTest {
     private LogAggregator logAggregator;
     @MockitoBean
     private MailCommonService mailCommonService;
+    // H2 cannot create the tenant_log table, because of its jsonb column.
+    @MockitoBean
+    private TenantLogRepository tenantLogRepository;
     @Autowired
     private ApartmentSharingPdfDocumentTemplate pdfService;
 
@@ -57,8 +61,6 @@ public class ApartmentSharingPdfDocumentTemplateTest {
         }
     }
 
-    // A non verified dossier (COMPLETED or TO_PROCESS) renders without index pages nor
-    // header logos (visual check: target/fullPdfGenerationCompleted.pdf / ...ToProcess.pdf)
     @Test
     void should_generate_pdf_for_completed_dossier(ApartmentSharing apartmentSharing) throws IOException {
         apartmentSharing.getTenants().forEach(tenant -> tenant.setStatus(TenantFileStatus.COMPLETED));
